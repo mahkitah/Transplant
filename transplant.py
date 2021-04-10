@@ -139,7 +139,6 @@ for name, num in releasetype_map[source.id].items():
         break
 # noinspection PyUnboundLocalVariable
 upl_data["releasetype"] = releasetype_map[dest.id][source_reltype_name]
-
 upl_data["remaster"] = tor_info['torrent']['remastered']
 upl_data["remaster_year"] = tor_info['torrent']['remasterYear']
 upl_data["remaster_title"] = html.unescape(tor_info['torrent']['remasterTitle'])
