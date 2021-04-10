@@ -2,12 +2,12 @@ import os
 import html
 import base64
 import sys
+import re
 
 from bencoder import bencode, bdecode
 from hashlib import sha256
 
 from gazelle_api import GazelleApi
-
 import config
 
 
@@ -24,12 +24,42 @@ def make_file_list(path):
     return file_list
 
 
+def parse_input(sys_arg):
+    tid = None
+    match = re.search(r"torrentid=(\d+)", sys_arg)
+    if match:
+        tid = int(match.group(1))
+    else:
+        match2 = re.fullmatch(r"\d+", sys_arg)
+        if match2:
+            tid = int(match2.group(0))
+    return tid
+
+
+def api_filelist_parser(api_resp):
+    api_file_list = api_resp["torrent"]["fileList"]
+    split = html.unescape(api_file_list).split("|||")
+    split[:] = [re.match(r"(.+){{3}\d+}{3}", s).group(1) for s in split]
+    split[:] = [s.split("/") for s in split]
+    return split
+
+
+def api_filelist_checker(api_response, base_path2):
+    torfolder = html.unescape(api_response["torrent"]["filePath"])
+    for fl in api_filelist_parser(api_response):
+        full_path = os.path.join(base_path2, torfolder, *fl)
+        if not os.path.isfile(full_path):
+            raise FileNotFoundError(f"missing file {full_path}")
+
+
 src, dst, tid = sys.argv[1:4]
+
+tor_id = parse_input(tid)
+assert tor_id, f"no valid input: {tid}"
 
 source = GazelleApi(src)
 dest = GazelleApi(dst)
 
-tor_id = tid
 tor_info = source.request("GET", "torrent", id=tor_id)
 
 artist_map = {
@@ -79,6 +109,9 @@ releasetype_map = {
         "Unknown": 21
     }
 }
+# filecheck before we realy start
+
+api_filelist_checker(tor_info, config.torrent_files)
 
 # ----data----
 
@@ -94,7 +127,7 @@ for a_type, names in tor_info['group']['musicInfo'].items():
             artists.append(n['name'])
 
 upl_data["artists[]"] = artists
-upl_data["importance"] = importance
+upl_data["importance[]"] = importance
 upl_data["title"] = html.unescape(tor_info['group']['name'])
 upl_data["year"] = tor_info['group']['year']
 
