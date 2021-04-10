@@ -1,0 +1,6 @@
+0.99
+- initial release
+1.0:
+- Fix, All uploads are marked 'scene' (at least on OPS)
+- Fix, did not html.unescape(base_path) for RED log fie loading
+- Removed Python 3.8 features, now 3.6 compatible (bye bye walruses)
