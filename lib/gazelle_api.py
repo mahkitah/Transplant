@@ -35,13 +35,14 @@ class GazelleApi:
             return url
 
     def _rate_limit(self):
-        if (t := time.time() - self.last_x_reqs[0]) <= 10:
+        t = time.time() - self.last_x_reqs[0]
+        if t <= 10:
             self.report(f"sleeping {10-t}", 3)
             time.sleep(10 - t)
 
     def request(self, req_type, action, data=None, files=None, **kwargs):
-        self.report(f"{self.id} {action=}, {kwargs=}", 4)
-        self.report(f"{data=}", 5)
+        self.report(f"{self.id} {action}, {kwargs}", 4)
+        self.report(f"{data}", 5)
         ajaxpage = self.url + 'ajax.php'
         params = {'action': action}
         params.update(kwargs)
@@ -59,7 +60,7 @@ class GazelleApi:
             raise RequestFailure(f"status code {r.status_code}: {r.reason}")
         try:
             r_dict = r.json()
-            self.report(f"{r_dict=}", 4)
+            self.report(f"{r_dict}", 4)
             if r_dict["status"] == "success":
                 return r_dict["response"]
             elif r_dict["status"] == "failure":
