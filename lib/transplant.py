@@ -132,8 +132,12 @@ class Transplanter:
 
         upl_data["remaster"] = self.tor_info['torrent']['remastered']
         upl_data["remaster_year"] = self.tor_info['torrent']['remasterYear']
-        upl_data["remaster_title"] = html.unescape(self.tor_info['torrent']['remasterTitle'])
-        upl_data["remaster_record_label"] = html.unescape(self.tor_info['torrent']['remasterRecordLabel'])
+
+        # deal with (temporary?) None return on OPS instead of ""
+        # html.unescape can't handle None
+        upl_data["remaster_title"] = html.unescape(self.tor_info['torrent']['remasterTitle'] or "")
+        upl_data["remaster_record_label"] = html.unescape(self.tor_info['torrent']['remasterRecordLabel'] or "")
+
         upl_data["remaster_catalogue_number"] = self.tor_info['torrent']['remasterCatalogueNumber']
         # apparantly 'False' doesn't work for "scene". Must be 'None'
         upl_data["scene"] = None if not self.tor_info['torrent']['scene'] else True
@@ -142,7 +146,18 @@ class Transplanter:
         upl_data["bitrate"] = self.tor_info['torrent']['encoding']
 
         upl_data["vanity_house"] = self.tor_info['group']['vanityHouse']
-        upl_data["tags"] = ",".join(self.tor_info['group']['tags'])
+
+        # There's a 200 character limit for tags
+        tag_list = []
+        ch_count = 0
+        for t in self.tor_info['group']['tags']:
+            ch_count += len(t)
+            if ch_count < 200:
+                tag_list.append(t)
+            else:
+                break
+        upl_data["tags"] = ",".join(tag_list)
+
         upl_data["image"] = self.tor_info['group']['wikiImage']
 
         #  RED uses "bbBody", OPS uses "wikiBBcode"
@@ -151,14 +166,15 @@ class Transplanter:
         upl_data["album_desc"] = html.unescape(d_url_switch)
 
         rel_descr = ui_text.rel_descr.format(self.src_id)
-        if descr := self.tor_info['torrent']['description']:
-            rel_descr += f"\n\n[hide=source description:]{descr}[/hide]"
+        src_descr = self.tor_info['torrent']['description']
+        if src_descr:
+            rel_descr += f"\n\n[hide=source description:]{src_descr}[/hide]"
         upl_data["release_desc"] = rel_descr
 
         # get rid of original release
         if not upl_data["remaster"]:
             upl_data["remaster_year"] = self.tor_info['group']['year']
-            upl_data["remaster_record_label"] = html.unescape(self.tor_info['group']['recordLabel'])
+            upl_data["remaster_record_label"] = html.unescape(self.tor_info['group']['recordLabel'] or "")
             upl_data["remaster_catalogue_number"] = self.tor_info['group']['catalogueNumber']
             upl_data["remaster"] = True
 
@@ -227,7 +243,7 @@ class Transplanter:
         try:
             self.report(f"{ui_text.upl1} {self.dest_id}", 2)
             r = self.dest_api.request("POST", "upload", data=self.upl_data, files=self.upl_files)
-            self.report(f"{r=}", 4)
+            self.report(f"{r}", 4)
         except RequestFailure as e:
             self.report(f"{ui_text.upl3} {str(e)}", 1)
             return
@@ -241,5 +257,3 @@ class Transplanter:
         self.new_upl_url = self.dest_api.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
         self.report(f"{ui_text.upl2} {self.new_upl_url}", 2)
         self.job.dtor_dict[b'comment'] = self.new_upl_url.encode()
-
-

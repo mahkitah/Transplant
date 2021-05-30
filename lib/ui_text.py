@@ -1,4 +1,4 @@
-main_window_title = "Transplant 2.0 beta"
+main_window_title = "Transplant 2.0"
 pb_placeholder = "Paste/type torrent ids and/or urls here.\n" \
                  "Space or newline separated.\n" \
                  "The source buttons only apply to ids."
