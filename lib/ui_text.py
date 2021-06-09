@@ -48,6 +48,8 @@ rel_descr = "Transplanted from {}, thanks to the original uploader."
 upl1 = 'Uploading to'
 upl2 = 'Upload successful:'
 upl3 = 'Upload failed:'
+upl_to_unkn = "Upload edited to 'Unknown Release'"
+edit_fail = "Failed to edit to 'Unknown Release"
 
 # tooltips
 tt_keys = "Get your API-key from the site's user settings\n" \
@@ -62,7 +64,7 @@ tt_del_dtors = "If checked, .torrents from the scan folder will be deleted after
             "These will not be deleted."
 tt_check_files = "if checked, Transplant will verify that the torrent content (~music files) can be found.\n" \
                  "This will prevent transplanting torrents that you can't seed."
-tt_show_tips = "Upload your torrenting history to the local authorities."
+tt_show_tips = "Locally reverse gravity."
 tt_verbosity = "Level of feedback.\n" \
                "0: silent\n" \
                "1: only errors\n" \
@@ -85,4 +87,4 @@ tt_rem_sel_but = "Remove selected jobs (torrents) from the job list."
 tt_rem_dupl_but = "Remove duplicate jobs (torrents) from the job list."
 tt_open_tsavedir = "Open torrent save location"
 tt_go_but = "Start Transplanting.\n" \
-            "Or destroy civilisation. One of the two"
+            "Or order some food. One of the two"

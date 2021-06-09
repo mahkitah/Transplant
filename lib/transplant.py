@@ -6,9 +6,7 @@ from bencoder import bencode, bdecode
 from hashlib import sha1, sha256
 
 from lib.gazelle_api import RequestFailure
-from lib import utils
-from lib import ui_text
-from lib import constants
+from lib import utils, ui_text, constants
 
 
 choose_the_other = utils.choose_the_other([ui_text.tracker_1, ui_text.tracker_2])
@@ -102,6 +100,7 @@ class Transplanter:
         if self.file_check:
             self.check_files()
 
+        self.edit_to_unknown = False
         self.upl_data = self.generate_upload_data()
         self.upl_files = self.getfiles()
         self.new_upl_url = None
@@ -131,15 +130,29 @@ class Transplanter:
                 break
 
         upl_data["remaster"] = self.tor_info['torrent']['remastered']
-        upl_data["remaster_year"] = self.tor_info['torrent']['remasterYear']
 
-        # deal with (temporary?) None return on OPS instead of ""
-        # html.unescape can't handle None
-        upl_data["remaster_title"] = html.unescape(self.tor_info['torrent']['remasterTitle'] or "")
-        upl_data["remaster_record_label"] = html.unescape(self.tor_info['torrent']['remasterRecordLabel'] or "")
+        remaster_year = self.tor_info['torrent']['remasterYear']
+        # Unknown releases
+        if self.src_id == "RED" and remaster_year == 0:
+            upl_data['unknown'] = True
+            # Due to bug, there has to be a rem.year > 1982
+            upl_data['remaster_year'] = '2000'
 
-        upl_data["remaster_catalogue_number"] = self.tor_info['torrent']['remasterCatalogueNumber']
-        # apparantly 'False' doesn't work for "scene". Must be 'None'
+        elif self.src_id == "OPS" and self.tor_info['torrent']['remastered'] and not remaster_year:
+            upl_data['remaster_year'] = '1990'
+            upl_data["remaster_title"] = 'Unknown release year'
+            self.edit_to_unknown = True
+
+        else:
+            upl_data["remaster_year"] = remaster_year
+
+            # deal with (temporary?) None return on OPS instead of ""
+            # html.unescape can't handle None. Hence 'or ""'
+            upl_data["remaster_title"] = html.unescape(self.tor_info['torrent']['remasterTitle'] or "")
+            upl_data["remaster_record_label"] = html.unescape(self.tor_info['torrent']['remasterRecordLabel'] or "")
+            upl_data["remaster_catalogue_number"] = self.tor_info['torrent']['remasterCatalogueNumber']
+
+        # apparantly 'False' doesn't work for "scene" on OPS. Must be 'None'
         upl_data["scene"] = None if not self.tor_info['torrent']['scene'] else True
         upl_data["media"] = self.tor_info['torrent']['media']
         upl_data["format"] = self.tor_info['torrent']['format']
@@ -162,8 +175,8 @@ class Transplanter:
 
         #  RED uses "bbBody", OPS uses "wikiBBcode"
         d = self.tor_info['group'].get("bbBody", self.tor_info['group'].get("wikiBBcode"))
-        d_url_switch = d.replace(self.src_api.url, self.dest_api.url)
-        upl_data["album_desc"] = html.unescape(d_url_switch)
+        d_url_switched = d.replace(self.src_api.url, self.dest_api.url)
+        upl_data["album_desc"] = html.unescape(d_url_switched)
 
         rel_descr = ui_text.rel_descr.format(self.src_id)
         src_descr = self.tor_info['torrent']['description']
@@ -253,6 +266,13 @@ class Transplanter:
         # RED = lowercase keys. OPS = camelCase keys
         group_id = r.get('groupId', r.get('groupid'))
         torrent_id = r.get('torrentId', r.get('torrentid'))
+
+        if self.edit_to_unknown:
+            try:
+                self.dest_api.request("POST", "torrentedit", id=torrent_id, data={'unknown': True})
+                self.report(ui_text.upl_to_unkn, 3)
+            except RequestFailure as e:
+                self.report(f"{ui_text.edit_fail} because of:{str(e)}")
 
         self.new_upl_url = self.dest_api.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
         self.report(f"{ui_text.upl2} {self.new_upl_url}", 2)
