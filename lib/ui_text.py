@@ -12,7 +12,7 @@ tab_joblist = "Job list"
 tab_results = "Results"
 pb_clear = "Clear"
 pb_rem_sel = "Rem sel"
-pb_rem_dupl = "Rem dupl"
+pb_del_sel = "Del sel"
 pb_open_tsavedir = "Save dir"
 pb_go = "Go"
 
@@ -94,7 +94,7 @@ tt_scan_but = "Scan the 'scan folder' for .torrents and add them to the job list
                  "Subfolders will not be scanned."
 tt_clear_but = "Empty the job list or results pane."
 tt_rem_sel_but = "Remove selected jobs (torrents) from the job list."
-tt_rem_dupl_but = "Remove duplicate jobs (torrents) from the job list."
+tt_del_sel_but = "Delete selected .torrent files from scan dir"
 tt_open_tsavedir = "Open torrent save location"
 tt_go_but = "Start Transplanting.\n" \
             "Or order some food. One of the two"

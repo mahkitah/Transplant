@@ -131,6 +131,7 @@ class MainWindow(QWidget):
 
         self.pb_clear = QPushButton(ui_text.pb_clear)
         self.pb_rem_sel = QPushButton(ui_text.pb_rem_sel)
+        self.pb_del_sel = QPushButton(ui_text.pb_del_sel)
         self.pb_open_tsavedir = QPushButton(ui_text.pb_open_tsavedir)
         self.pb_go = QPushButton(ui_text.pb_go)
         self.pb_go.setEnabled(False)
@@ -182,6 +183,7 @@ class MainWindow(QWidget):
         control_buttons.addSpacing(20)
         control_buttons.addWidget(self.pb_clear)
         control_buttons.addWidget(self.pb_rem_sel)
+        control_buttons.addWidget(self.pb_del_sel)
         control_buttons.addStretch(3)
         control_buttons.addWidget(self.pb_open_tsavedir)
         control_buttons.addStretch(1)
@@ -216,6 +218,7 @@ class MainWindow(QWidget):
         self.pb_scan.clicked.connect(self.scan_dtorrents)
         self.pb_clear.clicked.connect(self.clear_button)
         self.pb_rem_sel.clicked.connect(self.remove_selected)
+        self.pb_del_sel.clicked.connect(self.delete_selected)
         self.pb_open_tsavedir.clicked.connect(lambda: utils.open_local_folder(self.settings.value('settings/dtor_save_dir')))
         self.le_scandir.textChanged.connect(lambda: self.enable_button(self.pb_scan, bool(self.le_scandir.text())))
         self.ac_select_scandir.triggered.connect(self.select_scan_dir)
@@ -318,6 +321,7 @@ class MainWindow(QWidget):
             (self.pb_scan, ui_text.tt_scan_but),
             (self.pb_clear, ui_text.tt_clear_but),
             (self.pb_rem_sel, ui_text.tt_rem_sel_but),
+            (self.pb_del_sel, ui_text.tt_del_sel_but),
             (self.pb_open_tsavedir, ui_text.tt_open_tsavedir),
             (self.pb_go, ui_text.tt_go_but),
 
@@ -479,6 +483,17 @@ class MainWindow(QWidget):
             for i in indices:
                 self.job_data.remove(i.row())
             self.job_view.clearSelection()
+
+    def delete_selected(self):
+        indices = self.job_view.selectedIndexes()
+        if indices:
+            indices.sort(reverse=True)
+            for i in indices:
+                job = self.job_data.jobs[i.row()]
+                if job.dtor_path and job.dtor_path.startswith(self.le_scandir.text()):
+                    os.remove(job.dtor_path)
+                    self.job_data.remove(i.row())
+                    self.job_view.clearSelection()
 
     def select_scan_dir(self):
         s_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_select_scandir, self.settings.value('history/scan_dir'))
