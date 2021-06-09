@@ -1,3 +1,5 @@
+- Option to rehost images to ptpimg
+- Handle unknown releases
 2.0
 - Cut off tags at 200 character limit.
 - Workaround for change in OPS api return

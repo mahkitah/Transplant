@@ -6,7 +6,7 @@ from bencoder import bencode, bdecode
 from hashlib import sha1, sha256
 
 from lib.gazelle_api import RequestFailure
-from lib import utils, ui_text, constants
+from lib import utils, ui_text, constants, ptpimg_uploader
 
 
 choose_the_other = utils.choose_the_other([ui_text.tracker_1, ui_text.tracker_2])
@@ -14,7 +14,7 @@ choose_the_other = utils.choose_the_other([ui_text.tracker_1, ui_text.tracker_2]
 
 class Job:
     def __init__(self, src_id=None, tor_id=None, dtor_path=None, data_dir=None, dtor_save_dir=None, save_dtors=False,
-                 del_dtors=False, file_check=True):
+                 del_dtors=False, file_check=True, img_rehost=False, whitelist=None, ptpimg_key=None):
         self.src_id = src_id
         self.tor_id = tor_id
         self.dtor_path = dtor_path
@@ -27,6 +27,12 @@ class Job:
         self.save_dtors = save_dtors
         self.del_dtors = del_dtors
         self.file_check = file_check
+        self.img_rehost = img_rehost
+        self.whitelist = whitelist
+        self.ptpimg_key = ptpimg_key
+        if img_rehost:
+            assert type(whitelist) == list
+            assert type(ptpimg_key) == str
 
         self.upl_succes = False
 
@@ -39,10 +45,8 @@ class Job:
         assert not (self.tor_id and self.info_hash)
 
     def update(self, settings_dict):
-        self.data_dir = settings_dict.get('data_dir', None)
-        self.dtor_save_dir = settings_dict.get('dtor_save_dir', None)
-        self.save_dtors = settings_dict.get('save_dtors', False)
-        self.file_check = settings_dict.get('file_check', True)
+        for k, v in settings_dict.items():
+            setattr(self, k, v)
 
     def parse_dtorrent(self, path):
         with open(path, "rb") as f:
@@ -171,7 +175,11 @@ class Transplanter:
                 break
         upl_data["tags"] = ",".join(tag_list)
 
-        upl_data["image"] = self.tor_info['group']['wikiImage']
+        # cover image
+        if self.job.img_rehost:
+            upl_data["image"] = self.rehost_img()
+        else:
+            upl_data["image"] = self.tor_info['group']['wikiImage']
 
         #  RED uses "bbBody", OPS uses "wikiBBcode"
         d = self.tor_info['group'].get("bbBody", self.tor_info['group'].get("wikiBBcode"))
@@ -193,6 +201,23 @@ class Transplanter:
 
         # upl_data["media"] = 'blabla'
         return upl_data
+
+    def rehost_img(self):
+        whitelist = self.job.whitelist
+        ptpimg_key = self.job.ptpimg_key
+        src_img_url = self.tor_info['group']['wikiImage']
+
+        if any(w in src_img_url for w in whitelist):
+            return src_img_url
+        else:
+            try:
+                rehosted_url = ptpimg_uploader.upload(ptpimg_key, [src_img_url])[0]
+                self.report(f"{ui_text.img_rehosted} {rehosted_url}", 2)
+                return rehosted_url
+
+            except ptpimg_uploader.UploadFailed:
+                self.report(ui_text.rehost_failed, 1)
+                return src_img_url
 
     def getfiles(self):
         files = []
@@ -270,9 +295,9 @@ class Transplanter:
         if self.edit_to_unknown:
             try:
                 self.dest_api.request("POST", "torrentedit", id=torrent_id, data={'unknown': True})
-                self.report(ui_text.upl_to_unkn, 3)
+                self.report(ui_text.upl_to_unkn, 2)
             except RequestFailure as e:
-                self.report(f"{ui_text.edit_fail} because of:{str(e)}")
+                self.report(f"{ui_text.edit_fail} because of:{str(e)}", 1)
 
         self.new_upl_url = self.dest_api.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
         self.report(f"{ui_text.upl2} {self.new_upl_url}", 2)

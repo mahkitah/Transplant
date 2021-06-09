@@ -27,6 +27,11 @@ l_del_dtors = 'Delete scanned .torrents'
 l_file_check = 'Check files'
 l_show_tips = "Show tooltips"
 l_verbosity = 'Verbosity'
+l_rehost = 'Rehost img to ptpimg'
+l_whitelist = 'Image host whitelist'
+l_ptpimg_key = 'PTPimg API-key'
+
+default_whitelist = "ptpimg.me, thesungod.xyz"
 invalid_path_warning = 'Invalid path'
 plural = 's'
 more_warning = 'Please set existing paths'
@@ -50,6 +55,8 @@ upl2 = 'Upload successful:'
 upl3 = 'Upload failed:'
 upl_to_unkn = "Upload edited to 'Unknown Release'"
 edit_fail = "Failed to edit to 'Unknown Release"
+img_rehosted = "Image rehosted:"
+rehost_failed = "Image rehost failed. Using source url."
 
 # tooltips
 tt_keys = "Get your API-key from the site's user settings\n" \
@@ -64,7 +71,7 @@ tt_del_dtors = "If checked, .torrents from the scan folder will be deleted after
             "These will not be deleted."
 tt_check_files = "if checked, Transplant will verify that the torrent content (~music files) can be found.\n" \
                  "This will prevent transplanting torrents that you can't seed."
-tt_show_tips = "Locally reverse gravity."
+tt_show_tips = "Reverse gravity locally."
 tt_verbosity = "Level of feedback.\n" \
                "0: silent\n" \
                "1: only errors\n" \
@@ -72,6 +79,9 @@ tt_verbosity = "Level of feedback.\n" \
                "3: include naptime (see rate limiting in action)\n" \
                "4: debugging\n"\
                "5: include upload data"
+tt_rehost = 'Rehost non-whitelisted cover images to ptpimg'
+tt_whitelist = "Image hosted on these sites will not be rehosted.\n" \
+               "Comma separated"
 tt_source_buts = "Select source tracker for torrent id's entered in the paste box.\n" \
                     "This setting does not apply to url's and .torrents"
 tt_add_but = "Add content of the paste box to the job list.\n" \

@@ -44,9 +44,12 @@ def main():
     job_user_settings = {'data_dir': cli_config.data_dir,
                          'dtor_save_dir': cli_config.torrent_save_dir,
                          'save_dtors': bool(cli_config.torrent_save_dir),
-                         'file_check': cli_config.file_check
-                         }
+                         'file_check': cli_config.file_check}
 
+    if cli_config.img_rehost:
+        job_user_settings.update(img_rehost=True,
+                                 whitelist=cli_config.whitelist,
+                                 ptpimg_key=cli_config.ptpimg_key)
     for arg in args:
         report_back('', 2)
         if arg.lower() == "batch":

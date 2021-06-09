@@ -250,6 +250,12 @@ class MainWindow(QWidget):
         self.spb_verbosity = QSpinBox()
         self.spb_verbosity.setMaximum(5)
         self.spb_verbosity.setMaximumWidth(40)
+        self.chb_rehost = QCheckBox()
+        self.l_rehost = QLabel(ui_text.l_rehost)
+        self.le_whitelist = QLineEdit()
+        self.l_whitelist = QLabel(ui_text.l_whitelist)
+        self.le_ptpimg_key = QLineEdit()
+        self.l_ptpimg_key = QLabel(ui_text.l_ptpimg_key)
         self.pb_cancel = QPushButton(ui_text.pb_cancel)
         self.pb_ok = QPushButton(ui_text.pb_ok)
         self.ac_select_datadir = QAction()
@@ -283,6 +289,9 @@ class MainWindow(QWidget):
         settings_form.addRow(self.l_file_check, self.chb_file_check)
         settings_form.addRow(self.l_show_tips, self.chb_show_tips)
         settings_form.addRow(self.l_verbosity, self.spb_verbosity)
+        settings_form.addRow(self.l_rehost, self.chb_rehost)
+        settings_form.addRow(self.l_whitelist, self.le_whitelist)
+        settings_form.addRow(self.l_ptpimg_key, self.le_ptpimg_key)
 
         total_layout = QVBoxLayout(self.settings_window)
         total_layout.addLayout(settings_form)
@@ -290,7 +299,7 @@ class MainWindow(QWidget):
         total_layout.addLayout(bottom_row)
 
     def ui_settings_connections(self):
-        self.pb_ok.clicked.connect(self.settings_path_check)
+        self.pb_ok.clicked.connect(self.settings_check)
         self.pb_cancel.clicked.connect(self.settings_window.reject)
         self.settings_window.accepted.connect(self.save_settings)
         self.settings_window.accepted.connect(lambda: self.enable_button(self.pb_open_tsavedir, bool(self.le_tor_save_dir.text())))
@@ -322,7 +331,9 @@ class MainWindow(QWidget):
             (self.l_del_dtors, ui_text.tt_del_dtors),
             (self.l_file_check, ui_text.tt_check_files),
             (self.l_show_tips, ui_text.tt_show_tips),
-            (self.l_verbosity, ui_text.tt_verbosity)
+            (self.l_verbosity, ui_text.tt_verbosity),
+            (self.l_rehost, ui_text.tt_rehost),
+            (self.l_whitelist, ui_text.tt_whitelist)
         )
         for x in tiplist:
             x[0].setToolTip(x[1] if flag else '')
@@ -350,24 +361,25 @@ class MainWindow(QWidget):
         self.settings.setValue('settings/dtor_save_dir', t_dir)
         self.le_tor_save_dir.setText(t_dir)
 
-    def settings_path_check(self):
+    def settings_check(self):
         data_dir = self.le_data_dir.text()
         tor_save_dir = self.le_tor_save_dir.text()
+        save_dtors = self.chb_save_dtors.isChecked()
+        rehost = self.chb_rehost.isChecked()
+        ptpimg_key = self.le_ptpimg_key.text()
 
-        invalid_paths = []
+        sum_ting_wong = []
         if not os.path.isdir(data_dir):
-            invalid_paths.append(data_dir)
-        if not os.path.isdir(tor_save_dir):
-            invalid_paths.append(tor_save_dir)
+            sum_ting_wong.append('Invalid data folder')
+        if save_dtors and not os.path.isdir(tor_save_dir):
+            sum_ting_wong.append('Invalid torrent save folder')
+        if rehost and not ptpimg_key:
+            sum_ting_wong.append('No PTPimg API-key')
 
-        if invalid_paths:
+        if sum_ting_wong:
             warning = QMessageBox()
             warning.setIcon(QMessageBox.Warning)
-            warning.setText(
-                ui_text.invalid_path_warning + f"{ui_text.plural if len(invalid_paths) > 1 else ''}:{' ' * 35}.\n\n"
-                + "\n".join((f'"{p}"' for p in invalid_paths)))
-            warning.setInformativeText(ui_text.more_warning)
-            warning.setTextFormat(Qt.PlainText)
+            warning.setText("- " + "\n- ".join(sum_ting_wong))
             warning.exec()
             return
         else:
@@ -389,6 +401,7 @@ class MainWindow(QWidget):
             return
 
         self.tabs.setCurrentIndex(0)
+
         split = re.split("[\n\s]", paste_blob)
 
         if self.settings.value('state/source') == 0:
@@ -546,6 +559,9 @@ class MainWindow(QWidget):
         self.settings.setValue('settings/file_check', int(self.chb_file_check.isChecked()))
         self.settings.setValue('settings/show_tips', int(self.chb_show_tips.isChecked()))
         self.settings.setValue('settings/verbosity', self.spb_verbosity.value())
+        self.settings.setValue('settings/rehost', int(self.chb_rehost.isChecked()))
+        self.settings.setValue('settings/whitelist', self.le_whitelist.text())
+        self.settings.setValue('settings/ptpimg_key', self.le_ptpimg_key.text())
         self.settings.setValue('settings/window_size', self.settings_window.size())
 
         tt_state_after = int(self.settings.value('settings/show_tips'))
@@ -565,6 +581,9 @@ class MainWindow(QWidget):
         self.chb_file_check.setChecked(bool(int(self.settings.value('settings/file_check', defaultValue=1))))
         self.chb_show_tips.setChecked(bool(int(self.settings.value('settings/show_tips', defaultValue=1))))
         self.spb_verbosity.setValue(int(self.settings.value('settings/verbosity', defaultValue=2)))
+        self.chb_rehost.setChecked(bool(int(self.settings.value('settings/rehost', defaultValue=0))))
+        self.le_whitelist.setText(self.settings.value('settings/whitelist', defaultValue=ui_text.default_whitelist))
+        self.le_ptpimg_key.setText(self.settings.value('settings/ptpimg_key'))
 
         if bool(int(self.settings.value('settings/show_tips', defaultValue=1))):
             self.tooltips(True)
@@ -578,12 +597,22 @@ class MainWindow(QWidget):
             self.settings_window.resize(winsize)
 
     def load_job_user_settings(self):
-        return {
+        user_settings = {
             'data_dir': self.settings.value('settings/data_dir'),
             'dtor_save_dir': self.settings.value('settings/dtor_save_dir', defaultValue=None),
             'save_dtors': bool(int(self.settings.value('settings/save_dtors', defaultValue=False))),
             'file_check': bool(int(self.settings.value('settings/file_check', defaultValue=True))),
         }
+        if bool(int(self.settings.value('settings/rehost'))):
+            whitelist = []
+            white_str_nospace = ''.join(self.settings.value('settings/whitelist').split())
+            if white_str_nospace:
+                whitelist.extend(white_str_nospace.split(','))
+
+            user_settings.update(img_rehost=True,
+                                 whitelist=whitelist,
+                                 ptpimg_key=self.settings.value('settings/ptpimg_key'))
+        return user_settings
 
     def save_state(self):
         self.settings.setValue('geometry/size', self.size())
