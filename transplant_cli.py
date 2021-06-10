@@ -44,7 +44,10 @@ def main():
     job_user_settings = {'data_dir': cli_config.data_dir,
                          'dtor_save_dir': cli_config.torrent_save_dir,
                          'save_dtors': bool(cli_config.torrent_save_dir),
-                         'file_check': cli_config.file_check}
+                         'file_check': cli_config.file_check,
+                         'rel_descr': cli_config.rel_descr,
+                         'add_src_descr': cli_config.add_src_descr,
+                         'src_descr': cli_config.src_descr}
 
     if cli_config.img_rehost:
         job_user_settings.update(img_rehost=True,

@@ -1,4 +1,4 @@
-main_window_title = "Transplant 2.0"
+main_window_title = "Transplant 2.1"
 pb_placeholder = "Paste/type torrent ids and/or urls here.\n" \
                  "Space or newline separated.\n" \
                  "The source buttons only apply to ids."
@@ -17,6 +17,8 @@ pb_open_tsavedir = "Save dir"
 pb_go = "Go"
 
 s_window_title = "Settings"
+main_tab = 'Main'
+desc_tab = 'Rel Descr'
 pb_cancel = "Cancel"
 pb_ok = "OK"
 l_key_1 = f"API-key {tracker_1}"
@@ -30,11 +32,24 @@ l_verbosity = 'Verbosity'
 l_rehost = 'Rehost img to ptpimg'
 l_whitelist = 'Image host whitelist'
 l_ptpimg_key = 'PTPimg API-key'
+l_variables = "Set a custom release description.\n\n" \
+              "You can use these variables:\n" \
+              "%src_id% :   Source id (OPS/RED)\n" \
+              "%src_url% :  Source url (eg https://redacted.ch/)\n" \
+              "%ori_upl% :  Name of uploader\n" \
+              "%upl_id% :   id of uploader\n" \
+              "%tor_id% :   Source torrent id\n" \
+              "%gr_id% :    Source torrent group id\n"
+pb_def_descr = 'Defaults'
+chb_add_src_desc = "Add release description from source if present. (Must contain %src_descr%)"
+def_rel_descr = "Transplanted from %src_id%, thanks to the original uploader."
+def_src_descr = "[hide=source description:]%src_descr%[/hide]"
 
 default_whitelist = "ptpimg.me, thesungod.xyz"
-invalid_path_warning = 'Invalid path'
-plural = 's'
-more_warning = 'Please set existing paths'
+sum_ting_wong_1 = 'Invalid data folder'
+sum_ting_wong_2 = 'Invalid torrent save folder'
+sum_ting_wong_3 = 'No PTPimg API-key'
+sum_ting_wong_4 = 'Source description text must contain %src_descr%'
 
 start = 'Starting'
 thread_finish = '\nFinished'
@@ -48,15 +63,15 @@ bad_tor = f'Not a {tracker_1} or {tracker_2} .torrent'
 missing = "Can't locate:"
 no_log = "No logs found"
 f_checked = 'Files checked'
-rel_descr = "Transplanted from {}, thanks to the original uploader."
 
+requesting = "Requesting torrent info"
 upl1 = 'Uploading to'
 upl2 = 'Upload successful:'
 upl3 = 'Upload failed:'
 upl_to_unkn = "Upload edited to 'Unknown Release'"
 edit_fail = "Failed to edit to 'Unknown Release"
 img_rehosted = "Image rehosted:"
-rehost_failed = "Image rehost failed. Using source url."
+rehost_failed = "Image rehost failed. Using source url"
 
 # tooltips
 tt_keys = "Get your API-key from the site's user settings\n" \
@@ -80,8 +95,9 @@ tt_verbosity = "Level of feedback.\n" \
                "4: debugging\n"\
                "5: include upload data"
 tt_rehost = 'Rehost non-whitelisted cover images to ptpimg'
-tt_whitelist = "Image hosted on these sites will not be rehosted.\n" \
+tt_whitelist = "Images hosted on these sites will not be rehosted.\n" \
                "Comma separated"
+tt_def_descr = 'Restore default descriptions'
 tt_source_buts = "Select source tracker for torrent id's entered in the paste box.\n" \
                     "This setting does not apply to url's and .torrents"
 tt_add_but = "Add content of the paste box to the job list.\n" \

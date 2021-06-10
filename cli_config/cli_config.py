@@ -25,3 +25,21 @@ verbosity = 2
 img_rehost = False
 whitelist = ["ptpimg.me", "thesungod.xyz"]
 ptpimg_key = '123456'
+
+# "Set a custom release description.
+
+# You can use these variables:\n"
+# %src_id% :   Source id (OPS/RED)
+# "%src_url% :  Source url (eg https://redacted.ch/)
+# "%ori_upl% :  Name of uploader
+# "%upl_id% :   id of uploader
+# "%tor_id% :   Source torrent id
+# "%gr_id% :    Source torrent group id
+
+rel_descr = "Transplanted from %src_id%, thanks to the original uploader."
+
+# Add release description from source if present
+add_src_descr = True
+
+# Must contain %src_descr%
+src_descr = '[hide=source description:]%src_descr%[/hide]'

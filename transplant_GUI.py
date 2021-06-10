@@ -234,6 +234,14 @@ class MainWindow(QWidget):
         self.settings_window.setWindowTitle(ui_text.s_window_title)
         self.settings_window.setWindowIcon(QIcon('gui_files/gear.svg'))
 
+        self.set_tabs = QTabWidget()
+        self.set_tabs.setDocumentMode(True)
+        self.main_settings = QWidget()
+        self.cust_descr = QWidget()
+        self.set_tabs.addTab(self.main_settings, ui_text.main_tab)
+        self.set_tabs.addTab(self.cust_descr, ui_text.desc_tab)
+
+        # main settings
         self.le_key_1 = QLineEdit()
         self.l_key_1 = QLabel(ui_text.l_key_1)
         self.le_key_2 = QLineEdit()
@@ -266,12 +274,21 @@ class MainWindow(QWidget):
         self.ac_select_torsave = QAction()
         self.ac_select_torsave.setIcon(QIcon("gui_files/open-folder.svg"))
 
+        # descr tab
+        self.l_variables = QLabel(ui_text.l_variables)
+        self.pb_def_descr = QPushButton(ui_text.pb_def_descr)
+        self.l_variables.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.te_rel_descr = QTextEdit()
+        self.chb_add_src_descr = QCheckBox(ui_text.chb_add_src_desc)
+        self.te_src_descr = QTextEdit()
+
     def ui_settings_layout(self):
         bottom_row = QHBoxLayout()
         bottom_row.addStretch()
         bottom_row.addWidget(self.pb_cancel)
         bottom_row.addWidget(self.pb_ok)
 
+        # main
         self.le_data_dir.addAction(self.ac_select_datadir, QLineEdit.TrailingPosition)
         self.le_tor_save_dir.addAction(self.ac_select_torsave, QLineEdit.TrailingPosition)
 
@@ -279,8 +296,7 @@ class MainWindow(QWidget):
         save_dtor.addWidget(self.chb_save_dtors)
         save_dtor.addWidget(self.le_tor_save_dir)
 
-        self.settings_form = QFormLayout()
-        settings_form = self.settings_form
+        settings_form = QFormLayout(self.main_settings)
         settings_form.setLabelAlignment(Qt.AlignRight)
         settings_form.setVerticalSpacing(20)
         settings_form.setHorizontalSpacing(20)
@@ -296,12 +312,30 @@ class MainWindow(QWidget):
         settings_form.addRow(self.l_whitelist, self.le_whitelist)
         settings_form.addRow(self.l_ptpimg_key, self.le_ptpimg_key)
 
+        # descr
+        top_left_descr = QVBoxLayout()
+        top_left_descr.addStretch()
+        top_left_descr.addWidget(self.pb_def_descr)
+
+        top_row_descr = QHBoxLayout()
+        top_row_descr.addWidget(self.l_variables)
+        top_row_descr.addStretch()
+        top_row_descr.addLayout(top_left_descr)
+
+        desc_layout = QVBoxLayout(self.cust_descr)
+        desc_layout.addLayout(top_row_descr)
+        desc_layout.addWidget(self.te_rel_descr)
+        desc_layout.addWidget(self.chb_add_src_descr)
+        desc_layout.addWidget(self.te_src_descr)
+
         total_layout = QVBoxLayout(self.settings_window)
-        total_layout.addLayout(settings_form)
+        total_layout.setContentsMargins(0, 0, 10, 10)
+        total_layout.addWidget(self.set_tabs)
         total_layout.addSpacing(20)
         total_layout.addLayout(bottom_row)
 
     def ui_settings_connections(self):
+        self.pb_def_descr.clicked.connect(self.default_descr)
         self.pb_ok.clicked.connect(self.settings_check)
         self.pb_cancel.clicked.connect(self.settings_window.reject)
         self.settings_window.accepted.connect(self.save_settings)
@@ -337,7 +371,8 @@ class MainWindow(QWidget):
             (self.l_show_tips, ui_text.tt_show_tips),
             (self.l_verbosity, ui_text.tt_verbosity),
             (self.l_rehost, ui_text.tt_rehost),
-            (self.l_whitelist, ui_text.tt_whitelist)
+            (self.l_whitelist, ui_text.tt_whitelist),
+            (self.pb_def_descr, ui_text.tt_def_descr)
         )
         for x in tiplist:
             x[0].setToolTip(x[1] if flag else '')
@@ -371,14 +406,17 @@ class MainWindow(QWidget):
         save_dtors = self.chb_save_dtors.isChecked()
         rehost = self.chb_rehost.isChecked()
         ptpimg_key = self.le_ptpimg_key.text()
+        add_src_descr = self.chb_add_src_descr.isChecked()
 
         sum_ting_wong = []
         if not os.path.isdir(data_dir):
-            sum_ting_wong.append('Invalid data folder')
+            sum_ting_wong.append(ui_text.sum_ting_wong_1)
         if save_dtors and not os.path.isdir(tor_save_dir):
-            sum_ting_wong.append('Invalid torrent save folder')
+            sum_ting_wong.append(ui_text.sum_ting_wong_2)
         if rehost and not ptpimg_key:
-            sum_ting_wong.append('No PTPimg API-key')
+            sum_ting_wong.append(ui_text.sum_ting_wong_3)
+        if add_src_descr and not '%src_descr%' in self.te_src_descr.toPlainText():
+            sum_ting_wong.append(ui_text.sum_ting_wong_4)
 
         if sum_ting_wong:
             warning = QMessageBox()
@@ -388,6 +426,10 @@ class MainWindow(QWidget):
             return
         else:
             self.settings_window.accept()
+
+    def default_descr(self):
+        self.te_rel_descr.setText(ui_text.def_rel_descr)
+        self.te_src_descr.setText(ui_text.def_src_descr)
 
     def tabs_clicked(self, index):
         if index == 0:
@@ -565,6 +607,7 @@ class MainWindow(QWidget):
         tor_save_dir = self.le_tor_save_dir.text()
         tt_state_before = int(self.settings.value('settings/show_tips', defaultValue=1))
 
+        # main
         self.settings.setValue('settings/key_1', self.le_key_1.text())
         self.settings.setValue('settings/key_2', self.le_key_2.text())
         self.settings.setValue('settings/data_dir', os.path.normpath(data_dir) if data_dir else data_dir)
@@ -577,6 +620,12 @@ class MainWindow(QWidget):
         self.settings.setValue('settings/rehost', int(self.chb_rehost.isChecked()))
         self.settings.setValue('settings/whitelist', self.le_whitelist.text())
         self.settings.setValue('settings/ptpimg_key', self.le_ptpimg_key.text())
+
+        # cust descr
+        self.settings.setValue('settings/rel_descr', self.te_rel_descr.toPlainText())
+        self.settings.setValue('settings/add_src_descr', int(self.chb_add_src_descr.isChecked()))
+        self.settings.setValue('settings/src_descr', self.te_src_descr.toPlainText())
+
         self.settings.setValue('settings/window_size', self.settings_window.size())
 
         tt_state_after = int(self.settings.value('settings/show_tips'))
@@ -600,6 +649,10 @@ class MainWindow(QWidget):
         self.le_whitelist.setText(self.settings.value('settings/whitelist', defaultValue=ui_text.default_whitelist))
         self.le_ptpimg_key.setText(self.settings.value('settings/ptpimg_key'))
 
+        self.te_rel_descr.setText(self.settings.value('settings/rel_descr', defaultValue=ui_text.def_rel_descr))
+        self.te_src_descr.setText(self.settings.value('settings/src_descr', defaultValue=ui_text.def_src_descr))
+        self.chb_add_src_descr.setChecked(bool(int(self.settings.value('settings/add_src_descr', defaultValue=1))))
+
         if bool(int(self.settings.value('settings/show_tips', defaultValue=1))):
             self.tooltips(True)
 
@@ -617,13 +670,15 @@ class MainWindow(QWidget):
             'dtor_save_dir': self.settings.value('settings/dtor_save_dir', defaultValue=None),
             'save_dtors': bool(int(self.settings.value('settings/save_dtors', defaultValue=False))),
             'file_check': bool(int(self.settings.value('settings/file_check', defaultValue=True))),
+            'rel_descr': self.settings.value('settings/rel_descr', defaultValue=ui_text.def_rel_descr),
+            'add_src_descr': bool(int(self.settings.value('settings/add_src_descr', defaultValue=1))),
+            'src_descr': self.settings.value('settings/src_descr', defaultValue=ui_text.def_src_descr)
         }
         if bool(int(self.settings.value('settings/rehost'))):
             whitelist = []
             white_str_nospace = ''.join(self.settings.value('settings/whitelist').split())
             if white_str_nospace:
                 whitelist.extend(white_str_nospace.split(','))
-
             user_settings.update(img_rehost=True,
                                  whitelist=whitelist,
                                  ptpimg_key=self.settings.value('settings/ptpimg_key'))

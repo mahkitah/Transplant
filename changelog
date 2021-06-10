@@ -1,3 +1,5 @@
+2.1
+- Customisable release desription
 - Button to delete selected .torrent files from scan dir
 - Option to rehost images to ptpimg
 - Handle unknown releases

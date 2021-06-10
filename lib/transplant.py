@@ -14,14 +14,12 @@ choose_the_other = utils.choose_the_other([ui_text.tracker_1, ui_text.tracker_2]
 
 class Job:
     def __init__(self, src_id=None, tor_id=None, dtor_path=None, data_dir=None, dtor_save_dir=None, save_dtors=False,
-                 del_dtors=False, file_check=True, img_rehost=False, whitelist=None, ptpimg_key=None):
+                 del_dtors=False, file_check=True, img_rehost=False, whitelist=None, ptpimg_key=None, rel_descr=None,
+                 add_src_descr=True, src_descr=None):
+
         self.src_id = src_id
         self.tor_id = tor_id
         self.dtor_path = dtor_path
-        self.info_hash = None
-        self.display_name = None
-        self.dtor_dict = None
-
         self.data_dir = data_dir
         self.dtor_save_dir = dtor_save_dir
         self.save_dtors = save_dtors
@@ -30,10 +28,17 @@ class Job:
         self.img_rehost = img_rehost
         self.whitelist = whitelist
         self.ptpimg_key = ptpimg_key
+        self.rel_descr = rel_descr
+        self.add_src_descr = add_src_descr
+        self.src_descr = src_descr
+
         if img_rehost:
             assert type(whitelist) == list
             assert type(ptpimg_key) == str
 
+        self.info_hash = None
+        self.display_name = None
+        self.dtor_dict = None
         self.upl_succes = False
 
         if dtor_path:
@@ -91,12 +96,16 @@ class Transplanter:
         self.src_api = api_map[self.src_id]
         self.dest_api = api_map[self.dest_id]
 
+        self.report(ui_text.requesting, 2)
         if self.tor_id:
             self.tor_info = self.src_api.request("GET", "torrent", id=self.tor_id)
         elif job.info_hash:
             self.tor_info = self.src_api.request("GET", "torrent", hash=job.info_hash)
         else:
             return
+        # bug/change on OPS returns None instead of ''
+        if self.src_id == 'OPS':
+            utils.dict_replace_values(self.tor_info, None, '')
 
         self.job.display_name = html.unescape(self.tor_info["torrent"]["filePath"])
         self.report(self.job.display_name, 2)
@@ -150,10 +159,8 @@ class Transplanter:
         else:
             upl_data["remaster_year"] = remaster_year
 
-            # deal with (temporary?) None return on OPS instead of ""
-            # html.unescape can't handle None. Hence 'or ""'
-            upl_data["remaster_title"] = html.unescape(self.tor_info['torrent']['remasterTitle'] or "")
-            upl_data["remaster_record_label"] = html.unescape(self.tor_info['torrent']['remasterRecordLabel'] or "")
+            upl_data["remaster_title"] = html.unescape(self.tor_info['torrent']['remasterTitle'])
+            upl_data["remaster_record_label"] = html.unescape(self.tor_info['torrent']['remasterRecordLabel'])
             upl_data["remaster_catalogue_number"] = self.tor_info['torrent']['remasterCatalogueNumber']
 
         # apparantly 'False' doesn't work for "scene" on OPS. Must be 'None'
@@ -186,10 +193,21 @@ class Transplanter:
         d_url_switched = d.replace(self.src_api.url, self.dest_api.url)
         upl_data["album_desc"] = html.unescape(d_url_switched)
 
-        rel_descr = ui_text.rel_descr.format(self.src_id)
+        descr_variables = {
+            '%src_id%': self.src_id,
+            '%src_url%': constants.SITE_URLS[self.src_id],
+            '%ori_upl%': self.tor_info['torrent']['username'],
+            '%upl_id%': str(self.tor_info['torrent']['userId']),
+            '%tor_id%': str(self.tor_info['torrent']['id']),
+            '%gr_id%': str(self.tor_info['group']['id'])
+        }
+
+        rel_descr = utils.multi_replace(self.job.rel_descr, descr_variables)
+
         src_descr = self.tor_info['torrent']['description']
-        if src_descr:
-            rel_descr += f"\n\n[hide=source description:]{src_descr}[/hide]"
+        if src_descr and self.job.add_src_descr:
+            rel_descr += '\n\n' + utils.multi_replace(self.job.src_descr, descr_variables, {'%src_descr%': src_descr})
+
         upl_data["release_desc"] = rel_descr
 
         # get rid of original release
@@ -203,9 +221,13 @@ class Transplanter:
         return upl_data
 
     def rehost_img(self):
+
+        src_img_url = self.tor_info['group']['wikiImage']
+        if not src_img_url:
+            return ''
+
         whitelist = self.job.whitelist
         ptpimg_key = self.job.ptpimg_key
-        src_img_url = self.tor_info['group']['wikiImage']
 
         if any(w in src_img_url for w in whitelist):
             return src_img_url
@@ -215,7 +237,7 @@ class Transplanter:
                 self.report(f"{ui_text.img_rehosted} {rehosted_url}", 2)
                 return rehosted_url
 
-            except ptpimg_uploader.UploadFailed:
+            except (ptpimg_uploader.UploadFailed, ValueError):
                 self.report(ui_text.rehost_failed, 1)
                 return src_img_url
 

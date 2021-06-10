@@ -25,3 +25,20 @@ def choose_the_other(optionlist):
         index_out = index_map[index_in]
         return optionlist[index_out]
     return specified
+
+def multi_replace(src_txt, replace_map, *extra_maps):
+    txt = src_txt
+    tmp_map = dict(replace_map)
+    for x in extra_maps:
+        tmp_map.update(x)
+
+    for k, v in tmp_map.items():
+        txt = txt.replace(k, v)
+    return txt
+
+def dict_replace_values(inp_dict, bad, good):
+    for k, v in inp_dict.items():
+        if v == bad:
+            inp_dict[k] = good
+        if type(v) == dict:
+            dict_replace_values(v, bad, good)
