@@ -11,9 +11,9 @@ from lib import constants, ui_text, utils
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QTabWidget, QTextBrowser, QTextEdit, QLineEdit, QPushButton,\
     QToolButton, QRadioButton, QButtonGroup, QHBoxLayout, QVBoxLayout, QFormLayout, QSpinBox, QCheckBox, \
-    QFileDialog, QAction, QSplitter, QListView, QAbstractItemView, QDialog, QMessageBox
+    QFileDialog, QAction, QSplitter, QTableView, QDialog, QMessageBox, QHeaderView
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt, QSettings, QAbstractListModel, QSize, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, QSettings, QAbstractTableModel, QSize, QThread, pyqtSignal
 
 
 # noinspection PyBroadException
@@ -31,7 +31,9 @@ class TransplantThread(QThread):
     def stop(self):
         self.stop_run = True
 
+    # noinspection PyUnresolvedReferences
     def run(self):
+
         def report_back(msg, msg_verb):
             self.feedback.emit(msg, msg_verb)
 
@@ -72,6 +74,7 @@ class MainWindow(QWidget):
 
         self.setWindowTitle(ui_text.main_window_title)
         self.setWindowIcon(QIcon('gui_files/switch.svg'))
+        self.setStyleSheet("QHeaderView::section {background-color: palette(window)}")
         self.job_data = JobModel()
         self.ui_main_elements()
         self.ui_main_layout()
@@ -118,10 +121,8 @@ class MainWindow(QWidget):
         self.pb_scan = QPushButton(ui_text.pb_scan)
         self.pb_scan.setEnabled(False)
 
-        self.job_view = QListView()
-        self.job_view.setContentsMargins(0, 0, 0, 0)
-        self.job_view.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.job_view.setAlternatingRowColors(True)
+        self.job_view = Viewer(self.job_data)
+
         self.result_view = QTextBrowser()
         self.result_view.setOpenExternalLinks(True)
 
@@ -210,7 +211,6 @@ class MainWindow(QWidget):
         total_layout.addWidget(splitter)
 
     def ui_main_connections(self):
-        self.job_view.setModel(self.job_data)
         self.te_paste_box.textChanged.connect(lambda: self.enable_button(self.pb_add, bool(self.te_paste_box.toPlainText())))
         self.source_b_group.idClicked.connect(self.set_source)
         self.pb_add.clicked.connect(self.parse_paste_input)
@@ -223,7 +223,6 @@ class MainWindow(QWidget):
         self.le_scandir.textChanged.connect(lambda: self.enable_button(self.pb_scan, bool(self.le_scandir.text())))
         self.ac_select_scandir.triggered.connect(self.select_scan_dir)
         self.job_data.layoutChanged.connect(lambda: self.enable_button(self.pb_go, bool(self.job_data)))
-        # self.job_view.selectionChanged()
         self.tb_settings.clicked.connect(self.settings_window.open)
         self.pb_go.clicked.connect(self.gogogo)
         # self.pb_go.clicked.connect(self.slot_blabla)
@@ -378,7 +377,11 @@ class MainWindow(QWidget):
             x[0].setToolTip(x[1] if flag else '')
 
     def slot_blabla(self):
-        print('blabla')
+        for x in self.selected_rows():
+            print(x)
+        if self.tabs.count() == 1:
+            self.tabs.addTab(self.result_view, ui_text.tab_results)
+        self.tabs.setCurrentIndex(1)
 
     @staticmethod
     def enable_button(button, flag):
@@ -518,24 +521,39 @@ class MainWindow(QWidget):
         if self.tabs.currentIndex() == 1:
             self.result_view.clear()
 
-    def remove_selected(self):
+    def selected_rows(self):
         indices = self.job_view.selectedIndexes()
-        if indices:
-            indices.sort(reverse=True)
-            for i in indices:
-                self.job_data.remove(i.row())
-            self.job_view.clearSelection()
+        if not indices:
+            return []
+
+        selected_rows = set()
+        for i in indices:
+            selected_rows.add(i.row())
+
+        return list(selected_rows)
+
+    def remove_selected(self):
+        selected_rows = self.selected_rows()
+        if not selected_rows:
+            return
+
+        selected_rows.sort(reverse=True)
+        for i in selected_rows:
+            self.job_data.remove(i)
+        self.job_view.clearSelection()
 
     def delete_selected(self):
-        indices = self.job_view.selectedIndexes()
-        if indices:
-            indices.sort(reverse=True)
-            for i in indices:
-                job = self.job_data.jobs[i.row()]
-                if job.dtor_path and job.dtor_path.startswith(self.le_scandir.text()):
-                    os.remove(job.dtor_path)
-                    self.job_data.remove(i.row())
-                    self.job_view.clearSelection()
+        selected_rows = self.selected_rows()
+        if not selected_rows:
+            return
+
+        selected_rows.sort(reverse=True)
+        for i in selected_rows:
+            job = self.job_data.jobs[i]
+            if job.dtor_path and job.dtor_path.startswith(self.le_scandir.text()):
+                os.remove(job.dtor_path)
+                self.job_data.remove(i)
+                self.job_view.clearSelection()
 
     def select_scan_dir(self):
         s_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_select_scandir, self.settings.value('history/scan_dir'))
@@ -689,25 +707,78 @@ class MainWindow(QWidget):
         self.settings.setValue('geometry/position', self.pos())
         self.settings.setValue('geometry/splitter_pos', self.splitter.sizes())
 
+class Viewer(QTableView):
+    def __init__(self, model):
+        super().__init__()
+        self.setModel(model)
 
-class JobModel(QAbstractListModel):
+        self.setSelectionBehavior(QTableView.SelectRows)
+        self.setAlternatingRowColors(True)
+        self.setShowGrid(False)
+
+        self.verticalHeader().hide()
+        self.verticalHeader().setMinimumSectionSize(12)
+        self.verticalHeader().setDefaultSectionSize(18)
+
+        self.horizontalHeader().setSectionsClickable(False)
+        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+
+    # def keyPressEvent(self, e):
+    #     return
+
+class JobModel(QAbstractTableModel):
     def __init__(self):
         """
         Can keep a job.
         """
         super().__init__()
         self.jobs = []
+        self.headers = [ui_text.header0, ui_text.header1, ui_text.header2]
 
     def data(self, index, role):
-        if role == Qt.DisplayRole:
+        if role == Qt.DisplayRole or role == Qt.EditRole:
             job = self.jobs[index.row()]
-            if job.display_name:
-                return f"{job.src_id} {job.display_name}"
-            else:
-                return f"{job.src_id} {job.tor_id}"
+            collumn = index.column()
+            if collumn == 0:
+                return job.src_id
+            if collumn == 1:
+                return job.display_name or job.tor_id
+            if collumn == 2:
+                return job.dest_group
 
     def rowCount(self, index):
         return len(self.jobs)
+
+    def columnCount(self, index):
+        return len(self.headers)
+
+    def flags(self, index):
+        if index.column() == 2:
+            return Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        else:
+            return super().flags(index)
+
+    def headerData(self, section: int, orientation: Qt.Orientation, role: int = ...):
+
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            return self.headers[section]
+        else:
+            return super().headerData(section, orientation, role)
+
+    def setData(self, index, value, role=...):
+        print(index.row())
+        if value:
+            try:
+                value = str(int(value))
+            except ValueError:
+                return False
+        else:
+            value = None
+        self.jobs[index.row()].dest_group = value
+
+        return True
 
     def append(self, stuff):
         if stuff not in self.jobs:

@@ -15,6 +15,9 @@ pb_rem_sel = "Rem sel"
 pb_del_sel = "Del sel"
 pb_open_tsavedir = "Save dir"
 pb_go = "Go"
+header0 = 'src'
+header1 = 'torrent'
+header2 = 'dest. group'
 
 s_window_title = "Settings"
 main_tab = 'Main'

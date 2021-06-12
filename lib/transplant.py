@@ -15,7 +15,7 @@ choose_the_other = utils.choose_the_other([ui_text.tracker_1, ui_text.tracker_2]
 class Job:
     def __init__(self, src_id=None, tor_id=None, dtor_path=None, data_dir=None, dtor_save_dir=None, save_dtors=False,
                  del_dtors=False, file_check=True, img_rehost=False, whitelist=None, ptpimg_key=None, rel_descr=None,
-                 add_src_descr=True, src_descr=None):
+                 add_src_descr=True, src_descr=None, dest_group=None):
 
         self.src_id = src_id
         self.tor_id = tor_id
@@ -31,6 +31,7 @@ class Job:
         self.rel_descr = rel_descr
         self.add_src_descr = add_src_descr
         self.src_descr = src_descr
+        self.dest_group = dest_group
 
         if img_rehost:
             assert type(whitelist) == list
@@ -121,6 +122,12 @@ class Transplanter:
     def generate_upload_data(self):
 
         upl_data = {"type": "0"}
+        upl_data["title"] = html.unescape(self.tor_info['group']['name'])
+        upl_data["year"] = self.tor_info['group']['year']
+
+        if self.job.dest_group:
+            upl_data['groupid'] = self.job.dest_group
+
         artists = []
         importance = []
         for a_type, names in self.tor_info['group']['musicInfo'].items():
@@ -132,8 +139,6 @@ class Transplanter:
 
         upl_data["artists[]"] = artists
         upl_data["importance[]"] = importance
-        upl_data["title"] = html.unescape(self.tor_info['group']['name'])
-        upl_data["year"] = self.tor_info['group']['year']
 
         # translate release types
         source_reltype_num = self.tor_info['group']['releaseType']
@@ -221,6 +226,8 @@ class Transplanter:
         return upl_data
 
     def rehost_img(self):
+
+        # https://www.metal-archives.com/images/4/1/6/2/416208.jpg?2227
 
         src_img_url = self.tor_info['group']['wikiImage']
         if not src_img_url:
