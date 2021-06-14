@@ -75,7 +75,7 @@ upl1 = 'Uploading to'
 upl2 = 'Upload successful:'
 upl3 = 'Upload failed:'
 upl_to_unkn = "Upload edited to 'Unknown Release'"
-edit_fail = "Failed to edit to 'Unknown Release"
+edit_fail = "Failed to edit to 'Unknown Release' because of: "
 img_rehosted = "Image rehosted:"
 rehost_failed = "Image rehost failed. Using source url"
 

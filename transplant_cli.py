@@ -25,12 +25,6 @@ def operate(job, api_map):
         traceback.print_exc()
         return
 
-    if job.upl_succes:
-        if job.save_dtors:
-            job.save_dtorrent()
-        if job.del_dtors:
-            os.remove(job.dtor_path)
-
 def main():
 
     api_map = {'RED': GazelleApi("RED", api_keys.get_key("RED"), report=report_back),
@@ -77,7 +71,6 @@ def main():
                 report_back(f"\n{dir_entry.name}", 2)
                 job = Job(dtor_path=dir_entry.path, del_dtors=cli_config.del_dtors, **job_user_settings)
                 operate(job, api_map)
-
 
 if __name__ == "__main__":
     main()

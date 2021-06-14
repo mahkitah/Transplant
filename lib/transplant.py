@@ -72,12 +72,6 @@ class Job:
         info = self.dtor_dict[b'info']
         self.info_hash = sha1(bencode(info)).hexdigest()
 
-    def save_dtorrent(self):
-        assert self.src_id != self.dtor_dict[b"info"][b"source"]
-        file_path = os.path.join(self.dtor_save_dir, self.display_name) + ".torrent"
-        with open(file_path, "wb") as f:
-            f.write(bencode(self.dtor_dict))
-
     def __hash__(self):
         return hash((self.src_id, self.tor_id, self.info_hash))
 
@@ -335,6 +329,12 @@ class Transplanter:
                 raise FileNotFoundError(f"{ui_text.missing} {full_path}")
         self.report(ui_text.f_checked, 2)
 
+    def save_dtorrent(self):
+        assert self.job.src_id != self.job.dtor_dict[b"info"][b"source"]
+        file_path = os.path.join(self.job.dtor_save_dir, self.job.display_name) + ".torrent"
+        with open(file_path, "wb") as f:
+            f.write(bencode(self.job.dtor_dict))
+
     def transplant(self):
         try:
             self.report(f"{ui_text.upl1} {self.dest_id}", 2)
@@ -350,13 +350,22 @@ class Transplanter:
         group_id = r.get('groupId', r.get('groupid'))
         torrent_id = r.get('torrentId', r.get('torrentid'))
 
+        self.new_upl_url = self.dest_api.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
+        self.report(f"{ui_text.upl2} {self.new_upl_url}", 2)
+        self.job.dtor_dict[b'comment'] = self.new_upl_url.encode()
+
         if self.edit_to_unknown:
             try:
                 self.dest_api.request("POST", "torrentedit", id=torrent_id, data={'unknown': True})
                 self.report(ui_text.upl_to_unkn, 2)
             except RequestFailure as e:
-                self.report(f"{ui_text.edit_fail} because of:{str(e)}", 1)
+                self.report(f"{ui_text.edit_fail}{str(e)}", 1)
 
-        self.new_upl_url = self.dest_api.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
-        self.report(f"{ui_text.upl2} {self.new_upl_url}", 2)
-        self.job.dtor_dict[b'comment'] = self.new_upl_url.encode()
+        if self.job.save_dtors:
+            self.save_dtorrent()
+            self.report(f"{ui_text.dtor_saved} {self.job.dtor_save_dir}", 2)
+
+        if self.job.del_dtors:
+            os.remove(self.job.dtor_path)
+            self.report(f"{ui_text.dtor_deleted}", 2)
+

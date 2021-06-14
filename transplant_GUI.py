@@ -43,28 +43,12 @@ class TransplantThread(QThread):
         for job in self.job_data:
             if self.stop_run:
                 break
-
             try:
                 operation = Transplanter(job, api_map, report=report_back)
                 operation.transplant()
             except Exception:
                 self.feedback.emit(traceback.format_exc(), 1)
                 continue
-
-            if job.upl_succes:
-                try:
-                    if job.save_dtors:
-                        job.save_dtorrent()
-                        self.feedback.emit(f"{ui_text.dtor_saved} {job.dtor_save_dir}", 2)
-                except Exception:
-                    self.feedback.emit(traceback.format_exc(), 1)
-                try:
-                    if job.del_dtors:
-                        os.remove(job.dtor_path)
-                        self.feedback.emit(f"{ui_text.dtor_deleted}", 2)
-
-                except Exception:
-                    self.feedback.emit(traceback.format_exc(), 1)
 
 class MainWindow(QWidget):
 
