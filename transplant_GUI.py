@@ -66,7 +66,6 @@ class TransplantThread(QThread):
                 except Exception:
                     self.feedback.emit(traceback.format_exc(), 1)
 
-
 class MainWindow(QWidget):
 
     def __init__(self):
@@ -136,7 +135,7 @@ class MainWindow(QWidget):
         self.pb_open_tsavedir = QPushButton(ui_text.pb_open_tsavedir)
         self.pb_go = QPushButton(ui_text.pb_go)
         self.pb_go.setEnabled(False)
-        self.pb_stop = QPushButton('stop')
+        self.pb_stop = QPushButton(ui_text.pb_stop)
         self.pb_stop.hide()
 
     def ui_main_layout(self):
@@ -720,10 +719,15 @@ class Viewer(QTableView):
         self.verticalHeader().setMinimumSectionSize(12)
         self.verticalHeader().setDefaultSectionSize(18)
 
+        self.horizontalHeader().setMinimumSectionSize(20)
+        self.horizontalHeader().setDefaultSectionSize(25)
+        # self.horizontalHeader().resizeSection(3, 25)
+
         self.horizontalHeader().setSectionsClickable(False)
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         self.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        self.horizontalHeader().setSectionResizeMode(3, QHeaderView.Interactive)
 
     # def keyPressEvent(self, e):
     #     return
@@ -735,18 +739,22 @@ class JobModel(QAbstractTableModel):
         """
         super().__init__()
         self.jobs = []
-        self.headers = [ui_text.header0, ui_text.header1, ui_text.header2]
+        self.headers = [ui_text.header0, ui_text.header1, ui_text.header2, ui_text.header3]
 
     def data(self, index, role):
+
+        collumn = index.column()
+        job = self.jobs[index.row()]
+
         if role == Qt.DisplayRole or role == Qt.EditRole:
-            job = self.jobs[index.row()]
-            collumn = index.column()
             if collumn == 0:
                 return job.src_id
             if collumn == 1:
                 return job.display_name or job.tor_id
             if collumn == 2:
                 return job.dest_group
+        if role == Qt.CheckStateRole and collumn == 3:
+            return Qt.Checked if job.new_dtor else Qt.Unchecked
 
     def rowCount(self, index):
         return len(self.jobs)
@@ -754,9 +762,12 @@ class JobModel(QAbstractTableModel):
     def columnCount(self, index):
         return len(self.headers)
 
+    # noinspection PyTypeChecker
     def flags(self, index):
         if index.column() == 2:
-            return Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+            return super().flags(index) | Qt.ItemIsEditable
+        if index.column() == 3:
+            return super().flags(index) | Qt.ItemIsUserCheckable
         else:
             return super().flags(index)
 
@@ -768,15 +779,18 @@ class JobModel(QAbstractTableModel):
             return super().headerData(section, orientation, role)
 
     def setData(self, index, value, role=...):
-        print(index.row())
-        if value:
+        job = self.jobs[index.row()]
+        collumn = index.column()
+
+        if collumn == 2:
             try:
                 value = str(int(value))
             except ValueError:
-                return False
-        else:
-            value = None
-        self.jobs[index.row()].dest_group = value
+                value = None
+            job.dest_group = value
+
+        if collumn == 3 and role == Qt.CheckStateRole:
+            job.new_dtor = True if value == Qt.Checked else False
 
         return True
 

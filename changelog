@@ -1,3 +1,6 @@
+- Refactoring of upload data code
+- Fix, crash when transplanting CD's with log OPS > RED with .torrent input
+- Create new torrent
 - Upload to specified group
 2.1
 - Customisable release desription

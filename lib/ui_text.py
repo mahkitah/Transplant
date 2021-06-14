@@ -15,9 +15,11 @@ pb_rem_sel = "Rem sel"
 pb_del_sel = "Del sel"
 pb_open_tsavedir = "Save dir"
 pb_go = "Go"
+pb_stop = 'Stop'
 header0 = 'src'
 header1 = 'torrent'
 header2 = 'dest. group'
+header3 = 'nt'
 
 s_window_title = "Settings"
 main_tab = 'Main'
@@ -68,6 +70,7 @@ no_log = "No logs found"
 f_checked = 'Files checked'
 
 requesting = "Requesting torrent info"
+new_tor = 'Generating new torrent'
 upl1 = 'Uploading to'
 upl2 = 'Upload successful:'
 upl3 = 'Upload failed:'
