@@ -1,3 +1,7 @@
+- direct config interactions
+- Major refactoring: autogenerate user input elements
+- GUI, 'Looks' settings
+- GUI, Use stylesheet
 - Refactoring of upload data code
 - Fix, crash when transplanting CD's with log OPS > RED with .torrent input
 - Create new torrent

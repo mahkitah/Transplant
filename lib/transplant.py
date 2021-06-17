@@ -14,9 +14,7 @@ except ImportError:
 from lib.gazelle_api import RequestFailure
 from lib import utils, ui_text, constants, ptpimg_uploader
 
-
 choose_the_other = utils.choose_the_other([ui_text.tracker_1, ui_text.tracker_2])
-
 
 class Job:
     def __init__(self, src_id=None, tor_id=None, dtor_path=None, data_dir=None, dtor_save_dir=None, save_dtors=False,
@@ -77,7 +75,6 @@ class Job:
 
     def __eq__(self, other):
         return (self.src_id, self.tor_id, self.info_hash) == (other.src_id, other.tor_id, other.info_hash)
-
 
 class Transplanter:
     def __init__(self, job, api_map, report=lambda *x: None):
@@ -368,4 +365,3 @@ class Transplanter:
         if self.job.del_dtors:
             os.remove(self.job.dtor_path)
             self.report(f"{ui_text.dtor_deleted}", 2)
-

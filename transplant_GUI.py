@@ -9,11 +9,19 @@ from lib.transplant import Transplanter, Job
 from lib.gazelle_api import GazelleApi
 from lib import constants, ui_text, utils
 
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QTabWidget, QTextBrowser, QTextEdit, QLineEdit, QPushButton,\
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QTabWidget, QTextBrowser, QTextEdit, QLineEdit, QPushButton, \
     QToolButton, QRadioButton, QButtonGroup, QHBoxLayout, QVBoxLayout, QFormLayout, QSpinBox, QCheckBox, \
     QFileDialog, QAction, QSplitter, QTableView, QDialog, QMessageBox, QHeaderView
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSettings, QAbstractTableModel, QSize, QThread, pyqtSignal
+
+
+class MyTextEdit(QTextEdit):
+    plainTextChanged = pyqtSignal(str)
+
+    def __init__(self):
+        super().__init__()
+        self.textChanged.connect(lambda: self.plainTextChanged.emit(self.toPlainText()))
 
 
 # noinspection PyBroadException
@@ -50,6 +58,44 @@ class TransplantThread(QThread):
                 self.feedback.emit(traceback.format_exc(), 1)
                 continue
 
+
+TYPE_MAP = {
+    'le': QLineEdit,
+    'te': MyTextEdit,
+    'chb': QCheckBox,
+    'spb': QSpinBox
+}
+ACTION_MAP = {
+    QLineEdit: (lambda x: x.textChanged, lambda x, y: x.setText(y), lambda x: x),
+    MyTextEdit: (lambda x: x.plainTextChanged, lambda x, y: x.setText(y), lambda x: x),
+    QCheckBox: (lambda x: x.stateChanged, lambda x, y: x.setChecked(y), lambda x: bool(int(x))),
+    QSpinBox: (lambda x: x.valueChanged, lambda x, y: x.setValue(y), lambda x: int(x))
+}
+# name, default value, make label
+CONFIG_NAMES = (
+    ('le_scandir', '', False),
+    ('le_key_1', None, True),
+    ('le_key_2', None, True),
+    ('le_data_dir', '', True),
+    ('le_dtor_save_dir', '', True),
+    ('chb_save_dtors', 0, False),
+    ('chb_del_dtors', 0, True),
+    ('chb_file_check', 1, True),
+    ('chb_show_tips', 1, True),
+    ('spb_verbosity', 2, True),
+    ('chb_rehost', 0, True),
+    ('le_whitelist', ui_text.default_whitelist, True),
+    ('le_ptpimg_key', None, True),
+    ('te_rel_descr', ui_text.def_rel_descr, False),
+    ('te_src_descr', ui_text.def_src_descr, False),
+    ('chb_add_src_descr', 1, False),
+    ('spb_splitter_weight', 0, True),
+    ('chb_no_icon', 0, True),
+    ('chb_alt_row_colour', 1, True),
+    ('chb_show_grid', 0, True),
+    ('spb_row_height', 20, True)
+)
+
 class MainWindow(QWidget):
 
     def __init__(self):
@@ -63,19 +109,58 @@ class MainWindow(QWidget):
             self.setStyleSheet(stylesheet)
         except FileNotFoundError:
             pass
-        self.settings = QSettings("gui_files/gui.ini", QSettings.IniFormat)
-        self.job_data = JobModel(self.settings)
-        self.ui_main_elements()
+        self.config = QSettings("gui_files/gui_config.ini", QSettings.IniFormat)
+        self.job_data = JobModel(self.config)
+
+        self.user_input_elements()
+        self.ui_elements()
         self.ui_main_layout()
-        self.settings_window = SettingsWindow()
+        self.ui_settings_layout()
         self.ui_main_connections()
         self.ui_settings_connections()
+        self.load_config()
+        self.set_element_properties()
         self.load_main_settings()
-        self.load_settings_settings()
-
         self.show()
 
-    def ui_main_elements(self):
+    def user_input_elements(self):
+
+        for c in CONFIG_NAMES:
+            el_name = c[0]
+            typ, name = el_name.split('_', maxsplit=1)
+
+            # instantiate
+            setattr(self, el_name, TYPE_MAP[typ]())
+
+            # connection to ini
+            def make_lambda(name):
+                return lambda x: self.config.setValue(name, x)
+
+            obj = getattr(self, el_name)
+            ACTION_MAP[type(obj)][0](obj).connect(make_lambda(el_name))
+
+            # instantiate Label
+            if c[2]:
+                label_name = 'l_' + name
+                setattr(self, label_name, QLabel(getattr(ui_text, label_name)))
+
+    def set_element_properties(self):
+
+        self.le_scandir.setPlaceholderText(ui_text.tt_select_scandir)
+
+        self.spb_verbosity.setMaximum(5)
+        self.spb_verbosity.setMaximumWidth(40)
+
+        self.chb_add_src_descr.setText(ui_text.chb_add_src_descr)
+
+        self.spb_splitter_weight.setMaximum(10)
+        self.spb_splitter_weight.setMaximumWidth(40)
+
+        self.spb_row_height.setMinimum(12)
+        self.spb_row_height.setMaximum(99)
+        self.spb_row_height.setMaximumWidth(40)
+
+    def ui_elements(self):
 
         self.topwidget = QWidget()
         self.bottomwidget = QWidget()
@@ -92,9 +177,9 @@ class MainWindow(QWidget):
 
         self.rb_RED = QRadioButton(ui_text.tracker_1)
         self.rb_OPS = QRadioButton(ui_text.tracker_2)
-        self.source_b_group = QButtonGroup()
-        self.source_b_group.addButton(self.rb_RED, 0)
-        self.source_b_group.addButton(self.rb_OPS, 1)
+        self.bg_source = QButtonGroup()
+        self.bg_source.addButton(self.rb_RED, 0)
+        self.bg_source.addButton(self.rb_OPS, 1)
 
         self.pb_add = QPushButton(ui_text.pb_add)
         self.pb_add.setEnabled(False)
@@ -103,12 +188,21 @@ class MainWindow(QWidget):
 
         self.ac_select_scandir = QAction()
         self.ac_select_scandir.setIcon(QIcon("gui_files/open-folder.svg"))
-        self.le_scandir = QLineEdit()
-        self.le_scandir.setPlaceholderText(ui_text.tt_select_scandir)
         self.pb_scan = QPushButton(ui_text.pb_scan)
         self.pb_scan.setEnabled(False)
 
-        self.job_view = Viewer(self.job_data)
+        self.job_view = QTableView()
+        self.job_view.setModel(self.job_data)
+        self.job_view.setSelectionBehavior(QTableView.SelectRows)
+        self.job_view.verticalHeader().hide()
+        self.job_view.verticalHeader().setMinimumSectionSize(12)
+        self.job_view.horizontalHeader().setSectionsClickable(False)
+        self.job_view.horizontalHeader().setMinimumSectionSize(18)
+        self.job_view.horizontalHeader().setDefaultSectionSize(20)
+        self.job_view.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.job_view.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.job_view.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        self.job_view.horizontalHeader().setSectionResizeMode(3, QHeaderView.Interactive)
 
         self.result_view = QTextBrowser()
         self.result_view.setOpenExternalLinks(True)
@@ -125,6 +219,33 @@ class MainWindow(QWidget):
         self.pb_go.setEnabled(False)
         self.pb_stop = QPushButton(ui_text.pb_stop)
         self.pb_stop.hide()
+
+        self.config_tabs = QTabWidget()
+        self.config_tabs.setDocumentMode(True)
+        self.main_settings = QWidget()
+        self.cust_descr = QWidget()
+        self.looks = QWidget()
+        self.config_tabs.addTab(self.main_settings, ui_text.main_tab)
+        self.config_tabs.addTab(self.cust_descr, ui_text.desc_tab)
+        self.config_tabs.addTab(self.looks, ui_text.looks_tab)
+
+        # main settings
+        self.config_window = QDialog(self)
+        self.config_window.setWindowTitle(ui_text.config_window_title)
+        self.config_window.setWindowIcon(QIcon('gui_files/gear.svg'))
+
+        self.pb_cancel = QPushButton(ui_text.pb_cancel)
+        self.pb_ok = QPushButton(ui_text.pb_ok)
+        self.ac_select_datadir = QAction()
+        self.ac_select_datadir.setIcon(QIcon("gui_files/open-folder.svg"))
+        self.ac_select_torsave = QAction()
+        self.ac_select_torsave.setIcon(QIcon("gui_files/open-folder.svg"))
+
+        # descr tab
+        self.l_variables = QLabel(ui_text.l_variables)
+        self.pb_def_descr = QPushButton()
+        self.pb_def_descr.setText(ui_text.pb_def_descr)
+        self.l_variables.setTextInteractionFlags(Qt.TextSelectableByMouse)
 
     def ui_main_layout(self):
         # Top
@@ -197,41 +318,118 @@ class MainWindow(QWidget):
         total_layout.setContentsMargins(0, 0, 0, 0)
         total_layout.addWidget(splitter)
 
+    def ui_settings_layout(self):
+        bottom_row = QHBoxLayout()
+        bottom_row.addStretch()
+        bottom_row.addWidget(self.pb_cancel)
+        bottom_row.addWidget(self.pb_ok)
+
+        # main
+        self.le_data_dir.addAction(self.ac_select_datadir, QLineEdit.TrailingPosition)
+        self.le_dtor_save_dir.addAction(self.ac_select_torsave, QLineEdit.TrailingPosition)
+
+        save_dtor = QHBoxLayout()
+        save_dtor.addWidget(self.chb_save_dtors)
+        save_dtor.addWidget(self.le_dtor_save_dir)
+
+        settings_form = QFormLayout(self.main_settings)
+        settings_form.setLabelAlignment(Qt.AlignRight)
+        settings_form.setVerticalSpacing(20)
+        settings_form.setHorizontalSpacing(20)
+        settings_form.addRow(self.l_key_1, self.le_key_1)
+        settings_form.addRow(self.l_key_2, self.le_key_2)
+        settings_form.addRow(self.l_data_dir, self.le_data_dir)
+        settings_form.addRow(self.l_dtor_save_dir, save_dtor)
+        settings_form.addRow(self.l_del_dtors, self.chb_del_dtors)
+        settings_form.addRow(self.l_file_check, self.chb_file_check)
+        settings_form.addRow(self.l_show_tips, self.chb_show_tips)
+        settings_form.addRow(self.l_verbosity, self.spb_verbosity)
+        settings_form.addRow(self.l_rehost, self.chb_rehost)
+        settings_form.addRow(self.l_whitelist, self.le_whitelist)
+        settings_form.addRow(self.l_ptpimg_key, self.le_ptpimg_key)
+
+        # descr
+        top_left_descr = QVBoxLayout()
+        top_left_descr.addStretch()
+        top_left_descr.addWidget(self.pb_def_descr)
+
+        top_row_descr = QHBoxLayout()
+        top_row_descr.addWidget(self.l_variables)
+        top_row_descr.addStretch()
+        top_row_descr.addLayout(top_left_descr)
+
+        desc_layout = QVBoxLayout(self.cust_descr)
+        desc_layout.addLayout(top_row_descr)
+        desc_layout.addWidget(self.te_rel_descr)
+        desc_layout.addWidget(self.chb_add_src_descr)
+        desc_layout.addWidget(self.te_src_descr)
+
+        # Appearance
+        appearance = QFormLayout(self.looks)
+        appearance.addRow(self.l_splitter_weight, self.spb_splitter_weight)
+        appearance.addRow(self.l_no_icon, self.chb_no_icon)
+        appearance.addRow(self.l_alt_row_colour, self.chb_alt_row_colour)
+        appearance.addRow(self.l_show_grid, self.chb_show_grid)
+        appearance.addRow(self.l_row_height, self.spb_row_height)
+
+        total_layout = QVBoxLayout(self.config_window)
+        total_layout.setContentsMargins(0, 0, 10, 10)
+        total_layout.addWidget(self.config_tabs)
+        total_layout.addSpacing(20)
+        total_layout.addLayout(bottom_row)
+
     def ui_main_connections(self):
-        self.te_paste_box.textChanged.connect(lambda: self.enable_button(self.pb_add, bool(self.te_paste_box.toPlainText())))
-        self.source_b_group.idClicked.connect(self.set_source)
+        self.te_paste_box.textChanged.connect(
+            lambda: self.enable_button(self.pb_add, bool(self.te_paste_box.toPlainText())))
+        self.bg_source.idClicked.connect(lambda x: self.config.setValue('bg_source', x))
         self.pb_add.clicked.connect(self.parse_paste_input)
         self.pb_open_dtors.clicked.connect(self.select_dtors)
         self.pb_scan.clicked.connect(self.scan_dtorrents)
         self.pb_clear.clicked.connect(self.clear_button)
         self.pb_rem_sel.clicked.connect(self.remove_selected)
         self.pb_del_sel.clicked.connect(self.delete_selected)
-        self.pb_open_tsavedir.clicked.connect(lambda: utils.open_local_folder(self.settings.value('settings/dtor_save_dir')))
+        self.pb_open_tsavedir.clicked.connect(lambda: utils.open_local_folder(self.config.value('le_dtor_save_dir')))
         self.le_scandir.textChanged.connect(lambda: self.enable_button(self.pb_scan, bool(self.le_scandir.text())))
         self.ac_select_scandir.triggered.connect(self.select_scan_dir)
         self.job_data.layoutChanged.connect(lambda: self.enable_button(self.pb_go, bool(self.job_data)))
-        self.tb_settings.clicked.connect(self.settings_window.open)
-        # self.pb_go.clicked.connect(self.gogogo)
-        self.pb_go.clicked.connect(self.slot_blabla)
+        self.tb_settings.clicked.connect(self.open_config_window)
+        self.pb_go.clicked.connect(self.gogogo)
+        # self.pb_go.clicked.connect(self.slot_blabla)
         self.tabs.currentChanged.connect(self.tabs_clicked)
 
     def ui_settings_connections(self):
-        self.settings_window.pb_def_descr.clicked.connect(self.default_descr)
-        self.settings_window.pb_ok.clicked.connect(self.settings_check)
-        self.settings_window.pb_cancel.clicked.connect(self.settings_window.reject)
-        self.settings_window.accepted.connect(self.save_settings)
-        self.settings_window.accepted.connect(lambda: self.enable_button(self.pb_open_tsavedir, bool(self.settings_window.le_dtor_save_dir.text())))
-        self.settings_window.accepted.connect(self.job_data.layoutChanged.emit)
-        self.settings_window.rejected.connect(self.load_settings_settings)
-        self.settings_window.ac_select_datadir.triggered.connect(self.select_datadir)
-        self.settings_window.ac_select_torsave.triggered.connect(self.select_torsave)
-        self.settings_window.spb_splitter_weight.valueChanged.connect(self.splitter.setHandleWidth)
-        self.settings_window.chb_alt_row_colour.stateChanged.connect(self.job_view.setAlternatingRowColors)
-        self.settings_window.chb_show_grid.stateChanged.connect(self.job_view.setShowGrid)
-        self.settings_window.spb_row_height.valueChanged.connect(self.job_view.verticalHeader().setDefaultSectionSize)
+        self.pb_def_descr.clicked.connect(self.default_descr)
+        self.pb_ok.clicked.connect(self.settings_check)
+        self.pb_cancel.clicked.connect(self.config_window.reject)
+        self.config_window.accepted.connect(
+            lambda: self.config.setValue('geometry/config_window_size', self.config_window.size()))
+        self.ac_select_datadir.triggered.connect(self.select_datadir)
+        self.ac_select_torsave.triggered.connect(self.select_torsave)
+        self.le_dtor_save_dir.textChanged.connect(lambda x: self.enable_button(self.pb_open_tsavedir, bool(x)))
+        self.chb_show_tips.stateChanged.connect(self.tooltips)
+        self.chb_no_icon.stateChanged.connect(self.job_data.layoutChanged.emit)
+        self.spb_splitter_weight.valueChanged.connect(self.splitter.setHandleWidth)
+        self.chb_alt_row_colour.stateChanged.connect(self.job_view.setAlternatingRowColors)
+        self.chb_show_grid.stateChanged.connect(self.job_view.setShowGrid)
+        self.chb_show_grid.stateChanged.connect(self.job_data.layoutChanged.emit)
+        self.spb_row_height.valueChanged.connect(self.job_view.verticalHeader().setDefaultSectionSize)
 
-    def store_settings(self):
-        self.le_scandir.textChanged.connect()
+    def load_config(self):
+        for c in CONFIG_NAMES:
+            name = c[0]
+            obj = getattr(self, name)
+
+            if not self.config.contains(name):
+                print(name)
+                self.config.setValue(name, c[1])
+
+            actions = ACTION_MAP[type(obj)]
+            value = actions[2](self.config.value(name))
+            actions[1](obj, value)
+            actions[0](obj).emit(value)
+
+        self.le_key_1.setCursorPosition(0)
+        self.le_key_2.setCursorPosition(0)
 
     def tooltips(self, flag):
         tiplist = (
@@ -247,22 +445,22 @@ class MainWindow(QWidget):
             (self.pb_del_sel, ui_text.tt_del_sel_but),
             (self.pb_open_tsavedir, ui_text.tt_open_tsavedir),
             (self.pb_go, ui_text.tt_go_but),
-            (self.tb_settings, ui_text.s_window_title),
+            (self.tb_settings, ui_text.config_window_title),
             (self.splitter.handle(1), ui_text.tt_spliter),
 
-            (self.settings_window.l_key_1, ui_text.tt_keys),
-            (self.settings_window.l_key_2, ui_text.tt_keys),
-            (self.settings_window.l_data_dir, ui_text.tt_data_dir),
-            (self.settings_window.ac_select_datadir, ui_text.tt_sel_ddir),
-            (self.settings_window.l_tor_save_dir, ui_text.tt_dtor_save_dir),
-            (self.settings_window.ac_select_torsave, ui_text.tt_sel_dtor_save_dir),
-            (self.settings_window.l_del_dtors, ui_text.tt_del_dtors),
-            (self.settings_window.l_file_check, ui_text.tt_check_files),
-            (self.settings_window.l_show_tips, ui_text.tt_show_tips),
-            (self.settings_window.l_verbosity, ui_text.tt_verbosity),
-            (self.settings_window.l_rehost, ui_text.tt_rehost),
-            (self.settings_window.l_whitelist, ui_text.tt_whitelist),
-            (self.settings_window.pb_def_descr, ui_text.tt_def_descr)
+            (self.l_key_1, ui_text.tt_keys),
+            (self.l_key_2, ui_text.tt_keys),
+            (self.l_data_dir, ui_text.tt_data_dir),
+            (self.ac_select_datadir, ui_text.tt_sel_ddir),
+            (self.l_dtor_save_dir, ui_text.tt_dtor_save_dir),
+            (self.ac_select_torsave, ui_text.tt_sel_dtor_save_dir),
+            (self.l_del_dtors, ui_text.tt_del_dtors),
+            (self.l_file_check, ui_text.tt_check_files),
+            (self.l_show_tips, ui_text.tt_show_tips),
+            (self.l_verbosity, ui_text.tt_verbosity),
+            (self.l_rehost, ui_text.tt_rehost),
+            (self.l_whitelist, ui_text.tt_whitelist),
+            (self.pb_def_descr, ui_text.tt_def_descr)
         )
         for x in tiplist:
             x[0].setToolTip(x[1] if flag else '')
@@ -275,37 +473,46 @@ class MainWindow(QWidget):
         button.setEnabled(flag)
 
     def select_datadir(self):
-        d_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_sel_ddir, self.settings.value('settings/data_dir'))
+        d_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_sel_ddir, self.config.value('le_data_dir'))
         if not d_dir:
             return
         d_dir = os.path.normpath(d_dir)
-        self.settings.setValue('settings/data_dir', d_dir)
-        self.settings_window.le_data_dir.setText(d_dir)
+        self.config.setValue('le_data_dir', d_dir)
+        self.le_data_dir.setText(d_dir)
 
     def select_torsave(self):
-        t_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_sel_dtor_save_dir, self.settings.value('settings/dtor_save_dir'))
+        t_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_sel_dtor_save_dir,
+                                                 self.config.value('le_dtor_save_dir'))
         if not t_dir:
             return
         t_dir = os.path.normpath(t_dir)
-        self.settings.setValue('settings/dtor_save_dir', t_dir)
-        self.settings_window.le_dtor_save_dir.setText(t_dir)
+        self.config.setValue('le_dtor_save_dir', t_dir)
+        self.le_dtor_save_dir.setText(t_dir)
+
+    def open_config_window(self):
+
+        winsize = self.config.value('geometry/config_window_size')
+        if winsize:
+            self.config_window.resize(winsize)
+
+        self.config_window.open()
 
     def settings_check(self):
-        data_dir = self.settings_window.le_data_dir.text()
-        tor_save_dir = self.settings_window.le_dtor_save_dir.text()
-        save_dtors = self.settings_window.chb_save_dtors.isChecked()
-        rehost = self.settings_window.chb_rehost.isChecked()
-        ptpimg_key = self.settings_window.le_ptpimg_key.text()
-        add_src_descr = self.settings_window.chb_add_src_descr.isChecked()
+        data_dir = self.config.value('le_data_dir')
+        dtor_save_dir = self.config.value('le_dtor_save_dir')
+        save_dtors = self.chb_save_dtors.isChecked()
+        rehost = self.chb_rehost.isChecked()
+        ptpimg_key = self.config.value('le_ptpimg_key')
+        add_src_descr = self.chb_add_src_descr.isChecked()
 
         sum_ting_wong = []
         if not os.path.isdir(data_dir):
             sum_ting_wong.append(ui_text.sum_ting_wong_1)
-        if save_dtors and not os.path.isdir(tor_save_dir):
+        if save_dtors and not os.path.isdir(dtor_save_dir):
             sum_ting_wong.append(ui_text.sum_ting_wong_2)
         if rehost and not ptpimg_key:
             sum_ting_wong.append(ui_text.sum_ting_wong_3)
-        if add_src_descr and not '%src_descr%' in self.settings_window.te_src_descr.toPlainText():
+        if add_src_descr and '%src_descr%' not in self.te_src_descr.toPlainText():
             sum_ting_wong.append(ui_text.sum_ting_wong_4)
 
         if sum_ting_wong:
@@ -315,20 +522,17 @@ class MainWindow(QWidget):
             warning.exec()
             return
         else:
-            self.settings_window.accept()
+            self.config_window.accept()
 
     def default_descr(self):
-        self.settings_window.te_rel_descr.setText(ui_text.def_rel_descr)
-        self.settings_window.te_src_descr.setText(ui_text.def_src_descr)
+        self.te_rel_descr.setText(ui_text.def_rel_descr)
+        self.te_src_descr.setText(ui_text.def_src_descr)
 
     def tabs_clicked(self, index):
         if index == 0:
             self.pb_rem_sel.setEnabled(True)
         else:
             self.pb_rem_sel.setEnabled(False)
-
-    def set_source(self, id):
-        self.settings.setValue('state/source', id)
 
     def parse_paste_input(self):
 
@@ -338,16 +542,14 @@ class MainWindow(QWidget):
 
         self.tabs.setCurrentIndex(0)
 
-        split = paste_blob.split()
-
-        if self.settings.value('state/source') == 0:
+        if self.config.value('bg_source') == 0:
             src_id = ui_text.tracker_1
-        elif self.settings.value('state/source') == 1:
+        elif self.config.value('bg_source') == 1:
             src_id = ui_text.tracker_2
         else:
-            src_id = None
+            return
 
-        for line in split:
+        for line in paste_blob.split():
             match_id = re.fullmatch(r"\d+", line)
             if match_id:
                 self.job_data.append(Job(src_id=src_id, tor_id=line))
@@ -363,7 +565,7 @@ class MainWindow(QWidget):
     def select_dtors(self):
 
         file_paths = QFileDialog.getOpenFileNames(self, ui_text.sel_dtors_window_title,
-                                                  self.settings.value('history/torselect_dir'),
+                                                  self.config.value('torselect_dir'),
                                                   "torrents (*.torrent);;All Files (*)")[0]
         if not file_paths:
             return
@@ -374,7 +576,7 @@ class MainWindow(QWidget):
         else:
             common_path = os.path.dirname(file_paths[0])
 
-        self.settings.setValue('history/torselect_dir', os.path.normpath(common_path))
+        self.config.setValue('torselect_dir', os.path.normpath(common_path))
 
         for p in file_paths:
             if os.path.isfile(p) and p.endswith(".torrent"):
@@ -389,15 +591,13 @@ class MainWindow(QWidget):
         if path and os.path.isdir(path):
             self.tabs.setCurrentIndex(0)
 
-            del_dtors = bool(int(self.settings.value('settings/del_dtors', defaultValue=False)))
-
             for i in os.scandir(self.le_scandir.text()):
                 if i.is_file() and i.name.endswith(".torrent"):
                     try:
-                        self.job_data.append(Job(dtor_path=i.path, del_dtors=del_dtors))
+                        self.job_data.append(Job(dtor_path=i.path))
                     except (AssertionError, BTFailure):
                         continue
-            self.settings.setValue('history/scan_dir', os.path.normpath(path))
+            self.config.setValue('le_scandir', os.path.normpath(path))
 
     def clear_button(self):
         # job list
@@ -443,11 +643,11 @@ class MainWindow(QWidget):
                 self.job_view.clearSelection()
 
     def select_scan_dir(self):
-        s_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_select_scandir, self.settings.value('history/scan_dir'))
+        s_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_select_scandir, self.config.value('le_scandir'))
         if not s_dir:
             return
         s_dir = os.path.normpath(s_dir)
-        self.settings.setValue('history/scan_dir', s_dir)
+        self.config.setValue('le_scandir', s_dir)
         self.le_scandir.setText(s_dir)
 
     @staticmethod
@@ -463,17 +663,16 @@ class MainWindow(QWidget):
         if not self.job_data:
             return
 
-        min_req_config = ("settings/key_1", "settings/key_2", "settings/data_dir")
-        if not all(self.settings.value(x) for x in min_req_config):
-            self.settings_window.open()
+        min_req_config = ("le_key_1", "le_key_2", "le_data_dir")
+        if not all(self.config.value(x) for x in min_req_config):
+            self.config_window.open()
             return
 
-        job_user_settings = self.load_job_user_settings()
         for job in self.job_data:
-            job.update(job_user_settings)
+            job.update(self.job_user_settings())
 
-        key_1 = self.settings.value('settings/key_1')
-        key_2 = self.settings.value('settings/key_2')
+        key_1 = self.config.value('le_key_1')
+        key_2 = self.config.value('le_key_2')
 
         if self.tabs.count() == 1:
             self.tabs.addTab(self.result_view, ui_text.tab_results)
@@ -491,302 +690,72 @@ class MainWindow(QWidget):
         self.tr_thread.start()
 
     def show_feedback(self, msg, msg_verb):
-        if msg_verb <= int(self.settings.value('settings/verbosity')):
+        if msg_verb <= int(self.config.value('spb_verbosity')):
             repl = re.sub(r'(https?://[^\s\n\r]+)', r'<a href="\1">\1</a> ', msg)
 
             self.result_view.append(repl)
 
     def load_main_settings(self):
-        self.le_scandir.setText(self.settings.value('history/scan_dir'))
-        source_id = int(self.settings.value('state/source', defaultValue=0))
-        self.source_b_group.buttons()[source_id].click()
-        self.resize(self.settings.value('geometry/size', defaultValue=QSize(450, 500)))
-        win_pos = self.settings.value('geometry/position')
+
+        source_id = int(self.config.value('bg_source', defaultValue=0))
+        self.bg_source.buttons()[source_id].click()
+        self.resize(self.config.value('geometry/size', defaultValue=QSize(450, 500)))
+        win_pos = self.config.value('geometry/position')
         if win_pos:
             self.move(win_pos)
-        splittersizes = [int(x) for x in self.settings.value('geometry/splitter_pos', defaultValue=[150, 345])]
+        splittersizes = [int(x) for x in self.config.value('geometry/splitter_pos', defaultValue=[150, 345])]
         self.splitter.setSizes(splittersizes)
 
-    def save_settings(self):
-        data_dir = self.settings_window.le_data_dir.text()
-        tor_save_dir = self.settings_window.le_dtor_save_dir.text()
-        tt_state_before = int(self.settings.value('settings/show_tips', defaultValue=1))
+    def job_user_settings(self):
+        user_settings = (
+            'le_data_dir',
+            'le_dtor_save_dir',
+            'chb_save_dtors',
+            'chb_del_dtors',
+            'chb_file_check',
+            'te_rel_descr',
+            'chb_add_src_descr',
+            'te_src_descr'
+        )
+        settings_dict = {}
+        for x in user_settings:
+            typ_str, arg_name = x.split('_', maxsplit=1)
+            typ = TYPE_MAP[typ_str]
+            settings_dict[arg_name] = ACTION_MAP[typ][2](self.config.value(x))
 
-        self.settings.setValue('settings/window_size', self.settings_window.size())
-
-        # main
-        self.settings.setValue('settings/key_1', self.settings_window.le_key_1.text())
-        self.settings.setValue('settings/key_2', self.settings_window.le_key_2.text())
-        self.settings.setValue('settings/data_dir', os.path.normpath(data_dir) if data_dir else data_dir)
-        self.settings.setValue('settings/dtor_save_dir', os.path.normpath(tor_save_dir) if tor_save_dir else tor_save_dir)
-        self.settings.setValue('settings/save_dtors', int(self.settings_window.chb_save_dtors.isChecked()))
-        self.settings.setValue('settings/del_dtors', int(self.settings_window.chb_del_dtors.isChecked()))
-        self.settings.setValue('settings/file_check', int(self.settings_window.chb_file_check.isChecked()))
-        self.settings.setValue('settings/show_tips', int(self.settings_window.chb_show_tips.isChecked()))
-        self.settings.setValue('settings/verbosity', self.settings_window.spb_verbosity.value())
-        self.settings.setValue('settings/rehost', int(self.settings_window.chb_rehost.isChecked()))
-        self.settings.setValue('settings/whitelist', self.settings_window.le_whitelist.text())
-        self.settings.setValue('settings/ptpimg_key', self.settings_window.le_ptpimg_key.text())
-
-        # cust descr
-        self.settings.setValue('settings/rel_descr', self.settings_window.te_rel_descr.toPlainText())
-        self.settings.setValue('settings/add_src_descr', int(self.settings_window.chb_add_src_descr.isChecked()))
-        self.settings.setValue('settings/src_descr', self.settings_window.te_src_descr.toPlainText())
-
-        # appearance
-        self.settings.setValue('settings/splitter_weight', self.settings_window.spb_splitter_weight.value())
-        self.settings.setValue('settings/no_icon', int(self.settings_window.chb_no_icon.isChecked()))
-        self.settings.setValue('settings/alt_row_colours', int(self.settings_window.chb_alt_row_colour.isChecked()))
-        self.settings.setValue('settings/show_grid', int(self.settings_window.chb_show_grid.isChecked()))
-        self.settings.setValue('settings/row_height', self.settings_window.spb_row_height.value())
-
-        tt_state_after = int(self.settings.value('settings/show_tips'))
-        if tt_state_before != tt_state_after:
-            self.tooltips(bool(tt_state_after))
-
-    def load_settings_settings(self):
-
-        # main
-        self.settings_window.le_key_1.setText(self.settings.value('settings/key_1'))
-        self.settings_window.le_key_2.setText(self.settings.value('settings/key_2'))
-        self.settings_window.le_data_dir.setText(self.settings.value('settings/data_dir'))
-        self.settings_window.le_dtor_save_dir.setText(self.settings.value('settings/dtor_save_dir'))
-
-        self.settings_window.chb_save_dtors.setChecked(bool(int(self.settings.value('settings/save_dtors', defaultValue=bool(self.settings.value('settings/dtor_save_dir'))))))
-        self.settings_window.chb_del_dtors.setChecked(bool(int(self.settings.value('settings/del_dtors', defaultValue=0))))
-        self.settings_window.chb_file_check.setChecked(bool(int(self.settings.value('settings/file_check', defaultValue=1))))
-        self.settings_window.chb_show_tips.setChecked(bool(int(self.settings.value('settings/show_tips', defaultValue=1))))
-        self.settings_window.spb_verbosity.setValue(int(self.settings.value('settings/verbosity', defaultValue=2)))
-        self.settings_window.chb_rehost.setChecked(bool(int(self.settings.value('settings/rehost', defaultValue=0))))
-        self.settings_window.le_whitelist.setText(self.settings.value('settings/whitelist', defaultValue=ui_text.default_whitelist))
-        self.settings_window.le_ptpimg_key.setText(self.settings.value('settings/ptpimg_key'))
-
-        # rel descr
-        self.settings_window.te_rel_descr.setText(self.settings.value('settings/rel_descr', defaultValue=ui_text.def_rel_descr))
-        self.settings_window.te_src_descr.setText(self.settings.value('settings/src_descr', defaultValue=ui_text.def_src_descr))
-        self.settings_window.chb_add_src_descr.setChecked(bool(int(self.settings.value('settings/add_src_descr', defaultValue=1))))
-
-        # appearance
-        self.settings_window.spb_splitter_weight.setValue(int(self.settings.value('settings/splitter_weight', defaultValue=0)))
-        self.settings_window.chb_no_icon.setChecked(bool(int(self.settings.value('settings/no_icon', defaultValue=0))))
-        self.settings_window.chb_alt_row_colour.setChecked(bool(int(self.settings.value('settings/alt_row_colours', defaultValue=1))))
-        self.settings_window.chb_show_grid.setChecked(bool(int(self.settings.value('settings/show_grid', defaultValue=0))))
-        self.settings_window.spb_row_height.setValue(int(self.settings.value('settings/row_height', defaultValue=18)))
-
-        if bool(int(self.settings.value('settings/show_tips', defaultValue=1))):
-            self.tooltips(True)
-
-        self.settings_window.le_key_1.setCursorPosition(0)
-        self.settings_window.le_key_2.setCursorPosition(0)
-        self.enable_button(self.pb_open_tsavedir, bool(self.settings_window.le_dtor_save_dir.text()))
-
-        winsize = self.settings.value('settings/window_size')
-        if winsize:
-            self.settings_window.resize(winsize)
-
-    def load_job_user_settings(self):
-        user_settings = {
-            'data_dir': self.settings.value('settings/data_dir'),
-            'dtor_save_dir': self.settings.value('settings/dtor_save_dir', defaultValue=None),
-            'save_dtors': bool(int(self.settings.value('settings/save_dtors', defaultValue=False))),
-            'file_check': bool(int(self.settings.value('settings/file_check', defaultValue=True))),
-            'rel_descr': self.settings.value('settings/rel_descr', defaultValue=ui_text.def_rel_descr),
-            'add_src_descr': bool(int(self.settings.value('settings/add_src_descr', defaultValue=1))),
-            'src_descr': self.settings.value('settings/src_descr', defaultValue=ui_text.def_src_descr)
-        }
-        if bool(int(self.settings.value('settings/rehost'))):
-            whitelist = []
-            white_str_nospace = ''.join(self.settings.value('settings/whitelist').split())
+        if bool(int(self.config.value('chb_rehost'))):
+            white_str_nospace = ''.join(self.config.value('le_whitelist').split())
             if white_str_nospace:
-                whitelist.extend(white_str_nospace.split(','))
-            user_settings.update(img_rehost=True,
-                                 whitelist=whitelist,
-                                 ptpimg_key=self.settings.value('settings/ptpimg_key'))
-        return user_settings
+                whitelist = white_str_nospace.split(',')
+                settings_dict.update(img_rehost=True, whitelist=whitelist,
+                                     ptpimg_key=self.config.value('le_ptpimg_key'))
+
+        for x in settings_dict.items():
+            print(x)
+
+        return settings_dict
 
     def save_state(self):
-        self.settings.setValue('geometry/size', self.size())
-        self.settings.setValue('geometry/position', self.pos())
-        self.settings.setValue('geometry/splitter_pos', self.splitter.sizes())
+        self.config.setValue('geometry/size', self.size())
+        self.config.setValue('geometry/position', self.pos())
+        self.config.setValue('geometry/splitter_pos', self.splitter.sizes())
 
-class SettingsWindow(QDialog):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle(ui_text.s_window_title)
-        self.setWindowIcon(QIcon('gui_files/gear.svg'))
-        self.ui_settings_elements()
-        self.ui_settings_layout()
-
-    def ui_settings_elements(self):
-
-        self.set_tabs = QTabWidget()
-        self.set_tabs.setDocumentMode(True)
-        self.main_settings = QWidget()
-        self.cust_descr = QWidget()
-        self.appearance = QWidget()
-        self.set_tabs.addTab(self.main_settings, ui_text.main_tab)
-        self.set_tabs.addTab(self.cust_descr, ui_text.desc_tab)
-        self.set_tabs.addTab(self.appearance, ui_text.appearance_tab)
-
-        # main settings
-        self.le_key_1 = QLineEdit()
-        self.l_key_1 = QLabel(ui_text.l_key_1)
-        self.le_key_2 = QLineEdit()
-        self.l_key_2 = QLabel(ui_text.l_key_2)
-        self.le_data_dir = QLineEdit()
-        self.l_data_dir = QLabel(ui_text.l_data_dir)
-        self.le_dtor_save_dir = QLineEdit()
-        self.l_tor_save_dir = QLabel(ui_text.l_tor_save_dir)
-        self.chb_save_dtors = QCheckBox()
-        self.chb_del_dtors = QCheckBox()
-        self.l_del_dtors = QLabel(ui_text.l_del_dtors)
-        self.chb_file_check = QCheckBox()
-        self.l_file_check = QLabel(ui_text.l_file_check)
-        self.chb_show_tips = QCheckBox()
-        self.l_show_tips = QLabel(ui_text.l_show_tips)
-        self.l_verbosity = QLabel(ui_text.l_verbosity)
-        self.spb_verbosity = QSpinBox()
-        self.spb_verbosity.setMaximum(5)
-        self.spb_verbosity.setMaximumWidth(40)
-        self.chb_rehost = QCheckBox()
-        self.l_rehost = QLabel(ui_text.l_rehost)
-        self.le_whitelist = QLineEdit()
-        self.l_whitelist = QLabel(ui_text.l_whitelist)
-        self.le_ptpimg_key = QLineEdit()
-        self.l_ptpimg_key = QLabel(ui_text.l_ptpimg_key)
-        self.pb_cancel = QPushButton(ui_text.pb_cancel)
-        self.pb_ok = QPushButton(ui_text.pb_ok)
-        self.ac_select_datadir = QAction()
-        self.ac_select_datadir.setIcon(QIcon("gui_files/open-folder.svg"))
-        self.ac_select_torsave = QAction()
-        self.ac_select_torsave.setIcon(QIcon("gui_files/open-folder.svg"))
-
-        # descr tab
-        self.l_variables = QLabel(ui_text.l_variables)
-        self.pb_def_descr = QPushButton(ui_text.pb_def_descr)
-        self.l_variables.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        self.te_rel_descr = QTextEdit()
-        self.chb_add_src_descr = QCheckBox(ui_text.chb_add_src_desc)
-        self.te_src_descr = QTextEdit()
-
-        # appearance tab
-        self.l_splitter_weight = QLabel(ui_text.l_splitter_weight)
-        self.spb_splitter_weight = QSpinBox()
-        self.spb_splitter_weight.setValue(10)
-        self.spb_splitter_weight.setMaximum(10)
-        self.spb_splitter_weight.setMaximumWidth(40)
-        self.l_no_icon = QLabel(ui_text.l_no_icon)
-        self.chb_no_icon = QCheckBox()
-        self.chb_no_icon.setChecked(True)
-        self.l_alt_row_colour = QLabel(ui_text.l_alt_row_colours)
-        self.chb_alt_row_colour = QCheckBox()
-        self.l_show_grid = QLabel(ui_text.l_show_grid)
-        self.chb_show_grid = QCheckBox()
-        self.chb_show_grid.setChecked(True)
-        self.l_row_height = QLabel(ui_text.l_row_height)
-        self.spb_row_height = QSpinBox()
-        self.spb_row_height.setMinimum(12)
-        self.spb_row_height.setMaximum(99)
-        self.spb_row_height.setMaximumWidth(40)
-
-    def ui_settings_layout(self):
-        bottom_row = QHBoxLayout()
-        bottom_row.addStretch()
-        bottom_row.addWidget(self.pb_cancel)
-        bottom_row.addWidget(self.pb_ok)
-
-        # main
-        self.le_data_dir.addAction(self.ac_select_datadir, QLineEdit.TrailingPosition)
-        self.le_dtor_save_dir.addAction(self.ac_select_torsave, QLineEdit.TrailingPosition)
-
-        save_dtor = QHBoxLayout()
-        save_dtor.addWidget(self.chb_save_dtors)
-        save_dtor.addWidget(self.le_dtor_save_dir)
-
-        settings_form = QFormLayout(self.main_settings)
-        settings_form.setLabelAlignment(Qt.AlignRight)
-        settings_form.setVerticalSpacing(20)
-        settings_form.setHorizontalSpacing(20)
-        settings_form.addRow(self.l_key_1, self.le_key_1)
-        settings_form.addRow(self.l_key_2, self.le_key_2)
-        settings_form.addRow(self.l_data_dir, self.le_data_dir)
-        settings_form.addRow(self.l_tor_save_dir, save_dtor)
-        settings_form.addRow(self.l_del_dtors, self.chb_del_dtors)
-        settings_form.addRow(self.l_file_check, self.chb_file_check)
-        settings_form.addRow(self.l_show_tips, self.chb_show_tips)
-        settings_form.addRow(self.l_verbosity, self.spb_verbosity)
-        settings_form.addRow(self.l_rehost, self.chb_rehost)
-        settings_form.addRow(self.l_whitelist, self.le_whitelist)
-        settings_form.addRow(self.l_ptpimg_key, self.le_ptpimg_key)
-
-        # descr
-        top_left_descr = QVBoxLayout()
-        top_left_descr.addStretch()
-        top_left_descr.addWidget(self.pb_def_descr)
-
-        top_row_descr = QHBoxLayout()
-        top_row_descr.addWidget(self.l_variables)
-        top_row_descr.addStretch()
-        top_row_descr.addLayout(top_left_descr)
-
-        desc_layout = QVBoxLayout(self.cust_descr)
-        desc_layout.addLayout(top_row_descr)
-        desc_layout.addWidget(self.te_rel_descr)
-        desc_layout.addWidget(self.chb_add_src_descr)
-        desc_layout.addWidget(self.te_src_descr)
-
-        # Appearance
-        appearance = QFormLayout(self.appearance)
-        appearance.addRow(self.l_splitter_weight, self.spb_splitter_weight)
-        appearance.addRow(self.l_no_icon, self.chb_no_icon)
-        appearance.addRow(self.l_alt_row_colour, self.chb_alt_row_colour)
-        appearance.addRow(self.l_show_grid, self.chb_show_grid)
-        appearance.addRow(self.l_row_height, self.spb_row_height)
-
-        total_layout = QVBoxLayout()
-        total_layout.setContentsMargins(0, 0, 10, 10)
-        total_layout.addWidget(self.set_tabs)
-        total_layout.addSpacing(20)
-        total_layout.addLayout(bottom_row)
-
-        self.setLayout(total_layout)
-
-class Viewer(QTableView):
-    def __init__(self, model):
-        super().__init__()
-        self.setModel(model)
-
-        self.setSelectionBehavior(QTableView.SelectRows)
-        # self.setAlternatingRowColors(True)
-        # self.setShowGrid(False)
-
-        self.verticalHeader().hide()
-        self.verticalHeader().setMinimumSectionSize(12)
-        # self.verticalHeader().setDefaultSectionSize(18)
-
-        self.horizontalHeader().setSectionsClickable(False)
-        self.horizontalHeader().setMinimumSectionSize(18)
-        self.horizontalHeader().setDefaultSectionSize(20)
-        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
-        self.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        self.horizontalHeader().setSectionResizeMode(3, QHeaderView.Interactive)
 
 class JobModel(QAbstractTableModel):
-    def __init__(self, parentsettings):
+    def __init__(self, parentconfig):
         """
         Can keep a job.
         """
         super().__init__()
         self.jobs = []
-        self.settings = parentsettings
+        self.config = parentconfig
         self.headers = [ui_text.header0, ui_text.header1, ui_text.header2, ui_text.header3]
 
     def data(self, index, role):
 
         collumn = index.column()
         job = self.jobs[index.row()]
-        no_icon = bool(int(self.settings.value('settings/no_icon')))
+        no_icon = bool(int(self.config.value('chb_no_icon')))
 
         if role == Qt.DisplayRole or role == Qt.EditRole:
             if collumn == 0 and no_icon:
@@ -826,7 +795,7 @@ class JobModel(QAbstractTableModel):
             return self.headers[section]
 
         if role == Qt.ToolTipRole and orientation == Qt.Horizontal and section == 3:
-            if bool(int(self.settings.value('settings/show_tips'))):
+            if bool(int(self.config.value('chb_show_tips'))):
                 return ui_text.tt_header3
         else:
             return super().headerData(section, orientation, role)
@@ -836,11 +805,13 @@ class JobModel(QAbstractTableModel):
         collumn = index.column()
 
         if collumn == 2:
-            try:
-                value = str(int(value))
-            except ValueError:
-                value = None
-            job.dest_group = value
+            if value:
+                current_value = job.dest_group
+                try:
+                    value = str(int(value))
+                except ValueError:
+                    value = current_value
+            job.dest_group = value or None
 
         if collumn == 3 and role == Qt.CheckStateRole:
             job.new_dtor = True if value == Qt.Checked else False

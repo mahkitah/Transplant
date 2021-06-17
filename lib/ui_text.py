@@ -21,15 +21,16 @@ header1 = 'torrent'
 header2 = 'dest. group'
 header3 = 'nt'
 
-s_window_title = "Settings"
+config_window_title = "Settings"
 main_tab = 'Main'
 desc_tab = 'Rel Descr'
+looks_tab = 'Looks'
 pb_cancel = "Cancel"
 pb_ok = "OK"
 l_key_1 = f"API-key {tracker_1}"
 l_key_2 = f"API-key {tracker_2}"
 l_data_dir = 'Data folder'
-l_tor_save_dir = 'Save new .torrrents'
+l_dtor_save_dir = 'Save new .torrrents'
 l_del_dtors = 'Delete scanned .torrents'
 l_file_check = 'Check files'
 l_show_tips = "Show tooltips"
@@ -46,9 +47,15 @@ l_variables = "Set a custom release description.\n\n" \
               "%tor_id% :   Source torrent id\n" \
               "%gr_id% :    Source torrent group id\n"
 pb_def_descr = 'Defaults'
-chb_add_src_desc = "Add release description from source if present. (Must contain %src_descr%)"
+chb_add_src_descr = "Add release description from source if present. (Must contain %src_descr%)"
 def_rel_descr = "Transplanted from %src_id%, thanks to the original uploader."
 def_src_descr = "[hide=source description:]%src_descr%[/hide]"
+
+l_splitter_weight = 'Splitter weight'
+l_no_icon = 'Text instead of icon'
+l_alt_row_colour = 'Alternating row colours'
+l_show_grid = 'Show grid'
+l_row_height = 'Row height'
 
 default_whitelist = "ptpimg.me, thesungod.xyz"
 sum_ting_wong_1 = 'Invalid data folder'
@@ -104,6 +111,7 @@ tt_rehost = 'Rehost non-whitelisted cover images to ptpimg'
 tt_whitelist = "Images hosted on these sites will not be rehosted.\n" \
                "Comma separated"
 tt_def_descr = 'Restore default descriptions'
+tt_spliter = 'Drag all the way up to collapse top section'
 tt_source_buts = "Select source tracker for torrent id's entered in the paste box.\n" \
                     "This setting does not apply to url's and .torrents"
 tt_add_but = "Add content of the paste box to the job list.\n" \
@@ -114,6 +122,7 @@ tt_scandir = "This folder will be scanned for .torrents when the 'Scan' button i
 tt_select_scandir = "Select scan folder"
 tt_scan_but = "Scan the 'scan folder' for .torrents and add them to the job list.\n" \
                  "Subfolders will not be scanned."
+tt_header3 = 'Create new .torrent file'
 tt_clear_but = "Empty the job list or results pane."
 tt_rem_sel_but = "Remove selected jobs (torrents) from the job list."
 tt_del_sel_but = "Delete selected .torrent files from scan dir"
