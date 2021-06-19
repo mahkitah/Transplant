@@ -12,7 +12,7 @@ from lib import constants, ui_text, utils
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QTabWidget, QTextBrowser, QTextEdit, QLineEdit, QPushButton, \
     QToolButton, QRadioButton, QButtonGroup, QHBoxLayout, QVBoxLayout, QFormLayout, QSpinBox, QCheckBox, \
-    QFileDialog, QAction, QSplitter, QTableView, QDialog, QMessageBox, QHeaderView, QAbstractItemView
+    QFileDialog, QAction, QSplitter, QTableView, QDialog, QMessageBox, QHeaderView, QAbstractItemView, QSizePolicy
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSettings, QAbstractTableModel, QSize, QThread, pyqtSignal
 
@@ -196,6 +196,7 @@ class MainWindow(QWidget):
         self.job_view.verticalHeader().hide()
         self.job_view.verticalHeader().setMinimumSectionSize(12)
         self.job_view.horizontalHeader().setSectionsClickable(False)
+        self.job_view.horizontalHeader().setSectionsMovable(True)
         self.job_view.horizontalHeader().setMinimumSectionSize(18)
         self.job_view.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.job_view.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
@@ -213,8 +214,11 @@ class MainWindow(QWidget):
         self.pb_rem_sel = QPushButton(ui_text.pb_rem_sel)
         self.pb_del_sel = QPushButton(ui_text.pb_del_sel)
         self.pb_open_tsavedir = QPushButton(ui_text.pb_open_tsavedir)
-        self.pb_go = QPushButton(ui_text.pb_go)
-        self.pb_go.setEnabled(False)
+        self.tb_go = QToolButton()
+        self.tb_go.setEnabled(False)
+        self.tb_go.setIcon(QIcon('gui_files/switch.svg'))
+        self.tb_go.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+
         self.pb_stop = QPushButton(ui_text.pb_stop)
         self.pb_stop.hide()
 
@@ -303,7 +307,7 @@ class MainWindow(QWidget):
         control_buttons.addStretch(3)
         control_buttons.addWidget(self.pb_open_tsavedir)
         control_buttons.addStretch(1)
-        control_buttons.addWidget(self.pb_go)
+        control_buttons.addWidget(self.tb_go)
         control_buttons.addWidget(self.pb_stop)
 
         view_n_buttons = QHBoxLayout()
@@ -407,12 +411,12 @@ class MainWindow(QWidget):
         self.pb_open_tsavedir.clicked.connect(lambda: utils.open_local_folder(self.config.value('le_dtor_save_dir')))
         self.le_scandir.textChanged.connect(lambda: self.enable_button(self.pb_scan, bool(self.le_scandir.text())))
         self.ac_select_scandir.triggered.connect(self.select_scan_dir)
-        self.job_data.layoutChanged.connect(lambda: self.enable_button(self.pb_go, bool(self.job_data)))
+        self.job_data.layoutChanged.connect(lambda: self.enable_button(self.tb_go, bool(self.job_data)))
         self.tb_open_config.clicked.connect(self.config_window.open)
         self.tb_open_config2.clicked.connect(self.config_window.open)
         self.splitter.splitterMoved.connect(lambda x, y: self.toolbutton2(x, y))
-        self.pb_go.clicked.connect(self.gogogo)
-        # self.pb_go.clicked.connect(self.slot_blabla)
+        self.tb_go.clicked.connect(self.gogogo)
+        # self.tb_go.clicked.connect(self.slot_blabla)
         self.tabs.currentChanged.connect(self.tabs_clicked)
 
     def ui_config_connections(self):
@@ -480,8 +484,9 @@ class MainWindow(QWidget):
             (self.pb_rem_sel, ui_text.tt_rem_sel_but),
             (self.pb_del_sel, ui_text.tt_del_sel_but),
             (self.pb_open_tsavedir, ui_text.tt_open_tsavedir),
-            (self.pb_go, ui_text.tt_go_but),
+            (self.tb_go, ui_text.tt_go_but),
             (self.tb_open_config, ui_text.config_window_title),
+            (self.tb_open_config2, ui_text.config_window_title),
             (self.splitter.handle(1), ui_text.tt_spliter),
 
             (self.l_key_1, ui_text.tt_keys),
@@ -717,9 +722,9 @@ class MainWindow(QWidget):
 
         self.pb_stop.clicked.connect(self.tr_thread.stop)
         self.tr_thread.started.connect(lambda: self.show_feedback(ui_text.start, 2))
-        self.tr_thread.started.connect(lambda: self.switch_buttons(self.pb_go, self.pb_stop, True))
+        self.tr_thread.started.connect(lambda: self.switch_buttons(self.tb_go, self.pb_stop, True))
         self.tr_thread.finished.connect(lambda: self.show_feedback(ui_text.thread_finish, 2))
-        self.tr_thread.finished.connect(lambda: self.switch_buttons(self.pb_go, self.pb_stop, False))
+        self.tr_thread.finished.connect(lambda: self.switch_buttons(self.tb_go, self.pb_stop, False))
         self.tr_thread.finished.connect(self.job_data.remove_finished)
         self.tr_thread.feedback.connect(self.show_feedback)
         self.tr_thread.start()

@@ -132,5 +132,5 @@ tt_clear_but = "Empty the job list or results pane"
 tt_rem_sel_but = "Remove selected jobs (torrents) from the job list"
 tt_del_sel_but = "Delete selected .torrent files from scan dir"
 tt_open_tsavedir = "Open torrent save location"
-tt_go_but = "Start Transplanting.\n" \
+tt_go_but = "Start Transplanting\n" \
             "Or order some food. One of the two"
