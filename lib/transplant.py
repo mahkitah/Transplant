@@ -6,15 +6,11 @@ import re
 from bencoder import bencode, bdecode
 from hashlib import sha1, sha256
 
-try:
-    from dottorrent import Torrent
-except ImportError:
-    pass
-
 from lib.gazelle_api import RequestFailure
 from lib import utils, ui_text, constants, ptpimg_uploader
 
 choose_the_other = utils.choose_the_other([ui_text.tracker_1, ui_text.tracker_2])
+
 
 class Job:
     def __init__(self, src_id=None, tor_id=None, dtor_path=None, data_dir=None, dtor_save_dir=None, save_dtors=False,
@@ -75,6 +71,7 @@ class Job:
 
     def __eq__(self, other):
         return (self.src_id, self.tor_id, self.info_hash) == (other.src_id, other.tor_id, other.info_hash)
+
 
 class Transplanter:
     def __init__(self, job, api_map, report=lambda *x: None):
@@ -222,29 +219,36 @@ class Transplanter:
         artists, importances = self.parse_artists()
         
         self.upl_data["type"] = "0"
-        self.release_type()
-        self.upl_data["title"] = html.unescape(self.tor_info['group']['name'])
-        self.upl_data["year"] = self.tor_info['group']['year']
-        self.upl_data["artists[]"] = artists
-        self.upl_data["importance[]"] = importances
-        self.upl_data['groupid'] = self.job.dest_group
+
+        if self.job.dest_group:
+            self.upl_data['groupid'] = self.job.dest_group
+        else:
+            self.release_type()
+            self.upl_data["title"] = html.unescape(self.tor_info['group']['name'])
+            self.upl_data["year"] = self.tor_info['group']['year']
+            self.upl_data["artists[]"] = artists
+            self.upl_data["importance[]"] = importances
+            self.upl_data["image"] = self.rehost_img() if self.job.img_rehost else self.tor_info['group']['wikiImage']
+            self.upl_data["vanity_house"] = self.tor_info['group']['vanityHouse']
+            # apparantly 'False' doesn't work for "scene" on OPS. Must be 'None'
+            self.upl_data["scene"] = None if not self.tor_info['torrent']['scene'] else True
+            self.tags()
+            #  RED uses "bbBody", OPS uses "wikiBBcode"
+            d = self.tor_info['group'].get("bbBody", self.tor_info['group'].get("wikiBBcode"))
+            d_url_switched = d.replace(self.src_api.url, self.dest_api.url)
+            self.upl_data["album_desc"] = html.unescape(d_url_switched)
+
         self.upl_data["remaster"] = self.tor_info['torrent']['remastered']
         self.remaster_data()
-        # apparantly 'False' doesn't work for "scene" on OPS. Must be 'None'
-        self.upl_data["scene"] = None if not self.tor_info['torrent']['scene'] else True
         self.upl_data["media"] = self.tor_info['torrent']['media']
         self.upl_data["format"] = self.tor_info['torrent']['format']
         self.upl_data["bitrate"] = self.tor_info['torrent']['encoding']
-        self.upl_data["vanity_house"] = self.tor_info['group']['vanityHouse']
-        self.tags()
-        self.upl_data["image"] = self.rehost_img() if self.job.img_rehost else self.tor_info['group']['wikiImage']
-        #  RED uses "bbBody", OPS uses "wikiBBcode"
-        d = self.tor_info['group'].get("bbBody", self.tor_info['group'].get("wikiBBcode"))
-        d_url_switched = d.replace(self.src_api.url, self.dest_api.url)
-        self.upl_data["album_desc"] = html.unescape(d_url_switched)
+        self.release_description()
         # self.upl_data["media"] = 'blabla'
 
     def create_new_torrent(self):
+
+        from dottorrent import Torrent
 
         torfolder = os.path.join(self.data_dir, self.job.display_name)
         self.report(ui_text.new_tor, 2)

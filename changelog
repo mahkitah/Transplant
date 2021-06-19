@@ -1,15 +1,17 @@
-- direct config interactions
+- New, Job list Headers context menu
+- Direct config interactions
 - Major refactoring: autogenerate user input elements
-- GUI, 'Looks' settings
-- GUI, Use stylesheet
+- New: GUI, 'Looks' settings
+- GUI, Use stylesheet (for splitter en headers)
 - Refactoring of upload data code
-- Fix, crash when transplanting CD's with log OPS > RED with .torrent input
-- Create new torrent
-- Upload to specified group
+- Fix, failure when transplanting CD's with log OPS > RED with .torrent input
+- New: Create new torrent
+- New: Upload to specified group
+- Job list switch from list to table model/view
 2.1
-- Customisable release desription
-- Button to delete selected .torrent files from scan dir
-- Option to rehost images to ptpimg
+- New: Customisable release desription
+- New: Button to delete selected .torrent files from scan dir
+- New: Option to rehost images to ptpimg
 - Handle unknown releases
 2.0
 - Cut off tags at 200 character limit.

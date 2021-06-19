@@ -1,0 +1,21 @@
+QHeaderView::section {
+	background-color: palette(midlight);
+	border-top: 0px;
+	border-bottom: 1px solid palette(dark);
+}
+QHeaderView::section:first {
+	border-right: 1px solid palette(dark);
+	border-left: 0px;
+}
+QHeaderView::section:middle {
+	border-right: 1px solid palette(dark);
+	border-left: 0px;
+}
+QHeaderView::section:last {
+	border-right: 0px;
+	border-left: 0px;
+}
+QSplitter::handle {
+	background-color: palette(midlight);
+	image: url(gui_files/dotsdots.png);
+}

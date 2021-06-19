@@ -7,21 +7,14 @@ from bencoder import BTFailure
 
 from lib.transplant import Transplanter, Job
 from lib.gazelle_api import GazelleApi
+from lib.custom_gui_classes import MyTextEdit, MyHeaderView
 from lib import constants, ui_text, utils
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QTabWidget, QTextBrowser, QTextEdit, QLineEdit, QPushButton, \
     QToolButton, QRadioButton, QButtonGroup, QHBoxLayout, QVBoxLayout, QFormLayout, QSpinBox, QCheckBox, \
-    QFileDialog, QAction, QSplitter, QTableView, QDialog, QMessageBox, QHeaderView
+    QFileDialog, QAction, QSplitter, QTableView, QDialog, QMessageBox, QHeaderView, QAbstractItemView
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSettings, QAbstractTableModel, QSize, QThread, pyqtSignal
-
-
-class MyTextEdit(QTextEdit):
-    plainTextChanged = pyqtSignal(str)
-
-    def __init__(self):
-        super().__init__()
-        self.textChanged.connect(lambda: self.plainTextChanged.emit(self.toPlainText()))
 
 
 # noinspection PyBroadException
@@ -80,8 +73,8 @@ CONFIG_NAMES = (
     ('le_dtor_save_dir', '', True),
     ('chb_save_dtors', 0, False),
     ('chb_del_dtors', 0, True),
-    ('chb_file_check', 1, True),
-    ('chb_show_tips', 1, True),
+    ('chb_file_check', 2, True),
+    ('chb_show_tips', 2, True),
     ('spb_verbosity', 2, True),
     ('chb_rehost', 0, True),
     ('le_whitelist', ui_text.default_whitelist, True),
@@ -93,8 +86,10 @@ CONFIG_NAMES = (
     ('chb_no_icon', 0, True),
     ('chb_alt_row_colour', 1, True),
     ('chb_show_grid', 0, True),
-    ('spb_row_height', 20, True)
+    ('spb_row_height', 20, True),
+    ('chb_show_add_dtors', 2, True),
 )
+
 
 class MainWindow(QWidget):
 
@@ -111,16 +106,14 @@ class MainWindow(QWidget):
             pass
         self.config = QSettings("gui_files/gui_config.ini", QSettings.IniFormat)
         self.job_data = JobModel(self.config)
-
         self.user_input_elements()
         self.ui_elements()
         self.ui_main_layout()
-        self.ui_settings_layout()
+        self.ui_config_layout()
         self.ui_main_connections()
-        self.ui_settings_connections()
+        self.ui_config_connections()
         self.load_config()
         self.set_element_properties()
-        self.load_main_settings()
         self.show()
 
     def user_input_elements(self):
@@ -165,10 +158,14 @@ class MainWindow(QWidget):
         self.topwidget = QWidget()
         self.bottomwidget = QWidget()
         self.splitter = QSplitter(Qt.Vertical)
+        self.section_add_dtor_btn = QWidget()
 
-        self.tb_settings = QToolButton()
-        self.tb_settings.setIcon(QIcon('gui_files/gear.svg'))
-        self.tb_settings.setAutoRaise(True)
+        self.tb_open_config = QToolButton()
+        self.tb_open_config.setIcon(QIcon('gui_files/gear.svg'))
+        self.tb_open_config.setAutoRaise(True)
+        self.tb_open_config2 = QToolButton()
+        self.tb_open_config2.setIcon(QIcon('gui_files/gear.svg'))
+        self.tb_open_config2.setAutoRaise(True)
 
         self.te_paste_box = QTextEdit()
         self.te_paste_box.setAcceptDrops(False)
@@ -192,17 +189,18 @@ class MainWindow(QWidget):
         self.pb_scan.setEnabled(False)
 
         self.job_view = QTableView()
+        self.job_view.setHorizontalHeader(MyHeaderView(Qt.Horizontal, self.job_data.headers))
+        self.job_view.setEditTriggers(QTableView.SelectedClicked | QTableView.DoubleClicked | QTableView.AnyKeyPressed)
         self.job_view.setModel(self.job_data)
         self.job_view.setSelectionBehavior(QTableView.SelectRows)
         self.job_view.verticalHeader().hide()
         self.job_view.verticalHeader().setMinimumSectionSize(12)
         self.job_view.horizontalHeader().setSectionsClickable(False)
         self.job_view.horizontalHeader().setMinimumSectionSize(18)
-        self.job_view.horizontalHeader().setDefaultSectionSize(20)
         self.job_view.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.job_view.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         self.job_view.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        self.job_view.horizontalHeader().setSectionResizeMode(3, QHeaderView.Interactive)
+        self.job_view.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
 
         self.result_view = QTextBrowser()
         self.result_view.setOpenExternalLinks(True)
@@ -229,13 +227,14 @@ class MainWindow(QWidget):
         self.config_tabs.addTab(self.cust_descr, ui_text.desc_tab)
         self.config_tabs.addTab(self.looks, ui_text.looks_tab)
 
-        # main settings
+        # Config
         self.config_window = QDialog(self)
         self.config_window.setWindowTitle(ui_text.config_window_title)
         self.config_window.setWindowIcon(QIcon('gui_files/gear.svg'))
-
         self.pb_cancel = QPushButton(ui_text.pb_cancel)
         self.pb_ok = QPushButton(ui_text.pb_ok)
+
+        # main
         self.ac_select_datadir = QAction()
         self.ac_select_datadir.setIcon(QIcon("gui_files/open-folder.svg"))
         self.ac_select_torsave = QAction()
@@ -246,6 +245,9 @@ class MainWindow(QWidget):
         self.pb_def_descr = QPushButton()
         self.pb_def_descr.setText(ui_text.pb_def_descr)
         self.l_variables.setTextInteractionFlags(Qt.TextSelectableByMouse)
+
+        # looks tab
+        self.l_job_list = QLabel(ui_text.l_job_list)
 
     def ui_main_layout(self):
         # Top
@@ -258,7 +260,7 @@ class MainWindow(QWidget):
         sa_topleft.addStretch(1)
 
         sa_topright = QVBoxLayout()
-        sa_topright.addWidget(self.tb_settings)
+        sa_topright.addWidget(self.tb_open_config)
         sa_topright.addStretch()
 
         sa_top = QHBoxLayout()
@@ -276,16 +278,21 @@ class MainWindow(QWidget):
         paste_row.addLayout(pastebox)
         paste_row.addLayout(source_area)
 
+        add_dtors = QVBoxLayout(self.section_add_dtor_btn)
+        add_dtors.setContentsMargins(0, 0, 0, 0)
+        add_dtors.addSpacing(10)
+        add_dtors.addWidget(self.pb_open_dtors)
+
         top_layout = QVBoxLayout(self.topwidget)
         top_layout.addLayout(paste_row)
-        top_layout.addSpacing(10)
-        top_layout.addWidget(self.pb_open_dtors)
+        top_layout.addWidget(self.section_add_dtor_btn)
 
         # Bottom
         scan_row = QHBoxLayout()
         self.le_scandir.addAction(self.ac_select_scandir, QLineEdit.TrailingPosition)
         scan_row.addWidget(self.le_scandir)
         scan_row.addWidget(self.pb_scan)
+        scan_row.addWidget(self.tb_open_config2)
 
         self.control_buttons = QVBoxLayout()
         control_buttons = self.control_buttons
@@ -318,7 +325,7 @@ class MainWindow(QWidget):
         total_layout.setContentsMargins(0, 0, 0, 0)
         total_layout.addWidget(splitter)
 
-    def ui_settings_layout(self):
+    def ui_config_layout(self):
         bottom_row = QHBoxLayout()
         bottom_row.addStretch()
         bottom_row.addWidget(self.pb_cancel)
@@ -364,13 +371,22 @@ class MainWindow(QWidget):
         desc_layout.addWidget(self.chb_add_src_descr)
         desc_layout.addWidget(self.te_src_descr)
 
-        # Appearance
-        appearance = QFormLayout(self.looks)
-        appearance.addRow(self.l_splitter_weight, self.spb_splitter_weight)
-        appearance.addRow(self.l_no_icon, self.chb_no_icon)
-        appearance.addRow(self.l_alt_row_colour, self.chb_alt_row_colour)
-        appearance.addRow(self.l_show_grid, self.chb_show_grid)
-        appearance.addRow(self.l_row_height, self.spb_row_height)
+        # Looks
+        main = QFormLayout()
+        job_list = QFormLayout()
+        main.addRow(self.l_show_add_dtors, self.chb_show_add_dtors)
+        main.addRow(self.l_splitter_weight, self.spb_splitter_weight)
+        job_list.addRow(self.l_no_icon, self.chb_no_icon)
+        job_list.addRow(self.l_alt_row_colour, self.chb_alt_row_colour)
+        job_list.addRow(self.l_show_grid, self.chb_show_grid)
+        job_list.addRow(self.l_row_height, self.spb_row_height)
+
+        looks = QVBoxLayout(self.looks)
+        looks.addLayout(main)
+        looks.addSpacing(16)
+        looks.addWidget(self.l_job_list)
+        looks.addLayout(job_list)
+        looks.addStretch()
 
         total_layout = QVBoxLayout(self.config_window)
         total_layout.setContentsMargins(0, 0, 10, 10)
@@ -392,12 +408,14 @@ class MainWindow(QWidget):
         self.le_scandir.textChanged.connect(lambda: self.enable_button(self.pb_scan, bool(self.le_scandir.text())))
         self.ac_select_scandir.triggered.connect(self.select_scan_dir)
         self.job_data.layoutChanged.connect(lambda: self.enable_button(self.pb_go, bool(self.job_data)))
-        self.tb_settings.clicked.connect(self.open_config_window)
+        self.tb_open_config.clicked.connect(self.config_window.open)
+        self.tb_open_config2.clicked.connect(self.config_window.open)
+        self.splitter.splitterMoved.connect(lambda x, y: self.toolbutton2(x, y))
         self.pb_go.clicked.connect(self.gogogo)
         # self.pb_go.clicked.connect(self.slot_blabla)
         self.tabs.currentChanged.connect(self.tabs_clicked)
 
-    def ui_settings_connections(self):
+    def ui_config_connections(self):
         self.pb_def_descr.clicked.connect(self.default_descr)
         self.pb_ok.clicked.connect(self.settings_check)
         self.pb_cancel.clicked.connect(self.config_window.reject)
@@ -407,6 +425,7 @@ class MainWindow(QWidget):
         self.ac_select_torsave.triggered.connect(self.select_torsave)
         self.le_dtor_save_dir.textChanged.connect(lambda x: self.enable_button(self.pb_open_tsavedir, bool(x)))
         self.chb_show_tips.stateChanged.connect(self.tooltips)
+        self.chb_show_add_dtors.stateChanged.connect(lambda x: self.section_add_dtor_btn.setVisible(x)),
         self.chb_no_icon.stateChanged.connect(self.job_data.layoutChanged.emit)
         self.spb_splitter_weight.valueChanged.connect(self.splitter.setHandleWidth)
         self.chb_alt_row_colour.stateChanged.connect(self.job_view.setAlternatingRowColors)
@@ -420,7 +439,6 @@ class MainWindow(QWidget):
             obj = getattr(self, name)
 
             if not self.config.contains(name):
-                print(name)
                 self.config.setValue(name, c[1])
 
             actions = ACTION_MAP[type(obj)]
@@ -430,6 +448,24 @@ class MainWindow(QWidget):
 
         self.le_key_1.setCursorPosition(0)
         self.le_key_2.setCursorPosition(0)
+
+        source_id = int(self.config.value('bg_source', defaultValue=0))
+        self.bg_source.buttons()[source_id].click()
+        self.resize(self.config.value('geometry/size', defaultValue=QSize(550, 500)))
+        self.config_window.resize(self.config.value('geometry/config_window_size', defaultValue=QSize(400, 450)))
+
+        try:
+            self.move(self.config.value('geometry/position'))
+        except TypeError:
+            pass
+
+        splittersizes = [int(x) for x in self.config.value('geometry/splitter_pos', defaultValue=[150, 345])]
+        self.splitter.setSizes(splittersizes)
+        self.splitter.splitterMoved.emit(splittersizes[0], 1)
+        try:
+            self.job_view.horizontalHeader().restoreState(self.config.value('geometry/header'))
+        except TypeError:
+            self.job_view.horizontalHeader().setAllSectionsVisible()
 
     def tooltips(self, flag):
         tiplist = (
@@ -445,7 +481,7 @@ class MainWindow(QWidget):
             (self.pb_del_sel, ui_text.tt_del_sel_but),
             (self.pb_open_tsavedir, ui_text.tt_open_tsavedir),
             (self.pb_go, ui_text.tt_go_but),
-            (self.tb_settings, ui_text.config_window_title),
+            (self.tb_open_config, ui_text.config_window_title),
             (self.splitter.handle(1), ui_text.tt_spliter),
 
             (self.l_key_1, ui_text.tt_keys),
@@ -465,12 +501,19 @@ class MainWindow(QWidget):
         for x in tiplist:
             x[0].setToolTip(x[1] if flag else '')
 
-    def slot_blabla(self, state):
-        print(state)
+    def blabla(self, *args):
+        # print(*args)
+        print('blabla')
 
     @staticmethod
     def enable_button(button, flag):
         button.setEnabled(flag)
+
+    def toolbutton2(self, pos, index):
+        if pos == 0:
+            self.tb_open_config2.show()
+        else:
+            self.tb_open_config2.hide()
 
     def select_datadir(self):
         d_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_sel_ddir, self.config.value('le_data_dir'))
@@ -488,14 +531,6 @@ class MainWindow(QWidget):
         t_dir = os.path.normpath(t_dir)
         self.config.setValue('le_dtor_save_dir', t_dir)
         self.le_dtor_save_dir.setText(t_dir)
-
-    def open_config_window(self):
-
-        winsize = self.config.value('geometry/config_window_size')
-        if winsize:
-            self.config_window.resize(winsize)
-
-        self.config_window.open()
 
     def settings_check(self):
         data_dir = self.config.value('le_data_dir')
@@ -695,17 +730,6 @@ class MainWindow(QWidget):
 
             self.result_view.append(repl)
 
-    def load_main_settings(self):
-
-        source_id = int(self.config.value('bg_source', defaultValue=0))
-        self.bg_source.buttons()[source_id].click()
-        self.resize(self.config.value('geometry/size', defaultValue=QSize(450, 500)))
-        win_pos = self.config.value('geometry/position')
-        if win_pos:
-            self.move(win_pos)
-        splittersizes = [int(x) for x in self.config.value('geometry/splitter_pos', defaultValue=[150, 345])]
-        self.splitter.setSizes(splittersizes)
-
     def job_user_settings(self):
         user_settings = (
             'le_data_dir',
@@ -730,15 +754,13 @@ class MainWindow(QWidget):
                 settings_dict.update(img_rehost=True, whitelist=whitelist,
                                      ptpimg_key=self.config.value('le_ptpimg_key'))
 
-        for x in settings_dict.items():
-            print(x)
-
         return settings_dict
 
     def save_state(self):
         self.config.setValue('geometry/size', self.size())
         self.config.setValue('geometry/position', self.pos())
         self.config.setValue('geometry/splitter_pos', self.splitter.sizes())
+        self.config.setValue('geometry/header', self.job_view.horizontalHeader().saveState())
 
 
 class JobModel(QAbstractTableModel):
@@ -749,7 +771,22 @@ class JobModel(QAbstractTableModel):
         super().__init__()
         self.jobs = []
         self.config = parentconfig
-        self.headers = [ui_text.header0, ui_text.header1, ui_text.header2, ui_text.header3]
+        self._headers = None
+
+    @property
+    def headers(self):
+        if self._headers:
+            return self._headers
+        else:
+            headers = []
+            index = 0
+            while True:
+                try:
+                    headers.append(getattr(ui_text, f'header{index}'))
+                except AttributeError:
+                    self._headers = headers
+                    return headers
+                index += 1
 
     def data(self, index, role):
 
