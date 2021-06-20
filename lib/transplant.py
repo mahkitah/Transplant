@@ -214,6 +214,19 @@ class Transplanter:
                 self.report(ui_text.rehost_failed, 1)
                 return src_img_url
 
+    def bitrate(self):
+        encoding = self.tor_info['torrent']['encoding']
+        if encoding in ['192', 'APS (VBR)', 'V2 (VBR)', 'V1 (VBR)', '256', 'APX (VBR)',
+                        'V0 (VBR)', 'Losless', '24bit Lossless']:
+            self.upl_data["bitrate"] = encoding
+        else:
+            self.upl_data["bitrate"] = 'Other'
+            if encoding.endswith('(VBR)'):
+                self.upl_data['vbr'] = True
+                encoding = encoding[:-6]
+
+            self.upl_data['other_bitrate'] = encoding
+
     def generate_upload_data(self):
 
         artists, importances = self.parse_artists()
@@ -242,7 +255,7 @@ class Transplanter:
         self.remaster_data()
         self.upl_data["media"] = self.tor_info['torrent']['media']
         self.upl_data["format"] = self.tor_info['torrent']['format']
-        self.upl_data["bitrate"] = self.tor_info['torrent']['encoding']
+        self.bitrate()
         self.release_description()
         # self.upl_data["media"] = 'blabla'
 
