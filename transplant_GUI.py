@@ -7,7 +7,7 @@ from bencoder import BTFailure
 
 from lib.transplant import Transplanter, Job
 from lib.gazelle_api import GazelleApi
-from lib.custom_gui_classes import MyTextEdit, MyHeaderView
+from lib.custom_gui_classes import MyTextEdit, MyHeaderView, MyTableView
 from lib import constants, ui_text, utils
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QTabWidget, QTextBrowser, QTextEdit, QLineEdit, QPushButton, \
@@ -188,7 +188,7 @@ class MainWindow(QWidget):
         self.pb_scan = QPushButton(ui_text.pb_scan)
         self.pb_scan.setEnabled(False)
 
-        self.job_view = QTableView()
+        self.job_view = MyTableView()
         self.job_view.setHorizontalHeader(MyHeaderView(Qt.Horizontal, self.job_data.headers))
         self.job_view.setEditTriggers(QTableView.SelectedClicked | QTableView.DoubleClicked | QTableView.AnyKeyPressed)
         self.job_view.setModel(self.job_data)
@@ -212,7 +212,9 @@ class MainWindow(QWidget):
 
         self.pb_clear = QPushButton(ui_text.pb_clear)
         self.pb_rem_sel = QPushButton(ui_text.pb_rem_sel)
+        self.pb_rem_sel.setEnabled(False)
         self.pb_del_sel = QPushButton(ui_text.pb_del_sel)
+        self.pb_del_sel.setEnabled(False)
         self.pb_open_tsavedir = QPushButton(ui_text.pb_open_tsavedir)
         self.tb_go = QToolButton()
         self.tb_go.setEnabled(False)
@@ -411,6 +413,8 @@ class MainWindow(QWidget):
         self.pb_open_tsavedir.clicked.connect(lambda: utils.open_local_folder(self.config.value('le_dtor_save_dir')))
         self.le_scandir.textChanged.connect(lambda: self.enable_button(self.pb_scan, bool(self.le_scandir.text())))
         self.ac_select_scandir.triggered.connect(self.select_scan_dir)
+        self.job_view.selectionChange.connect(lambda x: self.enable_button(self.pb_rem_sel, bool(x)))
+        self.job_view.selectionChange.connect(lambda x: self.enable_button(self.pb_del_sel, bool(x)))
         self.job_data.layoutChanged.connect(lambda: self.enable_button(self.tb_go, bool(self.job_data)))
         self.tb_open_config.clicked.connect(self.config_window.open)
         self.tb_open_config2.clicked.connect(self.config_window.open)
@@ -648,19 +652,8 @@ class MainWindow(QWidget):
         if self.tabs.currentIndex() == 1:
             self.result_view.clear()
 
-    def selected_rows(self):
-        indices = self.job_view.selectedIndexes()
-        if not indices:
-            return []
-
-        selected_rows = set()
-        for i in indices:
-            selected_rows.add(i.row())
-
-        return list(selected_rows)
-
     def remove_selected(self):
-        selected_rows = self.selected_rows()
+        selected_rows = list(set((x.row() for x in self.job_view.selectedIndexes())))
         if not selected_rows:
             return
 
@@ -670,7 +663,7 @@ class MainWindow(QWidget):
         self.job_view.clearSelection()
 
     def delete_selected(self):
-        selected_rows = self.selected_rows()
+        selected_rows = list(set((x.row() for x in self.job_view.selectedIndexes())))
         if not selected_rows:
             return
 

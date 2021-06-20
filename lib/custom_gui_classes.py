@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction
+from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction, QTableView
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, pyqtSignal
 from lib import ui_text
@@ -10,6 +10,17 @@ class MyTextEdit(QTextEdit):
     def __init__(self):
         super().__init__()
         self.textChanged.connect(lambda: self.plainTextChanged.emit(self.toPlainText()))
+
+
+class MyTableView(QTableView):
+    selectionChange = pyqtSignal(list)
+
+    def __init__(self):
+        super().__init__()
+
+    def selectionChanged(self, selected, deselected):
+        super().selectionChanged(selected, deselected)
+        self.selectionChange.emit(list(set((x.row() for x in self.selectedIndexes()))))
 
 
 class MyHeaderView(QHeaderView):
