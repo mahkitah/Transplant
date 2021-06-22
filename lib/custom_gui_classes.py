@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction, QTableView
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel
 from lib import ui_text
 
 
@@ -87,7 +87,123 @@ class MyHeaderView(QHeaderView):
 
     def set_action_icons(self, index, hidden):
         if hidden:
-            self.actions()[index + 1].setIcon(QIcon())
+            self.actions()[index + 1].setIcon(QIcon('gui_files/blank-check-box.svg'))
         else:
-            self.actions()[index + 1].setIcon(QIcon('gui_files/tick.svg'))
+            self.actions()[index + 1].setIcon(QIcon('gui_files/check-box.svg'))
 
+
+class JobModel(QAbstractTableModel):
+    def __init__(self, parentconfig):
+        """
+        Can keep a job.
+        """
+        super().__init__()
+        self.jobs = []
+        self.config = parentconfig
+        self._headers = None
+
+    @property
+    def headers(self):
+        if self._headers:
+            return self._headers
+        else:
+            headers = []
+            index = 0
+            while True:
+                try:
+                    headers.append(getattr(ui_text, f'header{index}'))
+                except AttributeError:
+                    self._headers = headers
+                    return headers
+                index += 1
+
+    def data(self, index, role):
+
+        collumn = index.column()
+        job = self.jobs[index.row()]
+        no_icon = bool(int(self.config.value('chb_no_icon')))
+
+        if role == Qt.DisplayRole or role == Qt.EditRole:
+            if collumn == 0 and no_icon:
+                return job.src_id
+            if collumn == 1:
+                return job.display_name or job.tor_id
+            if collumn == 2:
+                return job.dest_group
+
+        if role == Qt.CheckStateRole and collumn == 3:
+            return Qt.Checked if job.new_dtor else Qt.Unchecked
+
+        if role == Qt.DecorationRole and collumn == 0 and not no_icon:
+            if job.src_id == ui_text.tracker_1:
+                return QIcon('gui_files/pth.ico')
+            if job.src_id == ui_text.tracker_2:
+                return QIcon('gui_files/ops.ico')
+
+    def rowCount(self, index):
+        return len(self.jobs)
+
+    def columnCount(self, index):
+        return len(self.headers)
+
+    # noinspection PyTypeChecker
+    def flags(self, index):
+        if index.column() == 2:
+            return super().flags(index) | Qt.ItemIsEditable
+        if index.column() == 3:
+            return super().flags(index) | Qt.ItemIsUserCheckable
+        else:
+            return super().flags(index)
+
+    def headerData(self, section, orientation, role):
+
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            return self.headers[section]
+
+        if role == Qt.ToolTipRole and orientation == Qt.Horizontal and section == 3:
+            if bool(int(self.config.value('chb_show_tips'))):
+                return ui_text.tt_header3
+        else:
+            return super().headerData(section, orientation, role)
+
+    def setData(self, index, value, role):
+        job = self.jobs[index.row()]
+        collumn = index.column()
+
+        if collumn == 2:
+            if value:
+                current_value = job.dest_group
+                try:
+                    value = str(int(value))
+                except ValueError:
+                    value = current_value
+            job.dest_group = value or None
+
+        if collumn == 3 and role == Qt.CheckStateRole:
+            job.new_dtor = True if value == Qt.Checked else False
+
+        return True
+
+    def append(self, stuff):
+        if stuff not in self.jobs:
+            self.jobs.append(stuff)
+            self.layoutChanged.emit()
+
+    def clear(self):
+        self.jobs.clear()
+        self.layoutChanged.emit()
+
+    def remove(self, index):
+        self.jobs.pop(index)
+        self.layoutChanged.emit()
+
+    def remove_finished(self):
+        self.jobs[:] = (j for j in self.jobs if not j.upl_succes)
+        self.layoutChanged.emit()
+
+    def __bool__(self):
+        return bool(self.jobs)
+
+    def __iter__(self):
+        for j in self.jobs:
+            yield j

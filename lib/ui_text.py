@@ -14,6 +14,7 @@ pb_clear = "Clear"
 pb_rem_sel = "Rem sel"
 pb_del_sel = "Del sel"
 pb_open_tsavedir = "Save dir"
+pb_open_upl_urls = "Open urls"
 pb_go = "Go"
 pb_stop = 'Stop'
 header_restore = 'Restore all'
@@ -128,9 +129,11 @@ tt_scan_but = "Scan the 'scan folder' for .torrents and add them to the job list
                  "Subfolders will not be scanned"
 tt_header3 = 'Create new .torrent file\n' \
              'Instead of modifying source torrent'
-tt_clear_but = "Empty the job list or results pane"
+tt_clear_but_j = "Empty the job list"
+tt_clear_but_r = "Empty the results pane"
 tt_rem_sel_but = "Remove selected jobs (torrents) from the job list"
 tt_del_sel_but = "Delete selected .torrent files from scan dir"
 tt_open_tsavedir = "Open torrent save location"
+tt_open_upl_urls = "Open all uploads in browser"
 tt_go_but = "Start Transplanting\n" \
             "Or order some food. One of the two"

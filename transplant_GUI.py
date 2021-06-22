@@ -2,19 +2,20 @@ import sys
 import os
 import re
 import traceback
+import webbrowser
 
 from bencoder import BTFailure
 
 from lib.transplant import Transplanter, Job
 from lib.gazelle_api import GazelleApi
-from lib.custom_gui_classes import MyTextEdit, MyHeaderView, MyTableView
+from lib.custom_gui_classes import MyTextEdit, MyHeaderView, MyTableView, JobModel
 from lib import constants, ui_text, utils
 
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QTabWidget, QTextBrowser, QTextEdit, QLineEdit, QPushButton, \
-    QToolButton, QRadioButton, QButtonGroup, QHBoxLayout, QVBoxLayout, QFormLayout, QSpinBox, QCheckBox, \
-    QFileDialog, QAction, QSplitter, QTableView, QDialog, QMessageBox, QHeaderView, QAbstractItemView, QSizePolicy
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QTabWidget, QTabBar, QTextBrowser, QTextEdit, QLineEdit, QPushButton, \
+    QToolButton, QRadioButton, QButtonGroup, QHBoxLayout, QVBoxLayout, QFormLayout, QGridLayout, QSpinBox, QCheckBox, \
+    QFileDialog, QAction, QSplitter, QTableView, QDialog, QMessageBox, QHeaderView, QSizePolicy, QStackedLayout, QStackedWidget
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt, QSettings, QAbstractTableModel, QSize, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, QSettings, QSize, QThread, pyqtSignal
 
 
 # noinspection PyBroadException
@@ -206,16 +207,25 @@ class MainWindow(QWidget):
         self.result_view = QTextBrowser()
         self.result_view.setOpenExternalLinks(True)
 
-        self.tabs = QTabWidget()
-        self.tabs.setDocumentMode(True)
-        self.tabs.addTab(self.job_view, ui_text.tab_joblist)
+        self.tabs = QTabBar()
+        self.tabs.setDrawBase(False)
+        self.tabs.setExpanding(False)
+        self.tabs.addTab(ui_text.tab_joblist)
 
-        self.pb_clear = QPushButton(ui_text.pb_clear)
+        self.job_buttons = QWidget()
+        self.result_buttons = QWidget()
+        self.result_buttons.hide()
+        self.pb_clear_j = QPushButton(ui_text.pb_clear)
+        self.pb_clear_j.setEnabled(False)
+        self.pb_clear_r = QPushButton(ui_text.pb_clear)
+        self.pb_clear_r.setEnabled(False)
         self.pb_rem_sel = QPushButton(ui_text.pb_rem_sel)
         self.pb_rem_sel.setEnabled(False)
         self.pb_del_sel = QPushButton(ui_text.pb_del_sel)
         self.pb_del_sel.setEnabled(False)
         self.pb_open_tsavedir = QPushButton(ui_text.pb_open_tsavedir)
+        self.pb_open_upl_urls = QPushButton(ui_text.pb_open_upl_urls)
+        self.pb_open_upl_urls.setEnabled(False)
         self.tb_go = QToolButton()
         self.tb_go.setEnabled(False)
         self.tb_go.setIcon(QIcon('gui_files/switch.svg'))
@@ -300,21 +310,44 @@ class MainWindow(QWidget):
         scan_row.addWidget(self.pb_scan)
         scan_row.addWidget(self.tb_open_config2)
 
-        self.control_buttons = QVBoxLayout()
-        control_buttons = self.control_buttons
-        control_buttons.addSpacing(20)
-        control_buttons.addWidget(self.pb_clear)
-        control_buttons.addWidget(self.pb_rem_sel)
-        control_buttons.addWidget(self.pb_del_sel)
+        buttons_job = QVBoxLayout(self.job_buttons)
+        buttons_job.setContentsMargins(0, 0, 0, 0)
+        buttons_job.addWidget(self.pb_clear_j)
+        buttons_job.addWidget(self.pb_rem_sel)
+        buttons_job.addWidget(self.pb_del_sel)
+        buttons_result = QVBoxLayout(self.result_buttons)
+        buttons_result.setContentsMargins(0, 0, 0, 0)
+        buttons_result.addWidget(self.pb_clear_r)
+        buttons_result.addWidget(self.pb_open_upl_urls)
+        buttons_result.addStretch()
+
+        self.tab_button_stack = QStackedLayout()
+        self.tab_button_stack.addWidget(self.job_buttons)
+        self.tab_button_stack.addWidget(self.result_buttons)
+
+        self.go_stop_stack = QStackedLayout()
+        self.go_stop_stack.addWidget(self.tb_go)
+        self.go_stop_stack.addWidget(self.pb_stop)
+
+        control_buttons = QVBoxLayout()
+        control_buttons.setSpacing(5)
+        control_buttons.addLayout(self.tab_button_stack)
         control_buttons.addStretch(3)
         control_buttons.addWidget(self.pb_open_tsavedir)
         control_buttons.addStretch(1)
-        control_buttons.addWidget(self.tb_go)
-        control_buttons.addWidget(self.pb_stop)
+        control_buttons.addLayout(self.go_stop_stack)
 
-        view_n_buttons = QHBoxLayout()
-        view_n_buttons.addWidget(self.tabs)
-        view_n_buttons.addLayout(control_buttons)
+        self.view_stack = QStackedLayout()
+        self.view_stack.addWidget(self.job_view)
+        self.view_stack.addWidget(self.result_view)
+
+        view_n_buttons = QGridLayout()
+        view_n_buttons.setVerticalSpacing(0)
+        view_n_buttons.addWidget(self.tabs, 0, 0)
+        view_n_buttons.addLayout(self.view_stack, 1, 0)
+        view_n_buttons.addLayout(control_buttons, 1, 1)
+        view_n_buttons.setColumnStretch(0, 1)
+        view_n_buttons.setColumnStretch(1, 0)
 
         bottom_layout = QVBoxLayout(self.bottomwidget)
         bottom_layout.addLayout(scan_row)
@@ -407,21 +440,28 @@ class MainWindow(QWidget):
         self.pb_add.clicked.connect(self.parse_paste_input)
         self.pb_open_dtors.clicked.connect(self.select_dtors)
         self.pb_scan.clicked.connect(self.scan_dtorrents)
-        self.pb_clear.clicked.connect(self.clear_button)
+        self.pb_clear_j.clicked.connect(self.job_data.clear)
+        self.pb_clear_j.clicked.connect(self.job_view.clearSelection)
+        self.pb_clear_r.clicked.connect(self.result_view.clear)
         self.pb_rem_sel.clicked.connect(self.remove_selected)
         self.pb_del_sel.clicked.connect(self.delete_selected)
         self.pb_open_tsavedir.clicked.connect(lambda: utils.open_local_folder(self.config.value('le_dtor_save_dir')))
-        self.le_scandir.textChanged.connect(lambda: self.enable_button(self.pb_scan, bool(self.le_scandir.text())))
+        self.pb_open_upl_urls.clicked.connect(self.open_tor_urls)
+        self.le_scandir.textChanged.connect(lambda: self.pb_scan.setEnabled(bool(self.le_scandir.text())))
         self.ac_select_scandir.triggered.connect(self.select_scan_dir)
-        self.job_view.selectionChange.connect(lambda x: self.enable_button(self.pb_rem_sel, bool(x)))
-        self.job_view.selectionChange.connect(lambda x: self.enable_button(self.pb_del_sel, bool(x)))
-        self.job_data.layoutChanged.connect(lambda: self.enable_button(self.tb_go, bool(self.job_data)))
+        self.job_view.selectionChange.connect(lambda x: self.pb_rem_sel.setEnabled(bool(x)))
+        self.job_view.selectionChange.connect(lambda x: self.pb_del_sel.setEnabled(bool(x)))
+        self.job_data.layoutChanged.connect(lambda: self.tb_go.setEnabled(bool(self.job_data)))
+        self.job_data.layoutChanged.connect(lambda: self.pb_clear_j.setEnabled(bool(self.job_data)))
+        self.result_view.textChanged.connect(lambda: self.pb_clear_r.setEnabled(bool(self.result_view.toPlainText())))
+        self.result_view.textChanged.connect(lambda: self.pb_open_upl_urls.setEnabled('torrentid' in self.result_view.toPlainText()))
         self.tb_open_config.clicked.connect(self.config_window.open)
         self.tb_open_config2.clicked.connect(self.config_window.open)
-        self.splitter.splitterMoved.connect(lambda x, y: self.toolbutton2(x, y))
-        self.tb_go.clicked.connect(self.gogogo)
-        # self.tb_go.clicked.connect(self.slot_blabla)
-        self.tabs.currentChanged.connect(self.tabs_clicked)
+        self.splitter.splitterMoved.connect(lambda x, y: self.tb_open_config2.setHidden(bool(x)))
+        # self.tb_go.clicked.connect(self.gogogo)
+        self.tb_go.clicked.connect(self.blabla)
+        self.tabs.currentChanged.connect(self.view_stack.setCurrentIndex)
+        self.view_stack.currentChanged.connect(self.tab_button_stack.setCurrentIndex)
 
     def ui_config_connections(self):
         self.pb_def_descr.clicked.connect(self.default_descr)
@@ -431,7 +471,7 @@ class MainWindow(QWidget):
             lambda: self.config.setValue('geometry/config_window_size', self.config_window.size()))
         self.ac_select_datadir.triggered.connect(self.select_datadir)
         self.ac_select_torsave.triggered.connect(self.select_torsave)
-        self.le_dtor_save_dir.textChanged.connect(lambda x: self.enable_button(self.pb_open_tsavedir, bool(x)))
+        self.le_dtor_save_dir.textChanged.connect(lambda x: self.pb_open_tsavedir.setEnabled(bool(x)))
         self.chb_show_tips.stateChanged.connect(self.tooltips)
         self.chb_show_add_dtors.stateChanged.connect(lambda x: self.section_add_dtor_btn.setVisible(x)),
         self.chb_no_icon.stateChanged.connect(self.job_data.layoutChanged.emit)
@@ -484,10 +524,12 @@ class MainWindow(QWidget):
             (self.le_scandir, ui_text.tt_scandir),
             (self.ac_select_scandir, ui_text.tt_select_scandir),
             (self.pb_scan, ui_text.tt_scan_but),
-            (self.pb_clear, ui_text.tt_clear_but),
+            (self.pb_clear_j, ui_text.tt_clear_but_j),
+            (self.pb_clear_r, ui_text.tt_clear_but_r),
             (self.pb_rem_sel, ui_text.tt_rem_sel_but),
             (self.pb_del_sel, ui_text.tt_del_sel_but),
             (self.pb_open_tsavedir, ui_text.tt_open_tsavedir),
+            (self.pb_open_upl_urls, ui_text.tt_open_upl_urls),
             (self.tb_go, ui_text.tt_go_but),
             (self.tb_open_config, ui_text.config_window_title),
             (self.tb_open_config2, ui_text.config_window_title),
@@ -512,17 +554,9 @@ class MainWindow(QWidget):
 
     def blabla(self, *args):
         # print(*args)
-        print('blabla')
-
-    @staticmethod
-    def enable_button(button, flag):
-        button.setEnabled(flag)
-
-    def toolbutton2(self, pos, index):
-        if pos == 0:
-            self.tb_open_config2.show()
-        else:
-            self.tb_open_config2.hide()
+        if self.tabs.count() == 1:
+            self.tabs.addTab(ui_text.tab_results)
+        self.tabs.setCurrentIndex(1)
 
     def select_datadir(self):
         d_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_sel_ddir, self.config.value('le_data_dir'))
@@ -571,12 +605,6 @@ class MainWindow(QWidget):
     def default_descr(self):
         self.te_rel_descr.setText(ui_text.def_rel_descr)
         self.te_src_descr.setText(ui_text.def_src_descr)
-
-    def tabs_clicked(self, index):
-        if index == 0:
-            self.pb_rem_sel.setEnabled(True)
-        else:
-            self.pb_rem_sel.setEnabled(False)
 
     def parse_paste_input(self):
 
@@ -643,14 +671,9 @@ class MainWindow(QWidget):
                         continue
             self.config.setValue('le_scandir', os.path.normpath(path))
 
-    def clear_button(self):
-        # job list
-        if self.tabs.currentIndex() == 0:
-            self.job_data.clear()
-
-        # results
-        if self.tabs.currentIndex() == 1:
-            self.result_view.clear()
+    def open_tor_urls(self):
+        for u in (x for x in self.result_view.toPlainText().split() if 'torrentid' in x):
+            webbrowser.open(u)
 
     def remove_selected(self):
         selected_rows = list(set((x.row() for x in self.job_view.selectedIndexes())))
@@ -683,15 +706,6 @@ class MainWindow(QWidget):
         self.config.setValue('le_scandir', s_dir)
         self.le_scandir.setText(s_dir)
 
-    @staticmethod
-    def switch_buttons(but1, but2, flag):
-        if flag:
-            but1.setVisible(False)
-            but2.setVisible(True)
-        else:
-            but1.setVisible(True)
-            but2.setVisible(False)
-
     def gogogo(self):
         if not self.job_data:
             return
@@ -708,16 +722,16 @@ class MainWindow(QWidget):
         key_2 = self.config.value('le_key_2')
 
         if self.tabs.count() == 1:
-            self.tabs.addTab(self.result_view, ui_text.tab_results)
+            self.tabs.addTab(ui_text.tab_results)
         self.tabs.setCurrentIndex(1)
 
         self.tr_thread = TransplantThread(self.job_data, key_1, key_2)
 
         self.pb_stop.clicked.connect(self.tr_thread.stop)
         self.tr_thread.started.connect(lambda: self.show_feedback(ui_text.start, 2))
-        self.tr_thread.started.connect(lambda: self.switch_buttons(self.tb_go, self.pb_stop, True))
+        self.tr_thread.started.connect(lambda: self.go_stop_stack.setCurrentIndex(1))
         self.tr_thread.finished.connect(lambda: self.show_feedback(ui_text.thread_finish, 2))
-        self.tr_thread.finished.connect(lambda: self.switch_buttons(self.tb_go, self.pb_stop, False))
+        self.tr_thread.finished.connect(lambda: self.go_stop_stack.setCurrentIndex(0))
         self.tr_thread.finished.connect(self.job_data.remove_finished)
         self.tr_thread.feedback.connect(self.show_feedback)
         self.tr_thread.start()
@@ -759,123 +773,6 @@ class MainWindow(QWidget):
         self.config.setValue('geometry/position', self.pos())
         self.config.setValue('geometry/splitter_pos', self.splitter.sizes())
         self.config.setValue('geometry/header', self.job_view.horizontalHeader().saveState())
-
-
-class JobModel(QAbstractTableModel):
-    def __init__(self, parentconfig):
-        """
-        Can keep a job.
-        """
-        super().__init__()
-        self.jobs = []
-        self.config = parentconfig
-        self._headers = None
-
-    @property
-    def headers(self):
-        if self._headers:
-            return self._headers
-        else:
-            headers = []
-            index = 0
-            while True:
-                try:
-                    headers.append(getattr(ui_text, f'header{index}'))
-                except AttributeError:
-                    self._headers = headers
-                    return headers
-                index += 1
-
-    def data(self, index, role):
-
-        collumn = index.column()
-        job = self.jobs[index.row()]
-        no_icon = bool(int(self.config.value('chb_no_icon')))
-
-        if role == Qt.DisplayRole or role == Qt.EditRole:
-            if collumn == 0 and no_icon:
-                return job.src_id
-            if collumn == 1:
-                return job.display_name or job.tor_id
-            if collumn == 2:
-                return job.dest_group
-
-        if role == Qt.CheckStateRole and collumn == 3:
-            return Qt.Checked if job.new_dtor else Qt.Unchecked
-
-        if role == Qt.DecorationRole and collumn == 0 and not no_icon:
-            if job.src_id == ui_text.tracker_1:
-                return QIcon('gui_files/pth.ico')
-            if job.src_id == ui_text.tracker_2:
-                return QIcon('gui_files/ops.ico')
-
-    def rowCount(self, index):
-        return len(self.jobs)
-
-    def columnCount(self, index):
-        return len(self.headers)
-
-    # noinspection PyTypeChecker
-    def flags(self, index):
-        if index.column() == 2:
-            return super().flags(index) | Qt.ItemIsEditable
-        if index.column() == 3:
-            return super().flags(index) | Qt.ItemIsUserCheckable
-        else:
-            return super().flags(index)
-
-    def headerData(self, section, orientation, role):
-
-        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
-            return self.headers[section]
-
-        if role == Qt.ToolTipRole and orientation == Qt.Horizontal and section == 3:
-            if bool(int(self.config.value('chb_show_tips'))):
-                return ui_text.tt_header3
-        else:
-            return super().headerData(section, orientation, role)
-
-    def setData(self, index, value, role):
-        job = self.jobs[index.row()]
-        collumn = index.column()
-
-        if collumn == 2:
-            if value:
-                current_value = job.dest_group
-                try:
-                    value = str(int(value))
-                except ValueError:
-                    value = current_value
-            job.dest_group = value or None
-
-        if collumn == 3 and role == Qt.CheckStateRole:
-            job.new_dtor = True if value == Qt.Checked else False
-
-        return True
-
-    def append(self, stuff):
-        if stuff not in self.jobs:
-            self.jobs.append(stuff)
-            self.layoutChanged.emit()
-
-    def clear(self):
-        self.jobs.clear()
-        self.layoutChanged.emit()
-
-    def remove(self, index):
-        self.jobs.pop(index)
-        self.layoutChanged.emit()
-
-    def remove_finished(self):
-        self.jobs[:] = (j for j in self.jobs if not j.upl_succes)
-        self.layoutChanged.emit()
-
-    def __bool__(self):
-        return bool(self.jobs)
-
-    def __iter__(self):
-        for j in self.jobs:
-            yield j
 
 
 if __name__ == "__main__":

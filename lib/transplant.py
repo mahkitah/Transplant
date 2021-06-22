@@ -203,8 +203,6 @@ class Transplanter:
 
     def rehost_img(self):
 
-        # https://www.metal-archives.com/images/4/1/6/2/416208.jpg?2227
-
         src_img_url = self.tor_info['group']['wikiImage']
         if not src_img_url:
             return ''
