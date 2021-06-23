@@ -20,7 +20,7 @@ class MyTableView(QTableView):
 
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)
-        self.selectionChange.emit(list(set((x.row() for x in self.selectedIndexes()))))
+        self.selectionChange.emit(self.selectedIndexes())
 
 
 class MyHeaderView(QHeaderView):
@@ -54,7 +54,7 @@ class MyHeaderView(QHeaderView):
     def context_actions(self):
         self.restore_all = QAction(ui_text.header_restore)
         self.addAction(self.restore_all)
-        self.restore_all.triggered.connect(self.setAllSectionsVisible)
+        self.restore_all.triggered.connect(self.set_all_sections_visible)
 
         for n, h in enumerate(self.headers):
             action_name = f'ac_header{n}'
@@ -68,7 +68,7 @@ class MyHeaderView(QHeaderView):
 
             action.triggered.connect(make_lambda(n))
 
-    def setAllSectionsVisible(self):
+    def set_all_sections_visible(self):
         for x in range(self.count()):
             self.showSection(x)
 
@@ -119,22 +119,22 @@ class JobModel(QAbstractTableModel):
 
     def data(self, index, role):
 
-        collumn = index.column()
+        column = index.column()
         job = self.jobs[index.row()]
         no_icon = bool(int(self.config.value('chb_no_icon')))
 
         if role == Qt.DisplayRole or role == Qt.EditRole:
-            if collumn == 0 and no_icon:
+            if column == 0 and no_icon:
                 return job.src_id
-            if collumn == 1:
+            if column == 1:
                 return job.display_name or job.tor_id
-            if collumn == 2:
+            if column == 2:
                 return job.dest_group
 
-        if role == Qt.CheckStateRole and collumn == 3:
+        if role == Qt.CheckStateRole and column == 3:
             return Qt.Checked if job.new_dtor else Qt.Unchecked
 
-        if role == Qt.DecorationRole and collumn == 0 and not no_icon:
+        if role == Qt.DecorationRole and column == 0 and not no_icon:
             if job.src_id == ui_text.tracker_1:
                 return QIcon('gui_files/pth.ico')
             if job.src_id == ui_text.tracker_2:
@@ -168,21 +168,34 @@ class JobModel(QAbstractTableModel):
 
     def setData(self, index, value, role):
         job = self.jobs[index.row()]
-        collumn = index.column()
+        column = index.column()
 
-        if collumn == 2:
+        if column == 2:
             if value:
-                current_value = job.dest_group
                 try:
                     value = str(int(value))
                 except ValueError:
-                    value = current_value
+                    return False
             job.dest_group = value or None
 
-        if collumn == 3 and role == Qt.CheckStateRole:
+        if column == 3 and role == Qt.CheckStateRole:
             job.new_dtor = True if value == Qt.Checked else False
 
         return True
+
+    def header_double_clicked(self, column: int):
+        if column == 3:
+            allchecked = all(j.new_dtor for j in self.jobs)
+
+            for i, job in enumerate(self.jobs):
+                index = self.index(i, column)
+                if not allchecked:
+                    if not job.new_dtor:
+                        job.new_dtor = True
+                        self.dataChanged.emit(index, index, [])
+                else:
+                    job.new_dtor = False
+                    self.dataChanged.emit(index, index, [])
 
     def append(self, stuff):
         if stuff not in self.jobs:

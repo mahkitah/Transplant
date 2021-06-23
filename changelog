@@ -1,3 +1,8 @@
+- Doubleclick new torrent header (de)select all
+- New, Button for opening all new upload urls in browser
+- Fix, deal with RED unconfirmed releases
+- Fix, deal with 'other' bitrates
+2.2
 - New, Job list Headers context menu
 - Direct config interactions
 - Major refactoring: autogenerate user input elements

@@ -13,7 +13,7 @@ from lib import constants, ui_text, utils
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QTabWidget, QTabBar, QTextBrowser, QTextEdit, QLineEdit, QPushButton, \
     QToolButton, QRadioButton, QButtonGroup, QHBoxLayout, QVBoxLayout, QFormLayout, QGridLayout, QSpinBox, QCheckBox, \
-    QFileDialog, QAction, QSplitter, QTableView, QDialog, QMessageBox, QHeaderView, QSizePolicy, QStackedLayout, QStackedWidget
+    QFileDialog, QAction, QSplitter, QTableView, QDialog, QMessageBox, QHeaderView, QSizePolicy, QStackedLayout
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSettings, QSize, QThread, pyqtSignal
 
@@ -168,7 +168,7 @@ class MainWindow(QWidget):
         self.tb_open_config2.setIcon(QIcon('gui_files/gear.svg'))
         self.tb_open_config2.setAutoRaise(True)
 
-        self.te_paste_box = QTextEdit()
+        self.te_paste_box = MyTextEdit()
         self.te_paste_box.setAcceptDrops(False)
         self.te_paste_box.setLineWrapMode(QTextEdit.NoWrap)
         self.te_paste_box.setPlaceholderText(ui_text.pb_placeholder)
@@ -196,7 +196,6 @@ class MainWindow(QWidget):
         self.job_view.setSelectionBehavior(QTableView.SelectRows)
         self.job_view.verticalHeader().hide()
         self.job_view.verticalHeader().setMinimumSectionSize(12)
-        self.job_view.horizontalHeader().setSectionsClickable(False)
         self.job_view.horizontalHeader().setSectionsMovable(True)
         self.job_view.horizontalHeader().setMinimumSectionSize(18)
         self.job_view.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
@@ -434,8 +433,7 @@ class MainWindow(QWidget):
         total_layout.addLayout(bottom_row)
 
     def ui_main_connections(self):
-        self.te_paste_box.textChanged.connect(
-            lambda: self.enable_button(self.pb_add, bool(self.te_paste_box.toPlainText())))
+        self.te_paste_box.plainTextChanged.connect(lambda x: self.pb_add.setEnabled(bool(x)))
         self.bg_source.idClicked.connect(lambda x: self.config.setValue('bg_source', x))
         self.pb_add.clicked.connect(self.parse_paste_input)
         self.pb_open_dtors.clicked.connect(self.select_dtors)
@@ -449,6 +447,7 @@ class MainWindow(QWidget):
         self.pb_open_upl_urls.clicked.connect(self.open_tor_urls)
         self.le_scandir.textChanged.connect(lambda: self.pb_scan.setEnabled(bool(self.le_scandir.text())))
         self.ac_select_scandir.triggered.connect(self.select_scan_dir)
+        self.job_view.horizontalHeader().sectionDoubleClicked.connect(self.job_data.header_double_clicked)
         self.job_view.selectionChange.connect(lambda x: self.pb_rem_sel.setEnabled(bool(x)))
         self.job_view.selectionChange.connect(lambda x: self.pb_del_sel.setEnabled(bool(x)))
         self.job_data.layoutChanged.connect(lambda: self.tb_go.setEnabled(bool(self.job_data)))
@@ -461,6 +460,7 @@ class MainWindow(QWidget):
         # self.tb_go.clicked.connect(self.gogogo)
         self.tb_go.clicked.connect(self.blabla)
         self.tabs.currentChanged.connect(self.view_stack.setCurrentIndex)
+        self.view_stack.currentChanged.connect(self.tabs.setCurrentIndex)
         self.view_stack.currentChanged.connect(self.tab_button_stack.setCurrentIndex)
 
     def ui_config_connections(self):
@@ -513,7 +513,7 @@ class MainWindow(QWidget):
         try:
             self.job_view.horizontalHeader().restoreState(self.config.value('geometry/header'))
         except TypeError:
-            self.job_view.horizontalHeader().setAllSectionsVisible()
+            self.job_view.horizontalHeader().set_all_sections_visible()
 
     def tooltips(self, flag):
         tiplist = (
@@ -575,6 +575,43 @@ class MainWindow(QWidget):
         self.config.setValue('le_dtor_save_dir', t_dir)
         self.le_dtor_save_dir.setText(t_dir)
 
+    def select_dtors(self):
+
+        file_paths = QFileDialog.getOpenFileNames(self, ui_text.sel_dtors_window_title,
+                                                  self.config.value('torselect_dir'),
+                                                  "torrents (*.torrent);;All Files (*)")[0]
+        if not file_paths:
+            return
+
+        self.tabs.setCurrentIndex(0)
+        if len(file_paths) > 1:
+            common_path = os.path.commonpath(file_paths)
+        else:
+            common_path = os.path.dirname(file_paths[0])
+
+        self.config.setValue('torselect_dir', os.path.normpath(common_path))
+
+        for p in file_paths:
+            if os.path.isfile(p) and p.endswith(".torrent"):
+                try:
+                    self.job_data.append(Job(dtor_path=p))
+                except (AssertionError, BTFailure):
+                    continue
+
+    def scan_dtorrents(self):
+
+        path = self.le_scandir.text()
+        if path and os.path.isdir(path):
+            self.tabs.setCurrentIndex(0)
+
+            for i in os.scandir(self.le_scandir.text()):
+                if i.is_file() and i.name.endswith(".torrent"):
+                    try:
+                        self.job_data.append(Job(dtor_path=i.path))
+                    except (AssertionError, BTFailure):
+                        continue
+            self.config.setValue('le_scandir', os.path.normpath(path))
+
     def settings_check(self):
         data_dir = self.config.value('le_data_dir')
         dtor_save_dir = self.config.value('le_dtor_save_dir')
@@ -613,13 +650,8 @@ class MainWindow(QWidget):
             return
 
         self.tabs.setCurrentIndex(0)
-
-        if self.config.value('bg_source') == 0:
-            src_id = ui_text.tracker_1
-        elif self.config.value('bg_source') == 1:
-            src_id = ui_text.tracker_2
-        else:
-            return
+        id_map = {0: ui_text.tracker_1, 1: ui_text.tracker_2}
+        src_id = id_map.get(self.config.value('bg_source'))
 
         for line in paste_blob.split():
             match_id = re.fullmatch(r"\d+", line)
@@ -632,44 +664,8 @@ class MainWindow(QWidget):
                 tor_id = match_url.group(2)
                 url_id = constants.SITE_ID_MAP[domain]
                 self.job_data.append(Job(src_id=url_id, tor_id=tor_id))
+
         self.te_paste_box.clear()
-
-    def select_dtors(self):
-
-        file_paths = QFileDialog.getOpenFileNames(self, ui_text.sel_dtors_window_title,
-                                                  self.config.value('torselect_dir'),
-                                                  "torrents (*.torrent);;All Files (*)")[0]
-        if not file_paths:
-            return
-
-        self.tabs.setCurrentIndex(0)
-        if len(file_paths) > 1:
-            common_path = os.path.commonpath(file_paths)
-        else:
-            common_path = os.path.dirname(file_paths[0])
-
-        self.config.setValue('torselect_dir', os.path.normpath(common_path))
-
-        for p in file_paths:
-            if os.path.isfile(p) and p.endswith(".torrent"):
-                try:
-                    self.job_data.append(Job(dtor_path=p))
-                except (AssertionError, BTFailure):
-                    continue
-
-    def scan_dtorrents(self):
-
-        path = self.le_scandir.text()
-        if path and os.path.isdir(path):
-            self.tabs.setCurrentIndex(0)
-
-            for i in os.scandir(self.le_scandir.text()):
-                if i.is_file() and i.name.endswith(".torrent"):
-                    try:
-                        self.job_data.append(Job(dtor_path=i.path))
-                    except (AssertionError, BTFailure):
-                        continue
-            self.config.setValue('le_scandir', os.path.normpath(path))
 
     def open_tor_urls(self):
         for u in (x for x in self.result_view.toPlainText().split() if 'torrentid' in x):
@@ -763,8 +759,7 @@ class MainWindow(QWidget):
             white_str_nospace = ''.join(self.config.value('le_whitelist').split())
             if white_str_nospace:
                 whitelist = white_str_nospace.split(',')
-                settings_dict.update(img_rehost=True, whitelist=whitelist,
-                                     ptpimg_key=self.config.value('le_ptpimg_key'))
+                settings_dict.update(img_rehost=True, whitelist=whitelist, ptpimg_key=self.config.value('le_ptpimg_key'))
 
         return settings_dict
 
