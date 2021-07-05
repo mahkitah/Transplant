@@ -225,7 +225,7 @@ class Transplanter:
     def bitrate(self):
         encoding = self.tor_info['torrent']['encoding']
         if encoding in ['192', 'APS (VBR)', 'V2 (VBR)', 'V1 (VBR)', '256', 'APX (VBR)',
-                        'V0 (VBR)', 'Losless', '24bit Lossless']:
+                        'V0 (VBR)', 'Lossless', '24bit Lossless']:
             self.upl_data["bitrate"] = encoding
         else:
             self.upl_data["bitrate"] = 'Other'

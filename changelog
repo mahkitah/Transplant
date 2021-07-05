@@ -1,3 +1,5 @@
+2.2.2
+- Fix, 16 bit uploads uploaded as 'other'
 2.2.1
 - New, Doubleclick new torrent header (de)selects all
 - New, Button for opening all new upload urls in browser
