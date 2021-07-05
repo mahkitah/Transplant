@@ -184,7 +184,7 @@ class Transplanter:
         self.upl_data["tags"] = ",".join(tag_list)
 
     def release_description(self):
-        descr_variables = {
+        descr_placeholders = {
             '%src_id%': self.src_id,
             '%src_url%': constants.SITE_URLS[self.src_id],
             '%ori_upl%': self.tor_info['torrent']['username'],
@@ -193,11 +193,11 @@ class Transplanter:
             '%gr_id%': str(self.tor_info['group']['id'])
         }
 
-        rel_descr = utils.multi_replace(self.job.rel_descr, descr_variables)
+        rel_descr = utils.multi_replace(self.job.rel_descr, descr_placeholders)
 
         src_descr = self.tor_info['torrent']['description']
         if src_descr and self.job.add_src_descr:
-            rel_descr += '\n\n' + utils.multi_replace(self.job.src_descr, descr_variables, {'%src_descr%': src_descr})
+            rel_descr += '\n\n' + utils.multi_replace(self.job.src_descr, descr_placeholders, {'%src_descr%': src_descr})
 
         self.upl_data["release_desc"] = rel_descr
 

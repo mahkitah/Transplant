@@ -40,5 +40,8 @@ def dict_replace_values(inp_dict, bad, good):
     for k, v in inp_dict.items():
         if v == bad:
             inp_dict[k] = good
-        if type(v) == dict:
-            dict_replace_values(v, bad, good)
+        else:
+            try:
+                dict_replace_values(v, bad, good)
+            except AttributeError:
+                continue

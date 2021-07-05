@@ -40,8 +40,8 @@ l_verbosity = 'Verbosity'
 l_rehost = 'Rehost img to ptpimg'
 l_whitelist = 'Image host whitelist'
 l_ptpimg_key = 'PTPimg API-key'
-l_variables = "Set a custom release description.\n\n" \
-              "You can use these variables:\n" \
+l_placeholders = "Set a custom release description.\n\n" \
+              "You can use these placeholders:\n" \
               "%src_id% :   Source id (OPS/RED)\n" \
               "%src_url% :  Source url (eg https://redacted.ch/)\n" \
               "%ori_upl% :  Name of uploader\n" \
@@ -92,48 +92,52 @@ img_rehosted = "Image rehosted:"
 rehost_failed = "Image rehost failed. Using source url"
 
 # tooltips
-tt_keys = "Get your API-key from the site's user settings\n" \
+tt_l_key_1 = "Get your API-key from the site's user settings\n" \
           "Please note that these keys are stored in plain text"
-tt_data_dir = "This should be the top level folder where the album folders can be found"
-tt_dtor_save_dir = "Newly created .torrents from the destination tracker can be saved here\n" \
+tt_l_key_2 = tt_l_key_1
+tt_l_data_dir = "This should be the top level folder where the album folders can be found"
+tt_l_dtor_save_dir = "Newly created .torrents from the destination tracker can be saved here\n" \
                    "A torrent client's watch folder would be a logical choice to select here"
-tt_sel_ddir = "Select data folder"
-tt_sel_dtor_save_dir = "Select save folder"
-tt_del_dtors = "If checked, .torrents from the scan folder will be deleted after successful upload\n" \
+tt_ac_select_datadir = "Select data folder"
+tt_ac_select_torsave = "Select save folder"
+tt_l_del_dtors = "If checked, .torrents from the scan folder will be deleted after successful upload\n" \
             "This setting does not apply to .torrents that were added with the 'Add .torrent files' button\n" \
             "These will not be deleted"
-tt_check_files = "if checked, Transplant will verify that the torrent content (~music files) can be found\n" \
+tt_l_file_check = "if checked, Transplant will verify that the torrent content (~music files) can be found\n" \
                  "This will prevent transplanting torrents that you can't seed"
-tt_show_tips = "Reverse gravity locally"
-tt_verbosity = "Level of feedback.\n" \
+tt_l_show_tips = "Reverse gravity locally"
+tt_l_verbosity = "Level of feedback.\n" \
                "0: silent\n" \
                "1: only errors\n" \
                "2: normal\n" \
                "3: include naptime (see rate limiting in action)\n" \
                "4: debugging\n"\
                "5: include upload data"
-tt_rehost = 'Rehost non-whitelisted cover images to ptpimg'
-tt_whitelist = "Images hosted on these sites will not be rehosted\n" \
+tt_l_rehost = 'Rehost non-whitelisted cover images to ptpimg'
+tt_l_whitelist = "Images hosted on these sites will not be rehosted\n" \
                "Comma separated"
-tt_def_descr = 'Restore default descriptions'
-tt_spliter = 'Drag all the way up to collapse top section'
-tt_source_buts = "Select source tracker for torrent id's entered in the paste box\n" \
+tt_pb_def_descr = 'Restore default descriptions'
+tt_splitter = 'Drag all the way up to collapse top section'
+tt_rb_tracker1 = "Select source tracker for torrent id's entered in the paste box\n" \
                     "This setting does not apply to url's and .torrents"
-tt_add_but = "Add content of the paste box to the job list\n" \
+tt_rb_tracker2 = tt_rb_tracker1
+tt_tb_open_config = config_window_title
+tt_tb_open_config2 = tt_tb_open_config
+tt_pb_add = "Add content of the paste box to the job list\n" \
                 "Only valid entries will be added"
-tt_add_dtors_but = "Select .torrents to add to the job list"
-tt_scandir = "This folder will be scanned for .torrents when the 'Scan' button is pressed\n" \
+tt_pb_open_dtors = "Select .torrents to add to the job list"
+tt_le_scandir = "This folder will be scanned for .torrents when the 'Scan' button is pressed\n" \
                     "You can download the .torrents from the source tracker here"
-tt_select_scandir = "Select scan folder"
-tt_scan_but = "Scan the 'scan folder' for .torrents and add them to the job list\n" \
+tt_ac_select_scandir = "Select scan folder"
+tt_pb_scan = "Scan the 'scan folder' for .torrents and add them to the job list\n" \
                  "Subfolders will not be scanned"
 tt_header3 = 'Create new .torrent file\n' \
              'Instead of modifying source torrent'
-tt_clear_but_j = "Empty the job list"
-tt_clear_but_r = "Empty the results pane"
-tt_rem_sel_but = "Remove selected jobs (torrents) from the job list"
-tt_del_sel_but = "Delete selected .torrent files from scan dir"
-tt_open_tsavedir = "Open torrent save location"
-tt_open_upl_urls = "Open all uploads in browser"
-tt_go_but = "Start Transplanting\n" \
+tt_pb_clear_j = "Empty the job list"
+tt_pb_clear_r = "Empty the results pane"
+tt_pb_rem_sel = "Remove selected jobs (torrents) from the job list"
+tt_pb_del_sel = "Delete selected .torrent files from scan dir"
+tt_pb_open_tsavedir = "Open torrent save location"
+tt_pb_open_upl_urls = "Open all uploads in browser"
+tt_tb_go = "Start Transplanting\n" \
             "Or order some food. One of the two"

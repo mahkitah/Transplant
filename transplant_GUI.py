@@ -11,9 +11,10 @@ from lib.gazelle_api import GazelleApi
 from lib.custom_gui_classes import MyTextEdit, MyHeaderView, MyTableView, JobModel
 from lib import constants, ui_text, utils
 
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QTabWidget, QTabBar, QTextBrowser, QTextEdit, QLineEdit, QPushButton, \
-    QToolButton, QRadioButton, QButtonGroup, QHBoxLayout, QVBoxLayout, QFormLayout, QGridLayout, QSpinBox, QCheckBox, \
-    QFileDialog, QAction, QSplitter, QTableView, QDialog, QMessageBox, QHeaderView, QSizePolicy, QStackedLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QTabWidget, QTabBar, QTextBrowser, QTextEdit, QLineEdit, \
+    QPushButton, QToolButton, QRadioButton, QButtonGroup, QHBoxLayout, QVBoxLayout, QFormLayout, QGridLayout, QSpinBox,\
+    QCheckBox, QFileDialog, QAction, QSplitter, QTableView, QDialog, QMessageBox, QHeaderView, QSizePolicy,\
+    QStackedLayout
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSettings, QSize, QThread, pyqtSignal
 
@@ -140,7 +141,7 @@ class MainWindow(QWidget):
 
     def set_element_properties(self):
 
-        self.le_scandir.setPlaceholderText(ui_text.tt_select_scandir)
+        self.le_scandir.setPlaceholderText(ui_text.tt_ac_select_scandir)
 
         self.spb_verbosity.setMaximum(5)
         self.spb_verbosity.setMaximumWidth(40)
@@ -173,11 +174,11 @@ class MainWindow(QWidget):
         self.te_paste_box.setLineWrapMode(QTextEdit.NoWrap)
         self.te_paste_box.setPlaceholderText(ui_text.pb_placeholder)
 
-        self.rb_RED = QRadioButton(ui_text.tracker_1)
-        self.rb_OPS = QRadioButton(ui_text.tracker_2)
+        self.rb_tracker1 = QRadioButton(ui_text.tracker_1)
+        self.rb_tracker2 = QRadioButton(ui_text.tracker_2)
         self.bg_source = QButtonGroup()
-        self.bg_source.addButton(self.rb_RED, 0)
-        self.bg_source.addButton(self.rb_OPS, 1)
+        self.bg_source.addButton(self.rb_tracker1, 0)
+        self.bg_source.addButton(self.rb_tracker2, 1)
 
         self.pb_add = QPushButton(ui_text.pb_add)
         self.pb_add.setEnabled(False)
@@ -256,7 +257,7 @@ class MainWindow(QWidget):
         self.ac_select_torsave.setIcon(QIcon("gui_files/open-folder.svg"))
 
         # descr tab
-        self.l_variables = QLabel(ui_text.l_variables)
+        self.l_variables = QLabel(ui_text.l_placeholders)
         self.pb_def_descr = QPushButton()
         self.pb_def_descr.setText(ui_text.pb_def_descr)
         self.l_variables.setTextInteractionFlags(Qt.TextSelectableByMouse)
@@ -270,8 +271,8 @@ class MainWindow(QWidget):
 
         sa_topleft = QVBoxLayout()
         sa_topleft.addStretch(3)
-        sa_topleft.addWidget(self.rb_RED)
-        sa_topleft.addWidget(self.rb_OPS)
+        sa_topleft.addWidget(self.rb_tracker1)
+        sa_topleft.addWidget(self.rb_tracker2)
         sa_topleft.addStretch(1)
 
         sa_topright = QVBoxLayout()
@@ -329,7 +330,6 @@ class MainWindow(QWidget):
         self.go_stop_stack.addWidget(self.pb_stop)
 
         control_buttons = QVBoxLayout()
-        control_buttons.setSpacing(5)
         control_buttons.addLayout(self.tab_button_stack)
         control_buttons.addStretch(3)
         control_buttons.addWidget(self.pb_open_tsavedir)
@@ -453,7 +453,8 @@ class MainWindow(QWidget):
         self.job_data.layoutChanged.connect(lambda: self.tb_go.setEnabled(bool(self.job_data)))
         self.job_data.layoutChanged.connect(lambda: self.pb_clear_j.setEnabled(bool(self.job_data)))
         self.result_view.textChanged.connect(lambda: self.pb_clear_r.setEnabled(bool(self.result_view.toPlainText())))
-        self.result_view.textChanged.connect(lambda: self.pb_open_upl_urls.setEnabled('torrentid' in self.result_view.toPlainText()))
+        self.result_view.textChanged.connect(
+            lambda: self.pb_open_upl_urls.setEnabled('torrentid' in self.result_view.toPlainText()))
         self.tb_open_config.clicked.connect(self.config_window.open)
         self.tb_open_config2.clicked.connect(self.config_window.open)
         self.splitter.splitterMoved.connect(lambda x, y: self.tb_open_config2.setHidden(bool(x)))
@@ -516,50 +517,52 @@ class MainWindow(QWidget):
             self.job_view.horizontalHeader().set_all_sections_visible()
 
     def tooltips(self, flag):
-        tiplist = (
-            (self.rb_RED, ui_text.tt_source_buts),
-            (self.rb_OPS, ui_text.tt_source_buts),
-            (self.pb_add, ui_text.tt_add_but),
-            (self.pb_open_dtors, ui_text.tt_add_dtors_but),
-            (self.le_scandir, ui_text.tt_scandir),
-            (self.ac_select_scandir, ui_text.tt_select_scandir),
-            (self.pb_scan, ui_text.tt_scan_but),
-            (self.pb_clear_j, ui_text.tt_clear_but_j),
-            (self.pb_clear_r, ui_text.tt_clear_but_r),
-            (self.pb_rem_sel, ui_text.tt_rem_sel_but),
-            (self.pb_del_sel, ui_text.tt_del_sel_but),
-            (self.pb_open_tsavedir, ui_text.tt_open_tsavedir),
-            (self.pb_open_upl_urls, ui_text.tt_open_upl_urls),
-            (self.tb_go, ui_text.tt_go_but),
-            (self.tb_open_config, ui_text.config_window_title),
-            (self.tb_open_config2, ui_text.config_window_title),
-            (self.splitter.handle(1), ui_text.tt_spliter),
+        tiplist = ("rb_tracker1",
+                   "rb_tracker2",
+                   "pb_add",
+                   "pb_open_dtors",
+                   "le_scandir",
+                   "ac_select_scandir",
+                   "pb_scan",
+                   "pb_clear_j",
+                   "pb_clear_r",
+                   "pb_rem_sel",
+                   "pb_del_sel",
+                   "pb_open_tsavedir",
+                   "pb_open_upl_urls",
+                   "tb_go",
+                   "tb_open_config",
+                   "tb_open_config2",
+                   "l_key_1",
+                   "l_key_2",
+                   "l_data_dir",
+                   "ac_select_datadir",
+                   "l_dtor_save_dir",
+                   "ac_select_torsave",
+                   "l_del_dtors",
+                   "l_file_check",
+                   "l_show_tips",
+                   "l_verbosity",
+                   "l_rehost",
+                   "l_whitelist",
+                   "pb_def_descr")
 
-            (self.l_key_1, ui_text.tt_keys),
-            (self.l_key_2, ui_text.tt_keys),
-            (self.l_data_dir, ui_text.tt_data_dir),
-            (self.ac_select_datadir, ui_text.tt_sel_ddir),
-            (self.l_dtor_save_dir, ui_text.tt_dtor_save_dir),
-            (self.ac_select_torsave, ui_text.tt_sel_dtor_save_dir),
-            (self.l_del_dtors, ui_text.tt_del_dtors),
-            (self.l_file_check, ui_text.tt_check_files),
-            (self.l_show_tips, ui_text.tt_show_tips),
-            (self.l_verbosity, ui_text.tt_verbosity),
-            (self.l_rehost, ui_text.tt_rehost),
-            (self.l_whitelist, ui_text.tt_whitelist),
-            (self.pb_def_descr, ui_text.tt_def_descr)
-        )
         for x in tiplist:
-            x[0].setToolTip(x[1] if flag else '')
+            element = getattr(self, x)
+            ttip = getattr(ui_text, 'tt_' + x)
+            element.setToolTip(ttip if flag else '')
+
+        self.splitter.handle(1).setToolTip(ui_text.tt_splitter if flag else '')
 
     def blabla(self, *args):
         # print(*args)
+        blabla = self.te_paste_box.toPlainText()
         if self.tabs.count() == 1:
             self.tabs.addTab(ui_text.tab_results)
         self.tabs.setCurrentIndex(1)
 
     def select_datadir(self):
-        d_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_sel_ddir, self.config.value('le_data_dir'))
+        d_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_ac_select_datadir, self.config.value('le_data_dir'))
         if not d_dir:
             return
         d_dir = os.path.normpath(d_dir)
@@ -567,7 +570,7 @@ class MainWindow(QWidget):
         self.le_data_dir.setText(d_dir)
 
     def select_torsave(self):
-        t_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_sel_dtor_save_dir,
+        t_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_ac_select_torsave,
                                                  self.config.value('le_dtor_save_dir'))
         if not t_dir:
             return
@@ -695,7 +698,7 @@ class MainWindow(QWidget):
                 self.job_view.clearSelection()
 
     def select_scan_dir(self):
-        s_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_select_scandir, self.config.value('le_scandir'))
+        s_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_ac_select_scandir, self.config.value('le_scandir'))
         if not s_dir:
             return
         s_dir = os.path.normpath(s_dir)
@@ -759,7 +762,8 @@ class MainWindow(QWidget):
             white_str_nospace = ''.join(self.config.value('le_whitelist').split())
             if white_str_nospace:
                 whitelist = white_str_nospace.split(',')
-                settings_dict.update(img_rehost=True, whitelist=whitelist, ptpimg_key=self.config.value('le_ptpimg_key'))
+                settings_dict.update(img_rehost=True, whitelist=whitelist,
+                                     ptpimg_key=self.config.value('le_ptpimg_key'))
 
         return settings_dict
 
