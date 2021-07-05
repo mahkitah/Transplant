@@ -1,4 +1,5 @@
-- Doubleclick new torrent header (de)select all
+2.2.1
+- New, Doubleclick new torrent header (de)selects all
 - New, Button for opening all new upload urls in browser
 - Fix, deal with RED unconfirmed releases
 - Fix, deal with 'other' bitrates
