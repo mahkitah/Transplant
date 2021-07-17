@@ -135,19 +135,12 @@ class Transplanter:
 
     def remaster_data(self):
 
-        # get rid of original release
-        if self.src_id == "OPS" and not self.upl_data["remaster"]:
-            self.upl_data["remaster_year"] = self.tor_info['group']['year']
-            self.upl_data["remaster_record_label"] = html.unescape(self.tor_info['group']['recordLabel'] or "")
-            self.upl_data["remaster_catalogue_number"] = self.tor_info['group']['catalogueNumber']
-            self.upl_data["remaster"] = True
-
         remaster_year = self.tor_info['torrent']['remasterYear']
 
         # Unknown and unconfirmes releases
         if self.src_id == "RED" and remaster_year == 0:
             # unknown
-            if self.upl_data["remaster"]:
+            if self.tor_info['torrent']['remastered']:
                 self.upl_data['unknown'] = True
                 # Due to bug, there has to be a rem.year > 1982
                 self.upl_data['remaster_year'] = '2000'
@@ -164,6 +157,13 @@ class Transplanter:
             self.upl_data['remaster_year'] = '1990'
             self.upl_data["remaster_title"] = 'Unknown release year'
             self.edit_to_unknown = True
+
+        # get rid of original release
+        elif self.src_id == "OPS" and not self.tor_info['torrent']['remastered']:
+            self.upl_data["remaster_year"] = self.tor_info['group']['year']
+            self.upl_data["remaster_record_label"] = html.unescape(self.tor_info['group']['recordLabel'] or "")
+            self.upl_data["remaster_catalogue_number"] = self.tor_info['group']['catalogueNumber']
+            self.upl_data["remaster"] = True
 
         else:
             self.upl_data["remaster_year"] = remaster_year

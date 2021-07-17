@@ -1,12 +1,14 @@
+2.2.3
+- Fix, regression with OPS original release failure
 2.2.2
 - Fix, 16 bit uploads uploaded as 'other'
 2.2.1
-- New, Doubleclick new torrent header (de)selects all
-- New, Button for opening all new upload urls in browser
+- New: Doubleclick new torrent header (de)selects all
+- New: Button for opening all new upload urls in browser
 - Fix, deal with RED unconfirmed releases
 - Fix, deal with 'other' bitrates
 2.2
-- New, Job list Headers context menu
+- New: Job list Headers context menu
 - Direct config interactions
 - Major refactoring: autogenerate user input elements
 - New: GUI, 'Looks' settings
