@@ -1,3 +1,6 @@
+2.2.4
+- New: Optional buttons to remove jobs per source tracker
+- Refactoring to facilitate testing of upload data
 2.2.3
 - Fix, regression with OPS original release failure
 2.2.2

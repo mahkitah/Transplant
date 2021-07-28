@@ -1,4 +1,4 @@
-main_window_title = "Transplant 2.2.3"
+main_window_title = "Transplant 2.2.4"
 pb_placeholder = "Paste/type torrent ids and/or urls here.\n" \
                  "Space or newline separated.\n" \
                  "The source buttons only apply to ids."
@@ -13,6 +13,8 @@ tab_results = "Results"
 pb_clear = "Clear"
 pb_rem_sel = "Rem sel"
 pb_del_sel = "Del sel"
+pb_del_tr1 = f"Rem {tracker_1}"
+pb_del_tr2 = f"Rem {tracker_2}"
 pb_open_tsavedir = "Save dir"
 pb_open_upl_urls = "Open urls"
 pb_go = "Go"
@@ -56,6 +58,8 @@ def_src_descr = "[hide=source description:]%src_descr%[/hide]"
 l_job_list = 'Job list:'
 l_show_add_dtors = "Show 'Add torrent files' button"
 l_splitter_weight = 'Splitter weight'
+l_show_rem_tr1 = f"Show '{pb_del_tr1}' button"
+l_show_rem_tr2 = f"Show '{pb_del_tr2}' button"
 l_no_icon = 'Text instead of icon'
 l_alt_row_colour = 'Alternating row colours'
 l_show_grid = 'Show grid'
@@ -137,6 +141,8 @@ tt_pb_clear_j = "Empty the job list"
 tt_pb_clear_r = "Empty the results pane"
 tt_pb_rem_sel = "Remove selected jobs (torrents) from the job list"
 tt_pb_del_sel = "Delete selected .torrent files from scan dir"
+tt_pb_rem_tr1 = f"Remove all {tracker_1} jobs from job list"
+tt_pb_rem_tr2 = f"Remove all {tracker_2} jobs from job list"
 tt_pb_open_tsavedir = "Open torrent save location"
 tt_pb_open_upl_urls = "Open all uploads in browser"
 tt_tb_go = "Start Transplanting\n" \

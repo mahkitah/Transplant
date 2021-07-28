@@ -90,6 +90,8 @@ CONFIG_NAMES = (
     ('chb_show_grid', 0, True),
     ('spb_row_height', 20, True),
     ('chb_show_add_dtors', 2, True),
+    ('chb_show_rem_tr1', 0, True),
+    ('chb_show_rem_tr2', 0, True),
 )
 
 
@@ -223,6 +225,8 @@ class MainWindow(QWidget):
         self.pb_rem_sel.setEnabled(False)
         self.pb_del_sel = QPushButton(ui_text.pb_del_sel)
         self.pb_del_sel.setEnabled(False)
+        self.pb_rem_tr1 = QPushButton(ui_text.pb_del_tr1)
+        self.pb_rem_tr2 = QPushButton(ui_text.pb_del_tr2)
         self.pb_open_tsavedir = QPushButton(ui_text.pb_open_tsavedir)
         self.pb_open_upl_urls = QPushButton(ui_text.pb_open_upl_urls)
         self.pb_open_upl_urls.setEnabled(False)
@@ -315,6 +319,8 @@ class MainWindow(QWidget):
         buttons_job.addWidget(self.pb_clear_j)
         buttons_job.addWidget(self.pb_rem_sel)
         buttons_job.addWidget(self.pb_del_sel)
+        buttons_job.addWidget(self.pb_rem_tr1)
+        buttons_job.addWidget(self.pb_rem_tr2)
         buttons_result = QVBoxLayout(self.result_buttons)
         buttons_result.setContentsMargins(0, 0, 0, 0)
         buttons_result.addWidget(self.pb_clear_r)
@@ -414,6 +420,8 @@ class MainWindow(QWidget):
         job_list = QFormLayout()
         main.addRow(self.l_show_add_dtors, self.chb_show_add_dtors)
         main.addRow(self.l_splitter_weight, self.spb_splitter_weight)
+        main.addRow(self.l_show_rem_tr1, self.chb_show_rem_tr1)
+        main.addRow(self.l_show_rem_tr2, self.chb_show_rem_tr2)
         job_list.addRow(self.l_no_icon, self.chb_no_icon)
         job_list.addRow(self.l_alt_row_colour, self.chb_alt_row_colour)
         job_list.addRow(self.l_show_grid, self.chb_show_grid)
@@ -443,6 +451,8 @@ class MainWindow(QWidget):
         self.pb_clear_r.clicked.connect(self.result_view.clear)
         self.pb_rem_sel.clicked.connect(self.remove_selected)
         self.pb_del_sel.clicked.connect(self.delete_selected)
+        self.pb_rem_tr1.clicked.connect(lambda: self.remove_tracker_jobs(ui_text.tracker_1))
+        self.pb_rem_tr2.clicked.connect(lambda: self.remove_tracker_jobs(ui_text.tracker_2))
         self.pb_open_tsavedir.clicked.connect(lambda: utils.open_local_folder(self.config.value('le_dtor_save_dir')))
         self.pb_open_upl_urls.clicked.connect(self.open_tor_urls)
         self.le_scandir.textChanged.connect(lambda: self.pb_scan.setEnabled(bool(self.le_scandir.text())))
@@ -475,6 +485,8 @@ class MainWindow(QWidget):
         self.le_dtor_save_dir.textChanged.connect(lambda x: self.pb_open_tsavedir.setEnabled(bool(x)))
         self.chb_show_tips.stateChanged.connect(self.tooltips)
         self.chb_show_add_dtors.stateChanged.connect(lambda x: self.section_add_dtor_btn.setVisible(x)),
+        self.chb_show_rem_tr1.stateChanged.connect(lambda x: self.pb_rem_tr1.setVisible(x)),
+        self.chb_show_rem_tr2.stateChanged.connect(lambda x: self.pb_rem_tr2.setVisible(x)),
         self.chb_no_icon.stateChanged.connect(self.job_data.layoutChanged.emit)
         self.spb_splitter_weight.valueChanged.connect(self.splitter.setHandleWidth)
         self.chb_alt_row_colour.stateChanged.connect(self.job_view.setAlternatingRowColors)
@@ -528,6 +540,8 @@ class MainWindow(QWidget):
                    "pb_clear_r",
                    "pb_rem_sel",
                    "pb_del_sel",
+                   "pb_rem_tr1",
+                   "pb_rem_tr2",
                    "pb_open_tsavedir",
                    "pb_open_upl_urls",
                    "tb_go",
@@ -696,6 +710,17 @@ class MainWindow(QWidget):
                 os.remove(job.dtor_path)
                 self.job_data.remove(i)
                 self.job_view.clearSelection()
+
+    def remove_tracker_jobs(self, tr_id):
+
+        ids_to_remove = []
+        for i, job in enumerate(self.job_data.jobs):
+            if job.src_id == tr_id:
+                ids_to_remove.append(i)
+
+        ids_to_remove.sort(reverse=True)
+        for id in ids_to_remove:
+            self.job_data.remove(id)
 
     def select_scan_dir(self):
         s_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_ac_select_scandir, self.config.value('le_scandir'))

@@ -28,7 +28,7 @@ ptpimg_key = '123456'
 
 # "Set a custom release description.
 
-# You can use these variables:\n"
+# You can use these placeholders:"
 # %src_id% :   Source id (OPS/RED)
 # "%src_url% :  Source url (eg https://redacted.ch/)
 # "%ori_upl% :  Name of uploader
