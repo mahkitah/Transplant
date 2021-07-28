@@ -51,6 +51,8 @@ class Job:
         assert self.tor_id or self.info_hash
         assert not (self.tor_id and self.info_hash)
 
+        self.dest_id = choose_the_other(self.src_id)
+
     def update(self, settings_dict):
         for k, v in settings_dict.items():
             setattr(self, k, v)
@@ -79,45 +81,39 @@ class Transplanter:
         self.report = report
         self.job = job
 
-        self.src_id = job.src_id
-        self.tor_id = job.tor_id
-        self.report(f"\n{self.src_id} {job.display_name or self.tor_id}", 2)
+        self.report(f"\n{self.job.src_id} {self.job.display_name or self.job.tor_id}", 2)
 
-        self.data_dir = job.data_dir
-        self.file_check = job.file_check
-
-        self.dest_id = choose_the_other(self.src_id)
-        self.src_api = api_map[self.src_id]
-        self.dest_api = api_map[self.dest_id]
+        self.src_api = api_map[self.job.src_id]
+        self.dest_api = api_map[self.job.dest_id]
 
         self.report(ui_text.requesting, 2)
-        if self.tor_id:
-            self.tor_info = self.src_api.request("GET", "torrent", id=self.tor_id)
-        elif job.info_hash:
+        if self.job.tor_id:
+            self.tor_info = self.src_api.request("GET", "torrent", id=self.job.tor_id)
+        elif self.job.info_hash:
             self.tor_info = self.src_api.request("GET", "torrent", hash=job.info_hash)
-            self.tor_id = self.tor_info['torrent']['id']
+            self.job.tor_id = self.tor_info['torrent']['id']
         else:
             return
         # bug/change on OPS returns None instead of ''
-        if self.src_id == 'OPS':
+        if self.job.src_id == 'OPS':
             utils.dict_replace_values(self.tor_info, None, '')
 
         self.job.display_name = html.unescape(self.tor_info["torrent"]["filePath"])
         self.report(self.job.display_name, 2)
 
-        if self.file_check:
+        if self.job.file_check:
             self.check_files()
 
         self.edit_to_unknown = False
-        self.upl_data = {}
-        self.generate_upload_data()
+        self.upl_data = self.generate_upload_data(self.tor_info)
         self.upl_files = self.getfiles()
         self.new_upl_url = None
 
-    def parse_artists(self):
+    @staticmethod
+    def parse_artists(music_info):
         artists = []
         importances = []
-        for a_type, names in self.tor_info['group']['musicInfo'].items():
+        for a_type, names in music_info.items():
             for n in names:
                 imp = constants.ARTIST_MAP.get(a_type)
                 if imp:
@@ -126,80 +122,86 @@ class Transplanter:
 
         return artists, importances
 
-    def release_type(self):
-        source_reltype_num = self.tor_info['group']['releaseType']
-        for name, num in constants.RELEASE_TYPE_MAP[self.src_id].items():
+    def release_type(self, source_reltype_num):
+
+        for name, num in constants.RELEASE_TYPE_MAP[self.job.src_id].items():
             if num == source_reltype_num:
-                self.upl_data["releasetype"] = constants.RELEASE_TYPE_MAP[self.dest_id][name]
-                break
+                return constants.RELEASE_TYPE_MAP[self.job.dest_id][name]
 
-    def remaster_data(self):
+    def remaster_data(self, tor_info):
 
-        remaster_year = self.tor_info['torrent']['remasterYear']
+        remaster_year = tor_info['torrent']['remasterYear']
+        remaster_data = {}
 
         # Unknown and unconfirmes releases
-        if self.src_id == "RED" and remaster_year == 0:
+        if self.job.src_id == "RED" and remaster_year == 0:
             # unknown
-            if self.tor_info['torrent']['remastered']:
-                self.upl_data['unknown'] = True
+            if tor_info['torrent']['remastered']:
+                remaster_data["remaster"] = True
+                remaster_data['unknown'] = True
                 # Due to bug, there has to be a rem.year > 1982
-                self.upl_data['remaster_year'] = '2000'
+                remaster_data['remaster_year'] = '2000'
 
             # unconfirmed
             else:
-                self.upl_data["remaster_year"] = self.tor_info['group']['year']
-                self.upl_data["remaster_record_label"] = html.unescape(self.tor_info['group']['recordLabel'] or "")
-                self.upl_data["remaster_catalogue_number"] = self.tor_info['group']['catalogueNumber']
-                self.upl_data["remaster"] = True
+                remaster_data["remaster"] = True
+                remaster_data["remaster_year"] = tor_info['group']['year']
+                remaster_data["remaster_record_label"] = html.unescape(tor_info['group']['recordLabel'] or "")
+                remaster_data["remaster_catalogue_number"] = tor_info['group']['catalogueNumber']
 
         # unknown can't be uploaded to RED directly
-        elif self.src_id == "OPS" and self.tor_info['torrent']['remastered'] and not remaster_year:
-            self.upl_data['remaster_year'] = '1990'
-            self.upl_data["remaster_title"] = 'Unknown release year'
+        elif self.job.src_id == "OPS" and tor_info['torrent']['remastered'] and not remaster_year:
+            remaster_data["remaster"] = True
+            remaster_data['remaster_year'] = 1990
+            remaster_data["remaster_title"] = 'Unknown release year'
             self.edit_to_unknown = True
 
         # get rid of original release
-        elif self.src_id == "OPS" and not self.tor_info['torrent']['remastered']:
-            self.upl_data["remaster_year"] = self.tor_info['group']['year']
-            self.upl_data["remaster_record_label"] = html.unescape(self.tor_info['group']['recordLabel'] or "")
-            self.upl_data["remaster_catalogue_number"] = self.tor_info['group']['catalogueNumber']
-            self.upl_data["remaster"] = True
+        elif self.job.src_id == "OPS" and not tor_info['torrent']['remastered']:
+            remaster_data["remaster"] = True
+            remaster_data["remaster_year"] = tor_info['group']['year']
+            remaster_data["remaster_record_label"] = html.unescape(tor_info['group']['recordLabel'] or "")
+            remaster_data["remaster_catalogue_number"] = tor_info['group']['catalogueNumber']
 
         else:
-            self.upl_data["remaster_year"] = remaster_year
-            self.upl_data["remaster_title"] = html.unescape(self.tor_info['torrent']['remasterTitle'])
-            self.upl_data["remaster_record_label"] = html.unescape(self.tor_info['torrent']['remasterRecordLabel'])
-            self.upl_data["remaster_catalogue_number"] = self.tor_info['torrent']['remasterCatalogueNumber']
+            remaster_data["remaster"] = True
+            remaster_data["remaster_year"] = remaster_year
+            remaster_data["remaster_title"] = html.unescape(tor_info['torrent']['remasterTitle'])
+            remaster_data["remaster_record_label"] = html.unescape(tor_info['torrent']['remasterRecordLabel'])
+            remaster_data["remaster_catalogue_number"] = tor_info['torrent']['remasterCatalogueNumber']
 
-    def tags(self):
+        return remaster_data
+
+    @staticmethod
+    def tags(tags):
         # There's a 200 character limit for tags
         tag_list = []
         ch_count = 0
-        for t in self.tor_info['group']['tags']:
+        for t in tags:
             ch_count += len(t)
             if ch_count < 200:
                 tag_list.append(t)
             else:
                 break
-        self.upl_data["tags"] = ",".join(tag_list)
+        return ",".join(tag_list)
 
-    def release_description(self):
+    def release_description(self, tor_info):
         descr_placeholders = {
-            '%src_id%': self.src_id,
-            '%src_url%': constants.SITE_URLS[self.src_id],
-            '%ori_upl%': self.tor_info['torrent']['username'],
-            '%upl_id%': str(self.tor_info['torrent']['userId']),
-            '%tor_id%': str(self.tor_info['torrent']['id']),
-            '%gr_id%': str(self.tor_info['group']['id'])
+            '%src_id%': self.job.src_id,
+            '%src_url%': constants.SITE_URLS[self.job.src_id],
+            '%ori_upl%': tor_info['torrent']['username'],
+            '%upl_id%': str(tor_info['torrent']['userId']),
+            '%tor_id%': str(tor_info['torrent']['id']),
+            '%gr_id%': str(tor_info['group']['id'])
         }
 
         rel_descr = utils.multi_replace(self.job.rel_descr, descr_placeholders)
 
-        src_descr = self.tor_info['torrent']['description']
+        src_descr = tor_info['torrent']['description']
         if src_descr and self.job.add_src_descr:
             rel_descr += '\n\n' + utils.multi_replace(self.job.src_descr, descr_placeholders, {'%src_descr%': src_descr})
 
-        self.upl_data["release_desc"] = rel_descr
+        return rel_descr
 
     def rehost_img(self):
 
@@ -222,56 +224,61 @@ class Transplanter:
                 self.report(ui_text.rehost_failed, 1)
                 return src_img_url
 
-    def bitrate(self):
-        encoding = self.tor_info['torrent']['encoding']
+    @staticmethod
+    def bitrate(encoding):
+
+        bitrate_data = {}
         if encoding in ['192', 'APS (VBR)', 'V2 (VBR)', 'V1 (VBR)', '256', 'APX (VBR)',
                         'V0 (VBR)', 'Lossless', '24bit Lossless']:
-            self.upl_data["bitrate"] = encoding
+            bitrate_data["bitrate"] = encoding
         else:
-            self.upl_data["bitrate"] = 'Other'
+            bitrate_data["bitrate"] = 'Other'
             if encoding.endswith('(VBR)'):
-                self.upl_data['vbr'] = True
+                bitrate_data['vbr'] = True
                 encoding = encoding[:-6]
 
-            self.upl_data['other_bitrate'] = encoding
+            bitrate_data['other_bitrate'] = encoding
 
-    def generate_upload_data(self):
+        return bitrate_data
 
-        artists, importances = self.parse_artists()
+    def generate_upload_data(self, tor_info):
+
+        artists, importances = self.parse_artists(tor_info['group']['musicInfo'])
         
-        self.upl_data["type"] = "0"
+        upl_data = {"type": "0"}
 
         if self.job.dest_group:
-            self.upl_data['groupid'] = self.job.dest_group
+            upl_data['groupid'] = self.job.dest_group
         else:
-            self.release_type()
-            self.upl_data["title"] = html.unescape(self.tor_info['group']['name'])
-            self.upl_data["year"] = self.tor_info['group']['year']
-            self.upl_data["artists[]"] = artists
-            self.upl_data["importance[]"] = importances
-            self.upl_data["image"] = self.rehost_img() if self.job.img_rehost else self.tor_info['group']['wikiImage']
-            self.upl_data["vanity_house"] = self.tor_info['group']['vanityHouse']
+            upl_data["releasetype"] = self.release_type(tor_info['group']['releaseType'])
+            upl_data["title"] = html.unescape(tor_info['group']['name'])
+            upl_data["year"] = tor_info['group']['year']
+            upl_data["artists[]"] = artists
+            upl_data["importance[]"] = importances
+            upl_data["image"] = self.rehost_img() if self.job.img_rehost else tor_info['group']['wikiImage']
+            upl_data["vanity_house"] = tor_info['group']['vanityHouse']
             # apparantly 'False' doesn't work for "scene" on OPS. Must be 'None'
-            self.upl_data["scene"] = None if not self.tor_info['torrent']['scene'] else True
-            self.tags()
+            upl_data["scene"] = None if not tor_info['torrent']['scene'] else True
+            upl_data["tags"] = self.tags(tor_info['group']['tags'])
             #  RED uses "bbBody", OPS uses "wikiBBcode"
-            d = self.tor_info['group'].get("bbBody", self.tor_info['group'].get("wikiBBcode"))
+            d = tor_info['group'].get("bbBody", tor_info['group'].get("wikiBBcode"))
             d_url_switched = d.replace(self.src_api.url, self.dest_api.url)
-            self.upl_data["album_desc"] = html.unescape(d_url_switched)
+            upl_data["album_desc"] = html.unescape(d_url_switched)
 
-        self.upl_data["remaster"] = self.tor_info['torrent']['remastered']
-        self.remaster_data()
-        self.upl_data["media"] = self.tor_info['torrent']['media']
-        self.upl_data["format"] = self.tor_info['torrent']['format']
-        self.bitrate()
-        self.release_description()
-        # self.upl_data["media"] = 'blabla'
+        upl_data.update(self.remaster_data(tor_info))
+        upl_data["media"] = tor_info['torrent']['media']
+        upl_data["format"] = tor_info['torrent']['format']
+        upl_data.update(self.bitrate(tor_info['torrent']['encoding']))
+        upl_data["release_desc"] = self.release_description(tor_info)
+        # upl_data["media"] = 'blabla'
+
+        return upl_data
 
     def create_new_torrent(self):
 
         from dottorrent import Torrent
 
-        torfolder = os.path.join(self.data_dir, self.job.display_name)
+        torfolder = os.path.join(self.job.data_dir, self.job.display_name)
         self.report(ui_text.new_tor, 2)
         t = Torrent(torfolder, private=True)
         t.generate()
@@ -298,30 +305,30 @@ class Transplanter:
             self.job.dtor_dict = self.create_new_torrent()
 
         if not self.job.dtor_dict:
-            dtor_bytes = self.src_api.request("GET", "download", id=self.tor_id)
+            dtor_bytes = self.src_api.request("GET", "download", id=self.job.tor_id)
             self.job.dtor_dict = bdecode(dtor_bytes)
 
         self.job.dtor_dict[b'announce'] = self.dest_api.announce.encode()
-        self.job.dtor_dict[b"info"][b"source"] = self.dest_id.encode()
+        self.job.dtor_dict[b"info"][b"source"] = self.job.dest_id.encode()
         tor_bytes = bencode(self.job.dtor_dict)
         files.append(("file_input", (f"blabla.torrent", tor_bytes, "application/octet-stream")))
 
         # riplogs
         if self.tor_info["torrent"]["hasLog"]:
 
-            if self.src_id == "OPS":
+            if self.job.src_id == "OPS":
                 log_ids = self.tor_info["torrent"]["ripLogIds"]
                 for i in log_ids:
-                    r = self.src_api.request("GET", "riplog", id=self.tor_id, logid=i)
+                    r = self.src_api.request("GET", "riplog", id=self.job.tor_id, logid=i)
                     log_bytes = base64.b64decode(r["log"])
                     log_checksum = sha256(log_bytes).hexdigest()
                     assert log_checksum == r['log_sha256']
                     file_tuple = ("log.log", log_bytes, "application/octet-stream")
                     files.append(("logfiles[]", file_tuple))
 
-            if self.src_id == "RED":
+            if self.job.src_id == "RED":
                 log_paths = []
-                base_path = html.unescape(os.path.join(self.data_dir, self.tor_info['torrent']['filePath']))
+                base_path = html.unescape(os.path.join(self.job.data_dir, self.tor_info['torrent']['filePath']))
                 assert os.path.isdir(base_path), f"{ui_text.missing} {base_path}"
 
                 for p in utils.file_list_gen(base_path):
@@ -346,7 +353,7 @@ class Transplanter:
     def check_files(self):
         torfolder = html.unescape(self.tor_info["torrent"]["filePath"])
         for fl in self.api_filelist_gen():
-            full_path = os.path.join(self.data_dir, torfolder, *fl)
+            full_path = os.path.join(self.job.data_dir, torfolder, *fl)
             if not os.path.isfile(full_path):
                 raise FileNotFoundError(f"{ui_text.missing} {full_path}")
         self.report(ui_text.f_checked, 2)
@@ -359,7 +366,7 @@ class Transplanter:
 
     def transplant(self):
         try:
-            self.report(f"{ui_text.upl1} {self.dest_id}", 2)
+            self.report(f"{ui_text.upl1} {self.job.dest_id}", 2)
             r = self.dest_api.request("POST", "upload", data=self.upl_data, files=self.upl_files)
             self.report(f"{r}", 4)
         except RequestFailure as e:
