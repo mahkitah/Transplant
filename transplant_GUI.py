@@ -451,8 +451,8 @@ class MainWindow(QWidget):
         self.pb_clear_r.clicked.connect(self.result_view.clear)
         self.pb_rem_sel.clicked.connect(self.remove_selected)
         self.pb_del_sel.clicked.connect(self.delete_selected)
-        self.pb_rem_tr1.clicked.connect(lambda: self.remove_tracker_jobs(ui_text.tracker_1))
-        self.pb_rem_tr2.clicked.connect(lambda: self.remove_tracker_jobs(ui_text.tracker_2))
+        self.pb_rem_tr1.clicked.connect(lambda: self.job_data.filter_for_attr('src_id', ui_text.tracker_1))
+        self.pb_rem_tr2.clicked.connect(lambda: self.job_data.filter_for_attr('src_id', ui_text.tracker_2))
         self.pb_open_tsavedir.clicked.connect(lambda: utils.open_local_folder(self.config.value('le_dtor_save_dir')))
         self.pb_open_upl_urls.clicked.connect(self.open_tor_urls)
         self.le_scandir.textChanged.connect(lambda: self.pb_scan.setEnabled(bool(self.le_scandir.text())))
@@ -468,8 +468,8 @@ class MainWindow(QWidget):
         self.tb_open_config.clicked.connect(self.config_window.open)
         self.tb_open_config2.clicked.connect(self.config_window.open)
         self.splitter.splitterMoved.connect(lambda x, y: self.tb_open_config2.setHidden(bool(x)))
-        self.tb_go.clicked.connect(self.gogogo)
-        # self.tb_go.clicked.connect(self.blabla)
+        # self.tb_go.clicked.connect(self.gogogo)
+        self.tb_go.clicked.connect(self.blabla)
         self.tabs.currentChanged.connect(self.view_stack.setCurrentIndex)
         self.view_stack.currentChanged.connect(self.tabs.setCurrentIndex)
         self.view_stack.currentChanged.connect(self.tab_button_stack.setCurrentIndex)
@@ -569,8 +569,6 @@ class MainWindow(QWidget):
         self.splitter.handle(1).setToolTip(ui_text.tt_splitter if flag else '')
 
     def blabla(self, *args):
-        # print(*args)
-        blabla = self.te_paste_box.toPlainText()
         if self.tabs.count() == 1:
             self.tabs.addTab(ui_text.tab_results)
         self.tabs.setCurrentIndex(1)
@@ -711,17 +709,6 @@ class MainWindow(QWidget):
                 self.job_data.remove(i)
                 self.job_view.clearSelection()
 
-    def remove_tracker_jobs(self, tr_id):
-
-        ids_to_remove = []
-        for i, job in enumerate(self.job_data.jobs):
-            if job.src_id == tr_id:
-                ids_to_remove.append(i)
-
-        ids_to_remove.sort(reverse=True)
-        for id in ids_to_remove:
-            self.job_data.remove(id)
-
     def select_scan_dir(self):
         s_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_ac_select_scandir, self.config.value('le_scandir'))
         if not s_dir:
@@ -756,7 +743,7 @@ class MainWindow(QWidget):
         self.tr_thread.started.connect(lambda: self.go_stop_stack.setCurrentIndex(1))
         self.tr_thread.finished.connect(lambda: self.show_feedback(ui_text.thread_finish, 2))
         self.tr_thread.finished.connect(lambda: self.go_stop_stack.setCurrentIndex(0))
-        self.tr_thread.finished.connect(self.job_data.remove_finished)
+        self.tr_thread.finished.connect(self.job_data.filter_for_attr('upl_succes', True))
         self.tr_thread.feedback.connect(self.show_feedback)
         self.tr_thread.start()
 

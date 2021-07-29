@@ -210,8 +210,8 @@ class JobModel(QAbstractTableModel):
         self.jobs.pop(index)
         self.layoutChanged.emit()
 
-    def remove_finished(self):
-        self.jobs[:] = (j for j in self.jobs if not j.upl_succes)
+    def filter_for_attr(self, attr, value):
+        self.jobs[:] = (j for j in self.jobs if not getattr(j, attr) == value)
         self.layoutChanged.emit()
 
     def __bool__(self):
