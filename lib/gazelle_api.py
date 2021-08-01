@@ -40,20 +40,18 @@ class GazelleApi:
             self.report(f"sleeping {10-t}", 3)
             time.sleep(10 - t)
 
-    def request(self, req_type, action, data=None, files=None, **kwargs):
+    def request(self, req_method, action, data=None, files=None, **kwargs):
+        assert req_method in ['GET', 'POST'], f"Invalid request method: {req_method}"
+
         self.report(f"{self.id} {action}, {kwargs}", 4)
         self.report(f"{data}", 5)
+
         ajaxpage = self.url + 'ajax.php'
         params = {'action': action}
         params.update(kwargs)
 
         self._rate_limit()
-        if req_type == "GET":
-            r = self.session.get(ajaxpage, params=params)
-        elif req_type == "POST":
-            r = self.session.post(ajaxpage, params=params, data=data, files=files)
-        else:
-            raise Exception(f"Invalid request type: {req_type}")
+        r = self.session.request(req_method, ajaxpage, params=params, data=data, files=files)
         self.last_x_reqs.append(time.time())
 
         if r.status_code != 200:
