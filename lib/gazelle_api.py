@@ -53,9 +53,8 @@ class GazelleApi:
         self._rate_limit()
         r = self.session.request(req_method, ajaxpage, params=params, data=data, files=files)
         self.last_x_reqs.append(time.time())
+        r.raise_for_status()
 
-        if r.status_code != 200:
-            raise RequestFailure(f"status code {r.status_code}: {r.reason}")
         try:
             r_dict = r.json()
             self.report(f"{r_dict}", 4)

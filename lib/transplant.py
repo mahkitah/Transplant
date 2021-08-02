@@ -5,6 +5,7 @@ import re
 
 from bencoder import bencode, bdecode
 from hashlib import sha1, sha256
+from requests import HTTPError
 
 from lib.gazelle_api import RequestFailure
 from lib import utils, ui_text, constants, ptpimg_uploader
@@ -369,7 +370,7 @@ class Transplanter:
             self.report(f"{ui_text.upl1} {self.job.dest_id}", 2)
             r = self.dest_api.request("POST", "upload", data=self.upl_data, files=self.upl_files)
             self.report(f"{r}", 4)
-        except RequestFailure as e:
+        except (RequestFailure, HTTPError) as e:
             self.report(f"{ui_text.upl3} {str(e)}", 1)
             return
 
@@ -387,7 +388,7 @@ class Transplanter:
             try:
                 self.dest_api.request("POST", "torrentedit", id=torrent_id, data={'unknown': True})
                 self.report(ui_text.upl_to_unkn, 2)
-            except RequestFailure as e:
+            except (RequestFailure, HTTPError) as e:
                 self.report(f"{ui_text.edit_fail}{str(e)}", 1)
 
         if self.job.save_dtors:
