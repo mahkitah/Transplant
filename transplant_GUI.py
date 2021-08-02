@@ -743,7 +743,7 @@ class MainWindow(QWidget):
         self.tr_thread.started.connect(lambda: self.go_stop_stack.setCurrentIndex(1))
         self.tr_thread.finished.connect(lambda: self.show_feedback(ui_text.thread_finish, 2))
         self.tr_thread.finished.connect(lambda: self.go_stop_stack.setCurrentIndex(0))
-        self.tr_thread.finished.connect(self.job_data.filter_for_attr('upl_succes', True))
+        self.tr_thread.finished.connect(lambda: self.job_data.filter_for_attr('upl_succes', True))
         self.tr_thread.feedback.connect(self.show_feedback)
         self.tr_thread.start()
 
