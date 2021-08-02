@@ -25,7 +25,6 @@ class TransplantThread(QThread):
 
     def __init__(self, job_data, key_1, key_2):
         super().__init__()
-        self.go_on = True
         self.job_data = job_data
         self.key_1 = key_1
         self.key_2 = key_2
