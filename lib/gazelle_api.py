@@ -2,7 +2,10 @@ import time
 import requests
 
 from collections import deque
-from json.decoder import JSONDecodeError
+try:
+    from simplejson import JSONDecodeError
+except ImportError:
+    from json.decoder import JSONDecodeError
 
 from lib import constants
 
