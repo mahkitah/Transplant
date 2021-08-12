@@ -108,39 +108,7 @@ def upload(api_key, files_or_urls):
         results += uploader.upload_urls(*urls)
     return results
 
-
-def main():
-    import argparse
-
-    try:
-        import pyperclip
-    except ImportError:
-        pyperclip = None
-
-    parser = argparse.ArgumentParser(description="PTPImg uploader")
-    parser.add_argument('images', metavar='filename|url', nargs='+')
-    parser.add_argument(
-        '-k', '--api-key', default=os.environ.get('PTPIMG_API_KEY'),
-        help='PTPImg API key (or set the PTPIMG_API_KEY environment variable)')
-    if pyperclip is not None:
-        parser.add_argument(
-            '-n', '--dont-copy', action='store_false', default=True,
-            dest='clipboard',
-            help='Do not copy the resulting URLs to the clipboard')
-
-    args = parser.parse_args()
-
-    if not args.api_key:
-        parser.error('Please specify an API key')
-    try:
-        image_urls = upload(args.api_key, args.images)
-        print(*image_urls, sep='\n')
-        # Copy to clipboard if possible
-        if getattr(args, 'clipboard', False):
-            pyperclip.copy('\n'.join(image_urls))
-    except (UploadFailed, ValueError) as e:
-        parser.error(str(e))
-
-
-if __name__ == '__main__':
-    main()
+def ra_rehost(src_img_url, rapi_key):
+    url = "https://thesungod.xyz/api/image/rehost"
+    payload = {'api_key': rapi_key, 'link': src_img_url}
+    return requests.post(url, data=payload).text

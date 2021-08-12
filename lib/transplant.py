@@ -210,20 +210,21 @@ class Transplanter:
         if not src_img_url:
             return ''
 
-        whitelist = self.job.whitelist
-        ptpimg_key = self.job.ptpimg_key
-
-        if any(w in src_img_url for w in whitelist):
+        if any(w in src_img_url for w in self.job.whitelist):
             return src_img_url
-        else:
-            try:
-                rehosted_url = ptpimg_uploader.upload(ptpimg_key, [src_img_url])[0]
-                self.report(f"{ui_text.img_rehosted} {rehosted_url}", 2)
-                return rehosted_url
 
-            except (ptpimg_uploader.UploadFailed, ValueError):
-                self.report(ui_text.rehost_failed, 1)
-                return src_img_url
+        # # ptpimg doesn't handle webp well
+        # if all(x in src_img_url for x in ('img.discogs.com', 'format(webp)')):
+        #     return ptpimg_uploader.ra_rehost(src_img_url, self.job.rapi_key)
+
+        try:
+            rehosted_url = ptpimg_uploader.upload(self.job.ptpimg_key, [src_img_url])[0]
+            self.report(f"{ui_text.img_rehosted} {rehosted_url}", 2)
+            return rehosted_url
+
+        except (ptpimg_uploader.UploadFailed, ValueError):
+            self.report(ui_text.rehost_failed, 1)
+            return src_img_url
 
     @staticmethod
     def bitrate(encoding):
