@@ -375,11 +375,15 @@ class Transplanter:
             self.report(f"{ui_text.upl3} {str(e)}", 1)
             return
 
-        self.job.upl_succes = True
+        try:
+            # RED = lowercase keys. OPS = camelCase keys
+            group_id = r.get('groupId', r.get('groupid'))
+            torrent_id = r.get('torrentId', r.get('torrentid'))
+        except AttributeError as ee:
+            self.report(f"{ui_text.upl3} {str(ee)}", 1)
+            return
 
-        # RED = lowercase keys. OPS = camelCase keys
-        group_id = r.get('groupId', r.get('groupid'))
-        torrent_id = r.get('torrentId', r.get('torrentid'))
+        self.job.upl_succes = True
 
         self.new_upl_url = self.dest_api.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
         self.report(f"{ui_text.upl2} {self.new_upl_url}", 2)
