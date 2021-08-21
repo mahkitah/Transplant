@@ -307,7 +307,7 @@ class Transplanter:
             self.job.dtor_dict = self.create_new_torrent()
 
         if not self.job.dtor_dict:
-            dtor_bytes = self.src_api.request("GET", "download", id=self.job.tor_id)
+            dtor_bytes = self.src_api.request("GET", "download", expect_bytes=True, id=self.job.tor_id)
             self.job.dtor_dict = bdecode(dtor_bytes)
 
         self.job.dtor_dict[b'announce'] = self.dest_api.announce.encode()

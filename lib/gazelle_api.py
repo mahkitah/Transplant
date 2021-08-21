@@ -43,8 +43,8 @@ class GazelleApi:
             self.report(f"sleeping {10-t}", 3)
             time.sleep(10 - t)
 
-    def request(self, req_method, action, data=None, files=None, **kwargs):
-        assert req_method in ['GET', 'POST'], f"Invalid request method: {req_method}"
+    def request(self, req_method, action, data=None, files=None, expect_bytes=False, **kwargs):
+        assert req_method in ('GET', 'POST'), f"Invalid request method: {req_method}"
 
         self.report(f"{self.id} {action}, {kwargs}", 4)
         self.report(f"{data}", 5)
@@ -61,9 +61,13 @@ class GazelleApi:
         try:
             r_dict = r.json()
             self.report(f"{r_dict}", 4)
+            if expect_bytes:
+                raise RequestFailure('json instead of bytes')
             if r_dict["status"] == "success":
                 return r_dict["response"]
             elif r_dict["status"] == "failure":
                 raise RequestFailure(r_dict["error"])
         except JSONDecodeError:
-            return r.content
+            if expect_bytes:
+                return r.content
+            return {'no json': r.text}
