@@ -204,9 +204,8 @@ class Transplanter:
 
         return rel_descr
 
-    def rehost_img(self):
+    def rehost_img(self, src_img_url):
 
-        src_img_url = self.tor_info['group']['wikiImage']
         if not src_img_url:
             return ''
 
@@ -246,7 +245,16 @@ class Transplanter:
     def generate_upload_data(self, tor_info):
 
         artists, importances = self.parse_artists(tor_info['group']['musicInfo'])
-        
+
+        img_url = tor_info['group']['wikiImage']
+        alb_descr = tor_info['group'].get("bbBody", tor_info['group'].get("wikiBBcode"))
+        if self.job.src_id == 'OPS' and not any((img_url, alb_descr)):
+            grp_id = tor_info['group']['id']
+            group_info = self.src_api.request('GET', 'torrentgroup', id=grp_id)
+            print('torrentgroup')
+            img_url = group_info['group']['wikiImage']
+            alb_descr = group_info['group']['wikiBBcode']
+
         upl_data = {"type": "0"}
 
         if self.job.dest_group:
@@ -257,13 +265,18 @@ class Transplanter:
             upl_data["year"] = tor_info['group']['year']
             upl_data["artists[]"] = artists
             upl_data["importance[]"] = importances
-            upl_data["image"] = self.rehost_img() if self.job.img_rehost else tor_info['group']['wikiImage']
+
+            # upl_data["image"] = self.rehost_img() if self.job.img_rehost else tor_info['group']['wikiImage']
+            upl_data["image"] = self.rehost_img(img_url) if self.job.img_rehost else img_url
+
             upl_data["vanity_house"] = tor_info['group']['vanityHouse']
             # apparantly 'False' doesn't work for "scene" on OPS. Must be 'None'
             upl_data["scene"] = None if not tor_info['torrent']['scene'] else True
             upl_data["tags"] = self.tags(tor_info['group']['tags'])
+
             #  RED uses "bbBody", OPS uses "wikiBBcode"
-            d = tor_info['group'].get("bbBody", tor_info['group'].get("wikiBBcode"))
+            # d = tor_info['group'].get("bbBody", tor_info['group'].get("wikiBBcode"))
+            d = alb_descr
             d_url_switched = d.replace(self.src_api.url, self.dest_api.url)
             upl_data["album_desc"] = html.unescape(d_url_switched)
 

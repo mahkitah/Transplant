@@ -1,3 +1,5 @@
+2.2.5
+- Deal with OPS bug - no wiki info in torrent info
 2.2.4
 - New: Optional buttons to remove jobs per source tracker
 - Refactoring to facilitate testing of upload data
