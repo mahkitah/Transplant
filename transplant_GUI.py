@@ -225,7 +225,9 @@ class MainWindow(QWidget):
         self.pb_del_sel = QPushButton(ui_text.pb_del_sel)
         self.pb_del_sel.setEnabled(False)
         self.pb_rem_tr1 = QPushButton(ui_text.pb_del_tr1)
+        self.pb_rem_tr1.setEnabled(False)
         self.pb_rem_tr2 = QPushButton(ui_text.pb_del_tr2)
+        self.pb_rem_tr2.setEnabled(False)
         self.pb_open_tsavedir = QPushButton(ui_text.pb_open_tsavedir)
         self.pb_open_upl_urls = QPushButton(ui_text.pb_open_upl_urls)
         self.pb_open_upl_urls.setEnabled(False)
@@ -461,6 +463,8 @@ class MainWindow(QWidget):
         self.job_view.selectionChange.connect(lambda x: self.pb_del_sel.setEnabled(bool(x)))
         self.job_data.layoutChanged.connect(lambda: self.tb_go.setEnabled(bool(self.job_data)))
         self.job_data.layoutChanged.connect(lambda: self.pb_clear_j.setEnabled(bool(self.job_data)))
+        self.job_data.layoutChanged.connect(lambda: self.pb_rem_tr1.setEnabled(any(j.src_id == ui_text.tracker_1 for j in self.job_data)))
+        self.job_data.layoutChanged.connect(lambda: self.pb_rem_tr2.setEnabled(any(j.src_id == ui_text.tracker_2 for j in self.job_data)))
         self.result_view.textChanged.connect(lambda: self.pb_clear_r.setEnabled(bool(self.result_view.toPlainText())))
         self.result_view.textChanged.connect(
             lambda: self.pb_open_upl_urls.setEnabled('torrentid' in self.result_view.toPlainText()))
@@ -682,8 +686,9 @@ class MainWindow(QWidget):
         self.te_paste_box.clear()
 
     def open_tor_urls(self):
-        for u in (x for x in self.result_view.toPlainText().split() if 'torrentid' in x):
-            webbrowser.open(u)
+        for word in self.result_view.toPlainText().split():
+            if 'torrentid' in word:
+                webbrowser.open(word)
 
     def remove_selected(self):
         selected_rows = list(set((x.row() for x in self.job_view.selectedIndexes())))
