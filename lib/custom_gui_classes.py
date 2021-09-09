@@ -26,12 +26,12 @@ class MyTableView(QTableView):
 class MyHeaderView(QHeaderView):
     sectionVisibilityChanged = pyqtSignal(int, bool)
 
-    def __init__(self, ori, headers):
-        super().__init__(ori)
+    def __init__(self, orientation, headers):
+        super().__init__(orientation)
         self.headers = headers
         self.context_actions()
         self.sectionVisibilityChanged.connect(self.set_action_icons)
-        self.sectionVisibilityChanged.connect(self.disable_last_action)
+        self.sectionVisibilityChanged.connect(self.disable_actions)
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
 
     def hideSection(self, index):
@@ -52,9 +52,9 @@ class MyHeaderView(QHeaderView):
             self.sectionVisibilityChanged.emit(x, self.isSectionHidden(x))
 
     def context_actions(self):
-        self.restore_all = QAction(ui_text.header_restore)
-        self.addAction(self.restore_all)
-        self.restore_all.triggered.connect(self.set_all_sections_visible)
+        self.ac_restore_all = QAction(ui_text.header_restore)
+        self.addAction(self.ac_restore_all)
+        self.ac_restore_all.triggered.connect(self.set_all_sections_visible)
 
         for n, h in enumerate(self.headers):
             action_name = f'ac_header{n}'
@@ -72,8 +72,11 @@ class MyHeaderView(QHeaderView):
         for x in range(self.count()):
             self.showSection(x)
 
-    def disable_last_action(self):
-        if self.hiddenSectionCount() == self.count() - 1:
+    def disable_actions(self):
+        if not self.hiddenSectionCount():
+            self.ac_restore_all.setEnabled(False)
+
+        elif self.hiddenSectionCount() == self.count() - 1:
             section = 0
             while self.isSectionHidden(section):
                 section += 1
@@ -82,8 +85,7 @@ class MyHeaderView(QHeaderView):
 
         else:
             for action in self.actions():
-                if not action.isEnabled():
-                    action.setEnabled(True)
+                action.setEnabled(True)
 
     def set_action_icons(self, index, hidden):
         if hidden:
