@@ -121,7 +121,6 @@ tt_l_rehost = 'Rehost non-whitelisted cover images to ptpimg'
 tt_l_whitelist = "Images hosted on these sites will not be rehosted\n" \
                "Comma separated"
 tt_pb_def_descr = 'Restore default descriptions'
-tt_splitter = 'Drag all the way up to collapse top section'
 tt_rb_tracker1 = "Select source tracker for torrent id's entered in the paste box\n" \
                     "This setting does not apply to url's and .torrents"
 tt_rb_tracker2 = tt_rb_tracker1
@@ -135,8 +134,6 @@ tt_le_scandir = "This folder will be scanned for .torrents when the 'Scan' butto
 tt_ac_select_scandir = "Select scan folder"
 tt_pb_scan = "Scan the 'scan folder' for .torrents and add them to the job list\n" \
                  "Subfolders will not be scanned"
-tt_header3 = 'Create new .torrent file\n' \
-             'Instead of modifying source torrent'
 tt_pb_clear_j = "Empty the job list"
 tt_pb_clear_r = "Empty the results pane"
 tt_pb_rem_sel = "Remove selected jobs (torrents) from the job list"
@@ -147,3 +144,6 @@ tt_pb_open_tsavedir = "Open torrent save location"
 tt_pb_open_upl_urls = "Open all uploads in browser"
 tt_tb_go = "Start Transplanting\n" \
             "Or order some food. One of the two"
+ttm_header3 = 'Create new .torrent file\n' \
+             'Instead of modifying source torrent'
+ttm_splitter = 'Drag all the way up to collapse top section'

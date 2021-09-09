@@ -463,8 +463,10 @@ class MainWindow(QWidget):
         self.job_view.selectionChange.connect(lambda x: self.pb_del_sel.setEnabled(bool(x)))
         self.job_data.layoutChanged.connect(lambda: self.tb_go.setEnabled(bool(self.job_data)))
         self.job_data.layoutChanged.connect(lambda: self.pb_clear_j.setEnabled(bool(self.job_data)))
-        self.job_data.layoutChanged.connect(lambda: self.pb_rem_tr1.setEnabled(any(j.src_id == ui_text.tracker_1 for j in self.job_data)))
-        self.job_data.layoutChanged.connect(lambda: self.pb_rem_tr2.setEnabled(any(j.src_id == ui_text.tracker_2 for j in self.job_data)))
+        self.job_data.layoutChanged.connect(
+            lambda: self.pb_rem_tr1.setEnabled(any(j.src_id == ui_text.tracker_1 for j in self.job_data)))
+        self.job_data.layoutChanged.connect(
+            lambda: self.pb_rem_tr2.setEnabled(any(j.src_id == ui_text.tracker_2 for j in self.job_data)))
         self.result_view.textChanged.connect(lambda: self.pb_clear_r.setEnabled(bool(self.result_view.toPlainText())))
         self.result_view.textChanged.connect(
             lambda: self.pb_open_upl_urls.setEnabled('torrentid' in self.result_view.toPlainText()))
@@ -532,44 +534,14 @@ class MainWindow(QWidget):
             self.job_view.horizontalHeader().set_all_sections_visible()
 
     def tooltips(self, flag):
-        tiplist = ("rb_tracker1",
-                   "rb_tracker2",
-                   "pb_add",
-                   "pb_open_dtors",
-                   "le_scandir",
-                   "ac_select_scandir",
-                   "pb_scan",
-                   "pb_clear_j",
-                   "pb_clear_r",
-                   "pb_rem_sel",
-                   "pb_del_sel",
-                   "pb_rem_tr1",
-                   "pb_rem_tr2",
-                   "pb_open_tsavedir",
-                   "pb_open_upl_urls",
-                   "tb_go",
-                   "tb_open_config",
-                   "tb_open_config2",
-                   "l_key_1",
-                   "l_key_2",
-                   "l_data_dir",
-                   "ac_select_datadir",
-                   "l_dtor_save_dir",
-                   "ac_select_torsave",
-                   "l_del_dtors",
-                   "l_file_check",
-                   "l_show_tips",
-                   "l_verbosity",
-                   "l_rehost",
-                   "l_whitelist",
-                   "pb_def_descr")
 
-        for x in tiplist:
-            element = getattr(self, x)
-            ttip = getattr(ui_text, 'tt_' + x)
-            element.setToolTip(ttip if flag else '')
+        for t_name, ttip in vars(ui_text).items():
+            if t_name.startswith('tt_'):
+                obj_name = t_name.split('_', maxsplit=1)[1]
+                obj = getattr(self, obj_name)
+                obj.setToolTip(ttip if flag else '')
 
-        self.splitter.handle(1).setToolTip(ui_text.tt_splitter if flag else '')
+        self.splitter.handle(1).setToolTip(ui_text.ttm_splitter if flag else '')
 
     def blabla(self, *args):
         if self.tabs.count() == 1:
