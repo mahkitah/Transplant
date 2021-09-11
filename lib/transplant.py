@@ -71,10 +71,10 @@ class Job:
         self.info_hash = sha1(bencode(info)).hexdigest()
 
     def __hash__(self):
-        return hash((self.src_id, self.tor_id, self.info_hash))
+        return self.info_hash or hash((self.src_id, self.tor_id))
 
     def __eq__(self, other):
-        return (self.src_id, self.tor_id, self.info_hash) == (other.src_id, other.tor_id, other.info_hash)
+        return (self.info_hash or (self.src_id, self.tor_id)) == (other.info_hash or (other.src_id, other.tor_id))
 
 
 class Transplanter:
