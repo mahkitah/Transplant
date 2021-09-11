@@ -1,5 +1,4 @@
 import os
-import html
 import base64
 import re
 
@@ -97,7 +96,7 @@ class Transplanter:
         else:
             return
 
-        self.job.display_name = html.unescape(self.tor_info.folder_path)
+        self.job.display_name = self.tor_info.folder_name
         self.report(self.job.display_name, 2)
 
         if self.job.file_check:
@@ -146,7 +145,7 @@ class Transplanter:
             else:
                 self.upl_data["remaster"] = True
                 self.upl_data["remaster_year"] = self.tor_info.o_year
-                self.upl_data["remaster_record_label"] = html.unescape(self.tor_info.rem_label)
+                self.upl_data["remaster_record_label"] = self.tor_info.rem_label
                 self.upl_data["remaster_catalogue_number"] = self.tor_info.rem_cat_nr
 
         # unknown can't be uploaded to RED directly
@@ -160,14 +159,14 @@ class Transplanter:
         elif self.job.src_id == "OPS" and not self.tor_info.remastered:
             self.upl_data["remaster"] = True
             self.upl_data["remaster_year"] = self.tor_info.o_year
-            self.upl_data["remaster_record_label"] = html.unescape(self.tor_info.o_label)
+            self.upl_data["remaster_record_label"] = self.tor_info.o_label
             self.upl_data["remaster_catalogue_number"] = self.tor_info.o_cat_nr
 
         else:
             self.upl_data["remaster"] = True
             self.upl_data["remaster_year"] = remaster_year
-            self.upl_data["remaster_title"] = html.unescape(self.tor_info.rem_title)
-            self.upl_data["remaster_record_label"] = html.unescape(self.tor_info.rem_label)
+            self.upl_data["remaster_title"] = self.tor_info.rem_title
+            self.upl_data["remaster_record_label"] = self.tor_info.rem_label
             self.upl_data["remaster_catalogue_number"] = self.tor_info.rem_cat_nr
 
     def tags(self):
@@ -250,7 +249,7 @@ class Transplanter:
             self.upl_data['groupid'] = self.job.dest_group
         else:
             self.upl_data.update({
-                "title": html.unescape(self.tor_info.title),
+                "title": self.tor_info.title,
                 "year": self.tor_info.o_year,
                 "image": self.rehost_img() if self.job.img_rehost else self.tor_info.img_url,
                 "vanity_house": self.tor_info.vanity,
@@ -261,8 +260,7 @@ class Transplanter:
             self.release_type()
             self.tags()
 
-            d_url_switched = self.tor_info.alb_descr.replace(self.src_api.url, self.dest_api.url)
-            self.upl_data["album_desc"] = html.unescape(d_url_switched)
+            self.upl_data["album_desc"] = self.tor_info.alb_descr.replace(self.src_api.url, self.dest_api.url)
 
         # self.upl_data["media"] = 'blabla'
 
@@ -270,7 +268,7 @@ class Transplanter:
 
         from dottorrent import Torrent
 
-        torfolder = os.path.join(self.job.data_dir, self.job.display_name)
+        torfolder = os.path.join(self.job.data_dir, self.tor_info.folder_name)
         self.report(ui_text.new_tor, 2)
         t = Torrent(torfolder, private=True)
         t.generate()
@@ -320,7 +318,7 @@ class Transplanter:
 
             if self.job.src_id == "RED":
                 log_paths = []
-                base_path = html.unescape(os.path.join(self.job.data_dir, self.tor_info.folder_path))
+                base_path = os.path.join(self.job.data_dir, self.tor_info.folder_name)
                 assert os.path.isdir(base_path), f"{ui_text.missing} {base_path}"
 
                 for p in utils.file_list_gen(base_path):
@@ -339,11 +337,11 @@ class Transplanter:
         return files
 
     def api_filelist_gen(self):
-        for s in html.unescape(self.tor_info.file_list).split("|||"):
+        for s in self.tor_info.file_list.split("|||"):
             yield re.match(r"(.+){{3}\d+}{3}", s).group(1).split("/")
 
     def check_files(self):
-        torfolder = html.unescape(self.tor_info.folder_path)
+        torfolder = self.tor_info.folder_name
         for fl in self.api_filelist_gen():
             full_path = os.path.join(self.job.data_dir, torfolder, *fl)
             if not os.path.isfile(full_path):
@@ -352,7 +350,7 @@ class Transplanter:
 
     def save_dtorrent(self):
         assert self.job.src_id != self.job.dtor_dict[b"info"][b"source"]
-        file_path = os.path.join(self.job.dtor_save_dir, self.job.display_name) + ".torrent"
+        file_path = os.path.join(self.job.dtor_save_dir, self.tor_info.folder_name) + ".torrent"
         with open(file_path, "wb") as f:
             f.write(bencode(self.job.dtor_dict))
 

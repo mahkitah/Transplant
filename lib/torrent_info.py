@@ -1,3 +1,4 @@
+import html
 from lib import utils
 
 class TorrentInfo:
@@ -25,7 +26,7 @@ class TorrentInfo:
         'haslog': 'torrent/hasLog',
         'rel_descr': 'torrent/description',
         'file_list': 'torrent/fileList',
-        'folder_path': 'torrent/filePath',
+        'folder_name': 'torrent/filePath',
         'uploader_id': 'torrent/userId',
         'uploader': 'torrent/username'
     }
@@ -66,7 +67,7 @@ class TorrentInfo:
         self.log_ids = None
         self.rel_descr = None
         self.file_list = None
-        self.folder_path = None
+        self.folder_name = None
         self.uploader_id = None
         self.uploader = None
 
@@ -75,18 +76,19 @@ class TorrentInfo:
         fields.update(self.tr_specific[self.id])
 
         api_r = api.request('GET', 'torrent', **kwargs)
-        self.normalise_resp(api_r)
 
         for k, v in fields.items():
             sub, name = v.split('/')
-            setattr(self, k, api_r[sub][name])
+            value = api_r[sub][name]
+            if self.id == 'RED':
+                try:
+                    value = html.unescape(value)
+                except TypeError:
+                    pass
+            setattr(self, k, value)
 
         if self.id == 'OPS':
             self.ops_bugs(api)
-
-    def normalise_resp(self, api_r):
-        if self.id == 'OPS':
-            utils.dict_replace_values(api_r, None, '')
 
     def ops_bugs(self, api):
         # missing wiki info
