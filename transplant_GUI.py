@@ -22,10 +22,11 @@ from PyQt5.QtCore import Qt, QSettings, QSize, QThread, pyqtSignal
 # noinspection PyBroadException
 class TransplantThread(QThread):
     feedback = pyqtSignal(str, int)
+    remove_job = pyqtSignal(Job)
 
-    def __init__(self, job_data, key_1, key_2):
+    def __init__(self, job_list, key_1, key_2):
         super().__init__()
-        self.job_data = job_data
+        self.job_list = job_list
         self.key_1 = key_1
         self.key_2 = key_2
         self.stop_run = False
@@ -42,15 +43,18 @@ class TransplantThread(QThread):
         api_map = {ui_text.tracker_1: GazelleApi(ui_text.tracker_1, self.key_1, report=report_back),
                    ui_text.tracker_2: GazelleApi(ui_text.tracker_2, f"token {self.key_2}", report=report_back)}
 
-        for job in self.job_data:
+        for job in self.job_list:
             if self.stop_run:
                 break
             try:
                 operation = Transplanter(job, api_map, report=report_back)
-                operation.transplant()
+                success = operation.transplant()
             except Exception:
                 self.feedback.emit(traceback.format_exc(), 1)
                 continue
+
+            if success:
+                self.remove_job.emit(job)
 
 
 TYPE_MAP = {
@@ -448,19 +452,21 @@ class MainWindow(QWidget):
         self.pb_open_dtors.clicked.connect(self.select_dtors)
         self.pb_scan.clicked.connect(self.scan_dtorrents)
         self.pb_clear_j.clicked.connect(self.job_data.clear)
-        self.pb_clear_j.clicked.connect(self.job_view.clearSelection)
         self.pb_clear_r.clicked.connect(self.result_view.clear)
         self.pb_rem_sel.clicked.connect(self.remove_selected)
         self.pb_del_sel.clicked.connect(self.delete_selected)
         self.pb_rem_tr1.clicked.connect(lambda: self.job_data.filter_for_attr('src_id', ui_text.tracker_1))
         self.pb_rem_tr2.clicked.connect(lambda: self.job_data.filter_for_attr('src_id', ui_text.tracker_2))
         self.pb_open_tsavedir.clicked.connect(lambda: utils.open_local_folder(self.config.value('le_dtor_save_dir')))
+        self.tb_go.clicked.connect(self.gogogo)
+        # self.tb_go.clicked.connect(self.blabla)
         self.pb_open_upl_urls.clicked.connect(self.open_tor_urls)
         self.le_scandir.textChanged.connect(lambda: self.pb_scan.setEnabled(bool(self.le_scandir.text())))
         self.ac_select_scandir.triggered.connect(self.select_scan_dir)
         self.job_view.horizontalHeader().sectionDoubleClicked.connect(self.job_data.header_double_clicked)
         self.job_view.selectionChange.connect(lambda x: self.pb_rem_sel.setEnabled(bool(x)))
         self.job_view.selectionChange.connect(lambda x: self.pb_del_sel.setEnabled(bool(x)))
+        self.job_data.layoutChanged.connect(self.job_view.clearSelection)
         self.job_data.layoutChanged.connect(lambda: self.tb_go.setEnabled(bool(self.job_data)))
         self.job_data.layoutChanged.connect(lambda: self.pb_clear_j.setEnabled(bool(self.job_data)))
         self.job_data.layoutChanged.connect(
@@ -473,8 +479,6 @@ class MainWindow(QWidget):
         self.tb_open_config.clicked.connect(self.config_window.open)
         self.tb_open_config2.clicked.connect(self.config_window.open)
         self.splitter.splitterMoved.connect(lambda x, y: self.tb_open_config2.setHidden(bool(x)))
-        self.tb_go.clicked.connect(self.gogogo)
-        # self.tb_go.clicked.connect(self.blabla)
         self.tabs.currentChanged.connect(self.view_stack.setCurrentIndex)
         self.view_stack.currentChanged.connect(self.tabs.setCurrentIndex)
         self.view_stack.currentChanged.connect(self.tab_button_stack.setCurrentIndex)
@@ -544,9 +548,9 @@ class MainWindow(QWidget):
         self.splitter.handle(1).setToolTip(ui_text.ttm_splitter if flag else '')
 
     def blabla(self, *args):
-        if self.tabs.count() == 1:
-            self.tabs.addTab(ui_text.tab_results)
-        self.tabs.setCurrentIndex(1)
+        # from testzooi.testrun import testrun
+        # testrun(self)
+        pass
 
     def select_datadir(self):
         d_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_ac_select_datadir, self.config.value('le_data_dir'))
@@ -667,23 +671,19 @@ class MainWindow(QWidget):
         if not selected_rows:
             return
 
-        selected_rows.sort(reverse=True)
-        for i in selected_rows:
-            self.job_data.remove(i)
-        self.job_view.clearSelection()
+        self.job_data.del_multi(selected_rows)
 
     def delete_selected(self):
         selected_rows = list(set((x.row() for x in self.job_view.selectedIndexes())))
         if not selected_rows:
             return
 
-        selected_rows.sort(reverse=True)
         for i in selected_rows:
             job = self.job_data.jobs[i]
             if job.dtor_path and job.dtor_path.startswith(self.le_scandir.text()):
                 os.remove(job.dtor_path)
-                self.job_data.remove(i)
-                self.job_view.clearSelection()
+
+        self.job_data.del_multi(selected_rows)
 
     def select_scan_dir(self):
         s_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_ac_select_scandir, self.config.value('le_scandir'))
@@ -712,15 +712,15 @@ class MainWindow(QWidget):
             self.tabs.addTab(ui_text.tab_results)
         self.tabs.setCurrentIndex(1)
 
-        self.tr_thread = TransplantThread(self.job_data, key_1, key_2)
+        self.tr_thread = TransplantThread(self.job_data.jobs.copy(), key_1, key_2)
 
         self.pb_stop.clicked.connect(self.tr_thread.stop)
         self.tr_thread.started.connect(lambda: self.show_feedback(ui_text.start, 2))
         self.tr_thread.started.connect(lambda: self.go_stop_stack.setCurrentIndex(1))
         self.tr_thread.finished.connect(lambda: self.show_feedback(ui_text.thread_finish, 2))
         self.tr_thread.finished.connect(lambda: self.go_stop_stack.setCurrentIndex(0))
-        self.tr_thread.finished.connect(lambda: self.job_data.filter_for_attr('upl_succes', True))
         self.tr_thread.feedback.connect(self.show_feedback)
+        self.tr_thread.remove_job.connect(self.job_data.remove)
         self.tr_thread.start()
 
     def show_feedback(self, msg, msg_verb):

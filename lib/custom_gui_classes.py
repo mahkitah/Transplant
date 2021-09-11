@@ -199,17 +199,23 @@ class JobModel(QAbstractTableModel):
                     job.new_dtor = False
                     self.dataChanged.emit(index, index, [])
 
-    def append(self, stuff):
-        if stuff not in self.jobs:
-            self.jobs.append(stuff)
+    def append(self, item):
+        if item not in self.jobs:
+            self.jobs.append(item)
             self.layoutChanged.emit()
 
     def clear(self):
         self.jobs.clear()
         self.layoutChanged.emit()
 
-    def remove(self, index):
-        self.jobs.pop(index)
+    def remove(self, item):
+        self.jobs.remove(item)
+        self.layoutChanged.emit()
+
+    def del_multi(self, indices):
+        indices.sort(reverse=True)
+        for i in indices:
+            del self.jobs[i]
         self.layoutChanged.emit()
 
     def filter_for_attr(self, attr, value):

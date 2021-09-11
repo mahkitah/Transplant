@@ -42,7 +42,6 @@ class Job:
         self.info_hash = None
         self.display_name = None
         self.dtor_dict = None
-        self.upl_succes = False
 
         if dtor_path:
             self.parse_dtorrent(dtor_path)
@@ -251,7 +250,6 @@ class Transplanter:
         if self.job.src_id == 'OPS' and not any((img_url, alb_descr)):
             grp_id = tor_info['group']['id']
             group_info = self.src_api.request('GET', 'torrentgroup', id=grp_id)
-            print('torrentgroup')
             img_url = group_info['group']['wikiImage']
             alb_descr = group_info['group']['wikiBBcode']
 
@@ -386,7 +384,7 @@ class Transplanter:
             self.report(f"{r}", 4)
         except (RequestFailure, HTTPError) as e:
             self.report(f"{ui_text.upl3} {str(e)}", 1)
-            return
+            return False
 
         try:
             # RED = lowercase keys. OPS = camelCase keys
@@ -394,9 +392,7 @@ class Transplanter:
             torrent_id = r.get('torrentId', r.get('torrentid'))
         except AttributeError as ee:
             self.report(f"{ui_text.upl3} {str(ee)}", 1)
-            return
-
-        self.job.upl_succes = True
+            return False
 
         self.new_upl_url = self.dest_api.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
         self.report(f"{ui_text.upl2} {self.new_upl_url}", 2)
@@ -416,3 +412,5 @@ class Transplanter:
         if self.job.del_dtors:
             os.remove(self.job.dtor_path)
             self.report(f"{ui_text.dtor_deleted}", 2)
+
+        return True
