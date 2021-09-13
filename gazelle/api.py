@@ -8,14 +8,14 @@ except ImportError:
     from json.decoder import JSONDecodeError
 
 from lib import constants
-
+from gazelle import torrent_info
 
 class RequestFailure(Exception):
     pass
 
 
 # noinspection PyTypeChecker
-class GazelleApi:
+class Session:
     def __init__(self, site_id, key, report=lambda *x: None):
         assert site_id in constants.SITE_URLS, f"{site_id} is not a valid id"
         self.id = site_id
@@ -71,3 +71,14 @@ class GazelleApi:
             if expect_bytes:
                 return r.content
             return {'no json': r.text}
+
+    def torrent_info(self, **kwargs):
+        tr_map = {
+            'RED': torrent_info.REDTorrentInfo,
+            'OPS': torrent_info.OPSTorrentInfo
+        }
+        return tr_map[self.id](self.request, **kwargs)
+
+    def __repr__(self):
+        return self.id
+

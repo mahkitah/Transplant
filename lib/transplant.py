@@ -6,8 +6,7 @@ from bencoder import bencode, bdecode
 from hashlib import sha1, sha256
 from requests import HTTPError
 
-from lib.gazelle_api import RequestFailure
-from lib.torrent_info import TorrentInfo
+from gazelle.api import RequestFailure
 from lib import utils, ui_text, constants, ptpimg_uploader
 
 choose_the_other = utils.choose_the_other([ui_text.tracker_1, ui_text.tracker_2])
@@ -89,9 +88,9 @@ class Transplanter:
 
         self.report(ui_text.requesting, 2)
         if self.job.tor_id:
-            self.tor_info = TorrentInfo(self.src_api, id=self.job.tor_id)
+            self.tor_info = self.src_api.torrent_info(id=self.job.tor_id)
         elif self.job.info_hash:
-            self.tor_info = TorrentInfo(self.src_api, hash=job.info_hash)
+            self.tor_info = self.src_api.torrent_info(hash=job.info_hash)
             self.job.tor_id = self.tor_info.tor_id
         else:
             return
@@ -112,9 +111,9 @@ class Transplanter:
         artists = []
         importances = []
         for a_type, names in self.tor_info.artist_data.items():
-            for n in names:
-                imp = constants.ARTIST_MAP.get(a_type)
-                if imp:
+            imp = constants.ARTIST_MAP.get(a_type)
+            if imp:
+                for n in names:
                     importances.append(imp)
                     artists.append(n['name'])
 
@@ -301,14 +300,13 @@ class Transplanter:
         self.job.dtor_dict[b'announce'] = self.dest_api.announce.encode()
         self.job.dtor_dict[b"info"][b"source"] = self.job.dest_id.encode()
         tor_bytes = bencode(self.job.dtor_dict)
-        files.append(("file_input", (f"blabla.torrent", tor_bytes, "application/octet-stream")))
+        files.append(("file_input", (f"blabla.torrent", tor_bytes, "application/x-bittorrent")))
 
         # riplogs
         if self.tor_info.haslog:
 
-            if self.job.src_id == "OPS":
-                log_ids = self.tor_info.log_ids
-                for i in log_ids:
+            if self.tor_info.log_ids:
+                for i in self.tor_info.log_ids:
                     r = self.src_api.request("GET", "riplog", id=self.job.tor_id, logid=i)
                     log_bytes = base64.b64decode(r["log"])
                     log_checksum = sha256(log_bytes).hexdigest()
@@ -316,7 +314,7 @@ class Transplanter:
                     file_tuple = ("log.log", log_bytes, "application/octet-stream")
                     files.append(("logfiles[]", file_tuple))
 
-            if self.job.src_id == "RED":
+            else:
                 log_paths = []
                 base_path = os.path.join(self.job.data_dir, self.tor_info.folder_name)
                 assert os.path.isdir(base_path), f"{ui_text.missing} {base_path}"
@@ -330,20 +328,19 @@ class Transplanter:
                 log_paths.sort()
                 for lp in log_paths:
                     with open(lp, "rb") as f:
-                        log_data = f.read()
-                    file_tuple = ("log.log", log_data, "application/octet-stream")
+                        log_bytes = f.read()
+                    file_tuple = ("log.log", log_bytes, "application/octet-stream")
                     files.append(("logfiles[]", file_tuple))
 
         return files
 
-    def api_filelist_gen(self):
-        for s in self.tor_info.file_list.split("|||"):
-            yield re.match(r"(.+){{3}\d+}{3}", s).group(1).split("/")
+    # def api_filelist_gen(self):
+    #     for s in self.tor_info.file_list.split("|||"):
+    #         yield re.match(r"(.+){{3}\d+}{3}", s).group(1).split("/")
 
     def check_files(self):
-        torfolder = self.tor_info.folder_name
-        for fl in self.api_filelist_gen():
-            full_path = os.path.join(self.job.data_dir, torfolder, *fl)
+        for fl in self.tor_info.file_list:
+            full_path = os.path.join(self.job.data_dir, self.tor_info.folder_name, *fl['names'])
             if not os.path.isfile(full_path):
                 raise FileNotFoundError(f"{ui_text.missing} {full_path}")
         self.report(ui_text.f_checked, 2)
@@ -391,3 +388,6 @@ class Transplanter:
             self.report(f"{ui_text.dtor_deleted}", 2)
 
         return True
+
+    def __repr__(self):
+        return self.tor_info.folder_name
