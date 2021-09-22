@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction, QTableView
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel
 from lib import ui_text
-
+from gazelle.tracker_data import tr
 
 class MyTextEdit(QTextEdit):
     plainTextChanged = pyqtSignal(str)
@@ -127,7 +127,7 @@ class JobModel(QAbstractTableModel):
 
         if role == Qt.DisplayRole or role == Qt.EditRole:
             if column == 0 and no_icon:
-                return job.src_id
+                return job.src_tr.name
             if column == 1:
                 return job.display_name or job.tor_id
             if column == 2:
@@ -137,9 +137,9 @@ class JobModel(QAbstractTableModel):
             return Qt.Checked if job.new_dtor else Qt.Unchecked
 
         if role == Qt.DecorationRole and column == 0 and not no_icon:
-            if job.src_id == ui_text.tracker_1:
+            if job.src_tr == tr.RED:
                 return QIcon('gui_files/pth.ico')
-            if job.src_id == ui_text.tracker_2:
+            if job.src_tr == tr.OPS:
                 return QIcon('gui_files/ops.ico')
 
     def rowCount(self, index):

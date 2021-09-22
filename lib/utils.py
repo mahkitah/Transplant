@@ -45,3 +45,26 @@ def dict_replace_values(inp_dict, bad, good):
                 dict_replace_values(v, bad, good)
             except AttributeError:
                 continue
+
+def dict_stringkeys_to_bytes(inp_dict):
+    for k, v in inp_dict.copy().items():
+        try:
+            dict_stringkeys_to_bytes(v)
+        except AttributeError:
+            pass
+        if hasattr(k, 'encode'):
+            del inp_dict[k]
+            inp_dict[k.encode()] = v
+
+def joiner(lst, sep=', ', lastsep=' & '):
+    count = len(lst)
+    tmp = []
+    for i, x in enumerate(lst, start=1):
+        tmp.append(x)
+        if i < count - 1:
+            tmp.append(sep)
+            continue
+        if i == count -1:
+            tmp.append(lastsep)
+
+    return ''.join(tmp)

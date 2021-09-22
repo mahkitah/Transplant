@@ -4,73 +4,83 @@ import re
 import traceback
 
 from lib.transplant import Transplanter, Job
-from lib.gazelle_api import GazelleApi
+from gazelle.api_classes import KeyApi, RedApi, HtmlApi
+from gazelle.tracker_data import tr, tr_data
 
 from cli_config import cli_config, api_keys
-from lib import constants, ui_text
+from lib import ui_text
 
 
 def report_back(msg, msg_verb):
     if msg_verb <= cli_config.verbosity:
         print(msg)
 
+def get_tr_by_id(id):
+    for t in tr:
+        if t.name == id:
+            return t
 
-# noinspection PyBroadException
-def operate(job, api_map):
-
-    try:
-        operation = Transplanter(job, api_map, report=report_back)
-        operation.transplant()
-    except Exception:
-        traceback.print_exc()
-        return
-
-def main():
-
-    api_map = {'RED': GazelleApi("RED", api_keys.get_key("RED"), report=report_back),
-               'OPS': GazelleApi("OPS", api_keys.get_key("OPS"), report=report_back)}
-
-    report_back(ui_text.start, 2)
-
+def parse_input():
     args = sys.argv[1:]
     batchmode = False
 
-    job_user_settings = {'data_dir': cli_config.data_dir,
-                         'dtor_save_dir': cli_config.torrent_save_dir,
-                         'save_dtors': bool(cli_config.torrent_save_dir),
-                         'file_check': cli_config.file_check,
-                         'rel_descr': cli_config.rel_descr,
-                         'add_src_descr': cli_config.add_src_descr,
-                         'src_descr': cli_config.src_descr}
-
-    if cli_config.img_rehost:
-        job_user_settings.update(img_rehost=True,
-                                 whitelist=cli_config.whitelist,
-                                 ptpimg_key=cli_config.ptpimg_key)
     for arg in args:
-        report_back('', 2)
         if arg.lower() == "batch":
             batchmode = True
 
         match_url = re.search(r"https://(.+?)/.+torrentid=(\d+)", arg)
         if match_url:
             report_back(f"{arg}", 2)
-            src_name = match_url.group(1)
-            job = Job(src_id=constants.SITE_ID_MAP[src_name], tor_id=match_url.group(2), **job_user_settings)
-            operate(job, api_map)
+            yield Job(src_dom=match_url.group(1), tor_id=match_url.group(2))
 
         match_id = re.fullmatch(r"(RED|OPS)(\d+)", arg)
         if match_id:
             report_back(f"{arg}", 2)
-            job = Job(src_id=match_id.group(1), tor_id=match_id.group(2), **job_user_settings)
-            operate(job, api_map)
+            tracker = get_tr_by_id(match_id.group(1))
+            yield Job(src_tr=tracker, tor_id=match_id.group(2))
 
     if batchmode:
-        for dir_entry in os.scandir(cli_config.scan_dir):
-            if dir_entry.is_file() and dir_entry.name.endswith(".torrent"):
-                report_back(f"\n{dir_entry.name}", 2)
-                job = Job(dtor_path=dir_entry.path, del_dtors=cli_config.del_dtors, **job_user_settings)
-                operate(job, api_map)
+        for scan in os.scandir(cli_config.scan_dir):
+            if scan.is_file() and scan.name.endswith(".torrent"):
+                report_back(f"\n{scan.name}", 2)
+                yield Job(dtor_path=scan.path, del_dtors=cli_config.del_dtors)
+
+def cred_prompt():
+    u_name = input('username: ')
+    passw = input('password: ')
+    return u_name, passw
+
+def main():
+
+    api_map = {
+        tr.RED: RedApi(tr.RED, key=api_keys.get_key("RED")),
+        tr.OPS: KeyApi(tr.OPS, key=api_keys.get_key("OPS")),
+        # tr.bB: HtmlApi(tr.bB, f=cred_prompt)
+    }
+
+    report_back(ui_text.start, 2)
+
+    trpl_settings = {
+        'data_dir': cli_config.data_dir,
+        'dtor_save_dir': cli_config.torrent_save_dir,
+        'save_dtors': bool(cli_config.torrent_save_dir),
+        'file_check': cli_config.file_check,
+        'rel_descr_templ': cli_config.rel_descr,
+        'add_src_descr': cli_config.add_src_descr,
+        'src_descr_templ': cli_config.src_descr,
+        'img_rehost': cli_config.img_rehost,
+        'whitelist': cli_config.whitelist,
+        'ptpimg_key': cli_config.ptpimg_key,
+        'report': report_back
+    }
+    transplanter = Transplanter(api_map, **trpl_settings)
+    for job in parse_input():
+        # noinspection PyBroadException
+        try:
+            transplanter.do_your_job(job)
+        except Exception:
+            traceback.print_exc()
+            continue
 
 if __name__ == "__main__":
     main()

@@ -7,9 +7,11 @@ import webbrowser
 from bencoder import BTFailure
 
 from lib.transplant import Transplanter, Job
-from lib.gazelle_api import GazelleApi
+from gazelle.tracker_data import tr, tr_data
+from gazelle.api_classes import KeyApi, RedApi
+
+from lib import ui_text, utils
 from lib.custom_gui_classes import MyTextEdit, MyHeaderView, MyTableView, JobModel
-from lib import constants, ui_text, utils
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QTabWidget, QTabBar, QTextBrowser, QTextEdit, QLineEdit, \
     QPushButton, QToolButton, QRadioButton, QButtonGroup, QHBoxLayout, QVBoxLayout, QFormLayout, QGridLayout, QSpinBox,\
@@ -24,11 +26,12 @@ class TransplantThread(QThread):
     feedback = pyqtSignal(str, int)
     remove_job = pyqtSignal(Job)
 
-    def __init__(self, job_list, key_1, key_2):
+    def __init__(self, job_list, key_1, key_2, trpl_settings):
         super().__init__()
         self.job_list = job_list
         self.key_1 = key_1
         self.key_2 = key_2
+        self.trpl_settings = trpl_settings
         self.stop_run = False
 
     def stop(self):
@@ -40,15 +43,16 @@ class TransplantThread(QThread):
         def report_back(msg, msg_verb):
             self.feedback.emit(msg, msg_verb)
 
-        api_map = {ui_text.tracker_1: GazelleApi(ui_text.tracker_1, self.key_1, report=report_back),
-                   ui_text.tracker_2: GazelleApi(ui_text.tracker_2, f"token {self.key_2}", report=report_back)}
+        api_map = {tr.RED: RedApi(tr.RED, key=self.key_1),
+                   tr.OPS: KeyApi(tr.OPS, key=f"token {self.key_2}")}
+
+        transplanter = Transplanter(api_map, report=report_back, **self.trpl_settings)
 
         for job in self.job_list:
             if self.stop_run:
                 break
             try:
-                operation = Transplanter(job, api_map, report=report_back)
-                success = operation.transplant()
+                success = transplanter.do_your_job(job)
             except Exception:
                 self.feedback.emit(traceback.format_exc(), 1)
                 continue
@@ -69,34 +73,33 @@ ACTION_MAP = {
     QCheckBox: (lambda x: x.stateChanged, lambda x, y: x.setChecked(y), lambda x: bool(int(x))),
     QSpinBox: (lambda x: x.valueChanged, lambda x, y: x.setValue(y), lambda x: int(x))
 }
-# name, default value, make label
-CONFIG_NAMES = (
-    ('le_scandir', '', False),
-    ('le_key_1', None, True),
-    ('le_key_2', None, True),
-    ('le_data_dir', '', True),
-    ('le_dtor_save_dir', '', True),
-    ('chb_save_dtors', 0, False),
-    ('chb_del_dtors', 0, True),
-    ('chb_file_check', 2, True),
-    ('chb_show_tips', 2, True),
-    ('spb_verbosity', 2, True),
-    ('chb_rehost', 0, True),
-    ('le_whitelist', ui_text.default_whitelist, True),
-    ('le_ptpimg_key', None, True),
-    ('te_rel_descr', ui_text.def_rel_descr, False),
-    ('te_src_descr', ui_text.def_src_descr, False),
-    ('chb_add_src_descr', 1, False),
-    ('spb_splitter_weight', 0, True),
-    ('chb_no_icon', 0, True),
-    ('chb_alt_row_colour', 1, True),
-    ('chb_show_grid', 0, True),
-    ('spb_row_height', 20, True),
-    ('chb_show_add_dtors', 2, True),
-    ('chb_show_rem_tr1', 0, True),
-    ('chb_show_rem_tr2', 0, True),
-)
-
+# name: (default value, make label)
+CONFIG_NAMES = {
+    'le_scandir': ('', False),
+    'le_key_1': (None, True),
+    'le_key_2': (None, True),
+    'le_data_dir': ('', True),
+    'le_dtor_save_dir': ('', True),
+    'chb_save_dtors': (0, False),
+    'chb_del_dtors': (0, True),
+    'chb_file_check': (2, True),
+    'chb_show_tips': (2, True),
+    'spb_verbosity': (2, True),
+    'chb_rehost': (0, True),
+    'le_whitelist': (ui_text.default_whitelist, True),
+    'le_ptpimg_key': (None, True),
+    'te_rel_descr_templ': (ui_text.def_rel_descr, False),
+    'te_src_descr_templ': (ui_text.def_src_descr, False),
+    'chb_add_src_descr': (1, False),
+    'spb_splitter_weight': (0, True),
+    'chb_no_icon': (0, True),
+    'chb_alt_row_colour': (1, True),
+    'chb_show_grid': (0, True),
+    'spb_row_height': (20, True),
+    'chb_show_add_dtors': (2, True),
+    'chb_show_rem_tr1': (0, True),
+    'chb_show_rem_tr2': (0, True)
+}
 
 class MainWindow(QWidget):
 
@@ -125,8 +128,7 @@ class MainWindow(QWidget):
 
     def user_input_elements(self):
 
-        for c in CONFIG_NAMES:
-            el_name = c[0]
+        for el_name, (df, mk_lbl) in CONFIG_NAMES.items():
             typ, name = el_name.split('_', maxsplit=1)
 
             # instantiate
@@ -140,7 +142,7 @@ class MainWindow(QWidget):
             ACTION_MAP[type(obj)][0](obj).connect(make_lambda(el_name))
 
             # instantiate Label
-            if c[2]:
+            if mk_lbl:
                 label_name = 'l_' + name
                 setattr(self, label_name, QLabel(getattr(ui_text, label_name)))
 
@@ -179,8 +181,8 @@ class MainWindow(QWidget):
         self.te_paste_box.setLineWrapMode(QTextEdit.NoWrap)
         self.te_paste_box.setPlaceholderText(ui_text.pb_placeholder)
 
-        self.rb_tracker1 = QRadioButton(ui_text.tracker_1)
-        self.rb_tracker2 = QRadioButton(ui_text.tracker_2)
+        self.rb_tracker1 = QRadioButton(tr.RED.name)
+        self.rb_tracker2 = QRadioButton(tr.OPS.name)
         self.bg_source = QButtonGroup()
         self.bg_source.addButton(self.rb_tracker1, 0)
         self.bg_source.addButton(self.rb_tracker2, 1)
@@ -416,9 +418,9 @@ class MainWindow(QWidget):
 
         desc_layout = QVBoxLayout(self.cust_descr)
         desc_layout.addLayout(top_row_descr)
-        desc_layout.addWidget(self.te_rel_descr)
+        desc_layout.addWidget(self.te_rel_descr_templ)
         desc_layout.addWidget(self.chb_add_src_descr)
-        desc_layout.addWidget(self.te_src_descr)
+        desc_layout.addWidget(self.te_src_descr_templ)
 
         # Looks
         main = QFormLayout()
@@ -455,8 +457,8 @@ class MainWindow(QWidget):
         self.pb_clear_r.clicked.connect(self.result_view.clear)
         self.pb_rem_sel.clicked.connect(self.remove_selected)
         self.pb_del_sel.clicked.connect(self.delete_selected)
-        self.pb_rem_tr1.clicked.connect(lambda: self.job_data.filter_for_attr('src_id', ui_text.tracker_1))
-        self.pb_rem_tr2.clicked.connect(lambda: self.job_data.filter_for_attr('src_id', ui_text.tracker_2))
+        self.pb_rem_tr1.clicked.connect(lambda: self.job_data.filter_for_attr('src_tr', tr.RED))
+        self.pb_rem_tr2.clicked.connect(lambda: self.job_data.filter_for_attr('src_tr', tr.OPS))
         self.pb_open_tsavedir.clicked.connect(lambda: utils.open_local_folder(self.config.value('le_dtor_save_dir')))
         self.tb_go.clicked.connect(self.gogogo)
         # self.tb_go.clicked.connect(self.blabla)
@@ -470,9 +472,9 @@ class MainWindow(QWidget):
         self.job_data.layoutChanged.connect(lambda: self.tb_go.setEnabled(bool(self.job_data)))
         self.job_data.layoutChanged.connect(lambda: self.pb_clear_j.setEnabled(bool(self.job_data)))
         self.job_data.layoutChanged.connect(
-            lambda: self.pb_rem_tr1.setEnabled(any(j.src_id == ui_text.tracker_1 for j in self.job_data)))
+            lambda: self.pb_rem_tr1.setEnabled(any(j.src_tr == tr.RED for j in self.job_data)))
         self.job_data.layoutChanged.connect(
-            lambda: self.pb_rem_tr2.setEnabled(any(j.src_id == ui_text.tracker_2 for j in self.job_data)))
+            lambda: self.pb_rem_tr2.setEnabled(any(j.src_tr == tr.OPS for j in self.job_data)))
         self.result_view.textChanged.connect(lambda: self.pb_clear_r.setEnabled(bool(self.result_view.toPlainText())))
         self.result_view.textChanged.connect(
             lambda: self.pb_open_upl_urls.setEnabled('torrentid' in self.result_view.toPlainText()))
@@ -504,17 +506,27 @@ class MainWindow(QWidget):
         self.spb_row_height.valueChanged.connect(self.job_view.verticalHeader().setDefaultSectionSize)
 
     def load_config(self):
-        for c in CONFIG_NAMES:
-            name = c[0]
+        for name, (df, mk_lbl) in CONFIG_NAMES.items():
             obj = getattr(self, name)
 
             if not self.config.contains(name):
-                self.config.setValue(name, c[1])
+                self.config.setValue(name, df)
+
+            renamed = {'te_rel_descr': 'te_rel_descr_templ', 'te_src_descr': 'te_src_descr_templ'}
 
             actions = ACTION_MAP[type(obj)]
             value = actions[2](self.config.value(name))
             actions[1](obj, value)
             actions[0](obj).emit(value)
+
+        for d in (('te_rel_descr', 'te_rel_descr_templ'), ('te_src_descr', 'te_src_descr_templ')):
+            if self.config.contains(d[0]):
+                if self.config.value(d[0]) != self.config.value(d[1]):
+                    obj = getattr(self, d[1])
+                    actions = ACTION_MAP[type(obj)]
+                    value = actions[2](self.config.value(d[0]))
+                    actions[1](obj, value)
+                    actions[0](obj).emit(value)
 
         self.le_key_1.setCursorPosition(0)
         self.le_key_2.setCursorPosition(0)
@@ -557,7 +569,6 @@ class MainWindow(QWidget):
         if not d_dir:
             return
         d_dir = os.path.normpath(d_dir)
-        self.config.setValue('le_data_dir', d_dir)
         self.le_data_dir.setText(d_dir)
 
     def select_torsave(self):
@@ -566,7 +577,6 @@ class MainWindow(QWidget):
         if not t_dir:
             return
         t_dir = os.path.normpath(t_dir)
-        self.config.setValue('le_dtor_save_dir', t_dir)
         self.le_dtor_save_dir.setText(t_dir)
 
     def select_dtors(self):
@@ -593,18 +603,18 @@ class MainWindow(QWidget):
                     continue
 
     def scan_dtorrents(self):
-
         path = self.le_scandir.text()
         if path and os.path.isdir(path):
             self.tabs.setCurrentIndex(0)
 
-            for i in os.scandir(self.le_scandir.text()):
-                if i.is_file() and i.name.endswith(".torrent"):
+            del_dtors = bool(int(self.config.value('chb_del_dtors')))
+
+            for scan in os.scandir(self.le_scandir.text()):
+                if scan.is_file() and scan.name.endswith(".torrent"):
                     try:
-                        self.job_data.append(Job(dtor_path=i.path))
+                        self.job_data.append(Job(dtor_path=scan.path, del_dtors=del_dtors))
                     except (AssertionError, BTFailure):
                         continue
-            self.config.setValue('le_scandir', os.path.normpath(path))
 
     def settings_check(self):
         data_dir = self.config.value('le_data_dir')
@@ -621,7 +631,7 @@ class MainWindow(QWidget):
             sum_ting_wong.append(ui_text.sum_ting_wong_2)
         if rehost and not ptpimg_key:
             sum_ting_wong.append(ui_text.sum_ting_wong_3)
-        if add_src_descr and '%src_descr%' not in self.te_src_descr.toPlainText():
+        if add_src_descr and '%src_descr%' not in self.te_src_descr_templ.toPlainText():
             sum_ting_wong.append(ui_text.sum_ting_wong_4)
 
         if sum_ting_wong:
@@ -634,8 +644,8 @@ class MainWindow(QWidget):
             self.config_window.accept()
 
     def default_descr(self):
-        self.te_rel_descr.setText(ui_text.def_rel_descr)
-        self.te_src_descr.setText(ui_text.def_src_descr)
+        self.te_rel_descr_templ.setText(ui_text.def_rel_descr)
+        self.te_src_descr_templ.setText(ui_text.def_src_descr)
 
     def parse_paste_input(self):
 
@@ -644,20 +654,17 @@ class MainWindow(QWidget):
             return
 
         self.tabs.setCurrentIndex(0)
-        id_map = {0: ui_text.tracker_1, 1: ui_text.tracker_2}
-        src_id = id_map.get(self.config.value('bg_source'))
+        tr_map = {0: tr.RED, 1: tr.OPS}
+        src_tr = tr_map.get(self.config.value('bg_source'))
 
         for line in paste_blob.split():
             match_id = re.fullmatch(r"\d+", line)
             if match_id:
-                self.job_data.append(Job(src_id=src_id, tor_id=line))
+                self.job_data.append(Job(src_tr=src_tr, tor_id=line))
                 continue
             match_url = re.search(r"https?://(.+?)/.+torrentid=(\d+)", line)
             if match_url:
-                domain = match_url.group(1)
-                tor_id = match_url.group(2)
-                url_id = constants.SITE_ID_MAP[domain]
-                self.job_data.append(Job(src_id=url_id, tor_id=tor_id))
+                self.job_data.append(Job(src_dom=match_url.group(1), tor_id=match_url.group(2)))
 
         self.te_paste_box.clear()
 
@@ -690,7 +697,6 @@ class MainWindow(QWidget):
         if not s_dir:
             return
         s_dir = os.path.normpath(s_dir)
-        self.config.setValue('le_scandir', s_dir)
         self.le_scandir.setText(s_dir)
 
     def gogogo(self):
@@ -702,17 +708,16 @@ class MainWindow(QWidget):
             self.config_window.open()
             return
 
-        for job in self.job_data:
-            job.update(self.job_user_settings())
-
         key_1 = self.config.value('le_key_1')
         key_2 = self.config.value('le_key_2')
+
+        settings = self.trpl_settings()
 
         if self.tabs.count() == 1:
             self.tabs.addTab(ui_text.tab_results)
         self.tabs.setCurrentIndex(1)
 
-        self.tr_thread = TransplantThread(self.job_data.jobs.copy(), key_1, key_2)
+        self.tr_thread = TransplantThread(self.job_data.jobs.copy(), key_1, key_2, settings)
 
         self.pb_stop.clicked.connect(self.tr_thread.stop)
         self.tr_thread.started.connect(lambda: self.show_feedback(ui_text.start, 2))
@@ -729,16 +734,15 @@ class MainWindow(QWidget):
 
             self.result_view.append(repl)
 
-    def job_user_settings(self):
+    def trpl_settings(self):
         user_settings = (
             'le_data_dir',
             'le_dtor_save_dir',
             'chb_save_dtors',
-            'chb_del_dtors',
             'chb_file_check',
-            'te_rel_descr',
+            'te_rel_descr_templ',
             'chb_add_src_descr',
-            'te_src_descr'
+            'te_src_descr_templ'
         )
         settings_dict = {}
         for x in user_settings:
