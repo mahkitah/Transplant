@@ -1,6 +1,8 @@
 import sys
 import os
 import re
+import logging
+
 import traceback
 import webbrowser
 
@@ -18,12 +20,24 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QTabWidget, QTabBar, 
     QCheckBox, QFileDialog, QAction, QSplitter, QTableView, QDialog, QMessageBox, QHeaderView, QSizePolicy,\
     QStackedLayout
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt, QSettings, QSize, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, QObject, QSettings, QSize, QThread, pyqtSignal
 
+logging.getLogger('urllib3').setLevel(logging.WARNING)
+
+class Report(logging.Handler):
+    class Emit(QObject):
+        sig = pyqtSignal(str)
+
+    def __init__(self):
+        self.emit_log = self.Emit()
+        super().__init__()
+
+    def emit(self, record):
+        repl = re.sub(r'(https?://[^\s\n\r]+)', r'<a href="\1">\1</a> ', record.msg)
+        self.emit_log.sig.emit(repl)
 
 # noinspection PyBroadException
 class TransplantThread(QThread):
-    feedback = pyqtSignal(str, int)
     remove_job = pyqtSignal(Job)
 
     def __init__(self, job_list, key_1, key_2, trpl_settings):
@@ -40,13 +54,10 @@ class TransplantThread(QThread):
     # noinspection PyUnresolvedReferences
     def run(self):
 
-        def report_back(msg, msg_verb):
-            self.feedback.emit(msg, msg_verb)
-
         api_map = {tr.RED: RedApi(tr.RED, key=self.key_1),
                    tr.OPS: KeyApi(tr.OPS, key=f"token {self.key_2}")}
 
-        transplanter = Transplanter(api_map, report=report_back, **self.trpl_settings)
+        transplanter = Transplanter(api_map, **self.trpl_settings)
 
         for job in self.job_list:
             if self.stop_run:
@@ -54,12 +65,11 @@ class TransplantThread(QThread):
             try:
                 success = transplanter.do_your_job(job)
             except Exception:
-                self.feedback.emit(traceback.format_exc(), 1)
+                logging.error(traceback.format_exc())
                 continue
 
             if success:
                 self.remove_job.emit(job)
-
 
 TYPE_MAP = {
     'le': QLineEdit,
@@ -122,9 +132,16 @@ class MainWindow(QWidget):
         self.ui_config_layout()
         self.ui_main_connections()
         self.ui_config_connections()
+        self.set_logging()
         self.load_config()
         self.set_element_properties()
         self.show()
+
+    def set_logging(self):
+        self.report = logging.getLogger()
+        self.handler = Report()
+        self.report.addHandler(self.handler)
+        self.handler.emit_log.sig.connect(self.result_view.append)
 
     def user_input_elements(self):
 
@@ -150,7 +167,7 @@ class MainWindow(QWidget):
 
         self.le_scandir.setPlaceholderText(ui_text.tt_ac_select_scandir)
 
-        self.spb_verbosity.setMaximum(5)
+        self.spb_verbosity.setMaximum(3)
         self.spb_verbosity.setMaximumWidth(40)
 
         self.chb_add_src_descr.setText(ui_text.chb_add_src_descr)
@@ -495,6 +512,7 @@ class MainWindow(QWidget):
         self.ac_select_torsave.triggered.connect(self.select_torsave)
         self.le_dtor_save_dir.textChanged.connect(lambda x: self.pb_open_tsavedir.setEnabled(bool(x)))
         self.chb_show_tips.stateChanged.connect(self.tooltips)
+        self.spb_verbosity.valueChanged.connect(self.set_verbosity)
         self.chb_show_add_dtors.stateChanged.connect(lambda x: self.section_add_dtor_btn.setVisible(x)),
         self.chb_show_rem_tr1.stateChanged.connect(lambda x: self.pb_rem_tr1.setVisible(x)),
         self.chb_show_rem_tr2.stateChanged.connect(lambda x: self.pb_rem_tr2.setVisible(x)),
@@ -560,9 +578,38 @@ class MainWindow(QWidget):
         self.splitter.handle(1).setToolTip(ui_text.ttm_splitter if flag else '')
 
     def blabla(self, *args):
+        # self.report.info('blabla\n')
         # from testzooi.testrun import testrun
         # testrun(self)
         pass
+
+    def gogogo(self):
+        if not self.job_data:
+            return
+
+        min_req_config = ("le_key_1", "le_key_2", "le_data_dir")
+        if not all(self.config.value(x) for x in min_req_config):
+            self.config_window.open()
+            return
+
+        key_1 = self.config.value('le_key_1')
+        key_2 = self.config.value('le_key_2')
+
+        settings = self.trpl_settings()
+
+        if self.tabs.count() == 1:
+            self.tabs.addTab(ui_text.tab_results)
+        self.tabs.setCurrentIndex(1)
+
+        self.tr_thread = TransplantThread(self.job_data.jobs.copy(), key_1, key_2, settings)
+
+        self.pb_stop.clicked.connect(self.tr_thread.stop)
+        self.tr_thread.started.connect(lambda: self.report.info(ui_text.start))
+        self.tr_thread.started.connect(lambda: self.go_stop_stack.setCurrentIndex(1))
+        self.tr_thread.finished.connect(lambda: self.report.info(ui_text.thread_finish))
+        self.tr_thread.finished.connect(lambda: self.go_stop_stack.setCurrentIndex(0))
+        self.tr_thread.remove_job.connect(self.job_data.remove)
+        self.tr_thread.start()
 
     def select_datadir(self):
         d_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_ac_select_datadir, self.config.value('le_data_dir'))
@@ -699,40 +746,22 @@ class MainWindow(QWidget):
         s_dir = os.path.normpath(s_dir)
         self.le_scandir.setText(s_dir)
 
-    def gogogo(self):
-        if not self.job_data:
-            return
+    def set_verbosity(self, lvl):
+        verb_map = {
+            0: logging.CRITICAL,
+            1: logging.ERROR,
+            2: logging.INFO,
+            3: logging.DEBUG}
+        self.report.setLevel(verb_map[lvl])
 
-        min_req_config = ("le_key_1", "le_key_2", "le_data_dir")
-        if not all(self.config.value(x) for x in min_req_config):
-            self.config_window.open()
-            return
+    def show_feedback(self, msg):
+        # if msg_verb <= int(self.config.value('spb_verbosity')):
+        #     repl = re.sub(r'(https?://[^\s\n\r]+)', r'<a href="\1">\1</a> ', msg)
+        #
+        #     self.result_view.append(repl)
+        # repl = re.sub(r'(https?://[^\s\n\r]+)', r'<a href="\1">\1</a> ', msg)
 
-        key_1 = self.config.value('le_key_1')
-        key_2 = self.config.value('le_key_2')
-
-        settings = self.trpl_settings()
-
-        if self.tabs.count() == 1:
-            self.tabs.addTab(ui_text.tab_results)
-        self.tabs.setCurrentIndex(1)
-
-        self.tr_thread = TransplantThread(self.job_data.jobs.copy(), key_1, key_2, settings)
-
-        self.pb_stop.clicked.connect(self.tr_thread.stop)
-        self.tr_thread.started.connect(lambda: self.show_feedback(ui_text.start, 2))
-        self.tr_thread.started.connect(lambda: self.go_stop_stack.setCurrentIndex(1))
-        self.tr_thread.finished.connect(lambda: self.show_feedback(ui_text.thread_finish, 2))
-        self.tr_thread.finished.connect(lambda: self.go_stop_stack.setCurrentIndex(0))
-        self.tr_thread.feedback.connect(self.show_feedback)
-        self.tr_thread.remove_job.connect(self.job_data.remove)
-        self.tr_thread.start()
-
-    def show_feedback(self, msg, msg_verb):
-        if msg_verb <= int(self.config.value('spb_verbosity')):
-            repl = re.sub(r'(https?://[^\s\n\r]+)', r'<a href="\1">\1</a> ', msg)
-
-            self.result_view.append(repl)
+        self.result_view.append(msg)
 
     def trpl_settings(self):
         user_settings = (

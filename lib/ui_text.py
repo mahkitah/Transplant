@@ -65,17 +65,11 @@ l_alt_row_colour = 'Alternating row colours'
 l_show_grid = 'Show grid'
 l_row_height = 'Row height'
 
-
 default_whitelist = "ptpimg.me, thesungod.xyz"
 sum_ting_wong_1 = 'Invalid data folder'
 sum_ting_wong_2 = 'Invalid torrent save folder'
 sum_ting_wong_3 = 'No PTPimg API-key'
 sum_ting_wong_4 = 'Source description text must contain %src_descr%'
-
-start = 'Starting'
-thread_finish = '\nFinished'
-dtor_saved = 'New .torrent saved to:'
-dtor_deleted = '.torrent deleted from scan dir'
 
 # Job
 bad_tor = f'Not a {tracker_1} or {tracker_2} .torrent'
@@ -84,7 +78,8 @@ bad_tor = f'Not a {tracker_1} or {tracker_2} .torrent'
 missing = "Can't locate:"
 no_log = "No logs found"
 f_checked = 'Files checked'
-
+dtor_saved = 'New .torrent saved to:'
+dtor_deleted = '.torrent deleted from scan dir'
 requesting = "Requesting torrent info"
 new_tor = 'Generating new torrent'
 upl1 = 'Uploading to'
@@ -94,6 +89,10 @@ upl_to_unkn = "Upload edited to 'Unknown Release'"
 edit_fail = "Failed to edit to 'Unknown Release' because of: "
 img_rehosted = "Image rehosted:"
 rehost_failed = "Image rehost failed. Using source url"
+
+# GUI
+start = 'Starting'
+thread_finish = '\nFinished\n'
 
 # tooltips
 tt_l_key_1 = "Get your API-key from the site's user settings\n" \
@@ -114,9 +113,7 @@ tt_l_verbosity = "Level of feedback.\n" \
                "0: silent\n" \
                "1: only errors\n" \
                "2: normal\n" \
-               "3: include naptime (see rate limiting in action)\n" \
-               "4: debugging\n"\
-               "5: include upload data"
+               "3: debugging"
 tt_l_rehost = 'Rehost non-whitelisted cover images to ptpimg'
 tt_l_whitelist = "Images hosted on these sites will not be rehosted\n" \
                "Comma separated"

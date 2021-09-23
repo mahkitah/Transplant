@@ -1,5 +1,6 @@
 import time
 import re
+import logging
 from collections import deque
 from http.cookiejar import LWPCookieJar, LoadError
 
@@ -10,12 +11,15 @@ try:
 except ImportError:
     from json.decoder import JSONDecodeError
 
+from lib import ui_text
 from gazelle import torrent_info
 from gazelle.tracker_data import tr, tr_data
 
 
 class RequestFailure(Exception):
     pass
+
+report = logging.getLogger(__name__)
 
 # noinspection PyTypeChecker
 class BaseApi:
@@ -47,6 +51,7 @@ class BaseApi:
     def request(self, req_method, url_addon, data=None, files=None, **kwargs):
         assert req_method in ('GET', 'POST')
         url = self.url + url_addon + '.php'
+        report.debug(f'{url_addon} {kwargs}')
 
         self._rate_limit()
         r = self.session.request(req_method, url, params=kwargs, data=data, files=files)
@@ -55,6 +60,7 @@ class BaseApi:
 
         try:
             r_dict = r.json()
+            logging.debug(r_dict)
             if r_dict["status"] == "success":
                 return r_dict["response"]
             elif r_dict["status"] == "failure":
@@ -170,9 +176,13 @@ class RedApi(KeyApi):
         if data.get('unknown'):
             del data['unknown']
             unknown = True
-        group_id, torrent_id = super().upload(data, files, dest_group)
+        group_id, torrent_id = super()._uploader(data, files, dest_group)
         if unknown:
-            self.request("POST", "torrentedit", id=torrent_id, data={'unknown': True})
+            try:
+                self.request("POST", "torrentedit", id=torrent_id, data={'unknown': True})
+                report.info(ui_text.upl_to_unkn)
+            except (RequestFailure, requests.HTTPError) as e:
+                report.error(f'{ui_text.edit_fail}{str(e)}')
         return self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
 
     def upl_response_handler(self, r):

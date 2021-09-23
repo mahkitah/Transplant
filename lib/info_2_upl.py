@@ -1,13 +1,16 @@
+import logging
+
 from gazelle.upload import FormData
 from gazelle.tracker_data import tr_data, ARTIST_MAP
 from lib import utils, ui_text, ptpimg_uploader
+
+report = logging.getLogger(__name__)
 
 class TorInfo2UplData(FormData):
     one_on_one = ('medium', 'format', 'rem_year', 'rem_title', 'rem_label', 'rem_cat_nr', 'src_tr', 'unknown',
                   'rel_type_name', 'title', 'o_year', 'vanity', 'scene', 'remastered', 'alb_descr')
 
-    def __init__(self, tor_info, img_rehost, whitelist, ptpimg_key, rel_descr_templ, add_src_descr, src_descr_templ,
-                 report=lambda *x: None):
+    def __init__(self, tor_info, img_rehost, whitelist, ptpimg_key, rel_descr_templ, add_src_descr, src_descr_templ):
         super().__init__()
         self.tor_info = tor_info
 
@@ -18,14 +21,14 @@ class TorInfo2UplData(FormData):
         self.add_src_descr = add_src_descr
         self.src_descr_templ = src_descr_templ
 
-        self.parse_input(report)
+        self.parse_input()
 
-    def parse_input(self, report):
+    def parse_input(self):
         self.parse_artists()
         self.bitrate()
         self.do_tags()
         self.release_description()
-        self.do_img(report)
+        self.do_img()
         for name in self.one_on_one:
             if not hasattr(self, name):
                 print(name)
@@ -90,7 +93,7 @@ class TorInfo2UplData(FormData):
 
         self.rel_descr = rel_descr
 
-    def do_img(self, report):
+    def do_img(self):
         src_img_url = self.tor_info.img_url
 
         if not self.img_rehost or not src_img_url or any(w in src_img_url for w in self.whitelist):
@@ -99,8 +102,8 @@ class TorInfo2UplData(FormData):
         else:
             try:
                 self.upl_img_url = ptpimg_uploader.upload(self.ptpimg_key, [src_img_url])[0]
-                report(f"{ui_text.img_rehosted} {self.upl_img_url}", 2)
+                report.info(f"{ui_text.img_rehosted} {self.upl_img_url}")
 
             except (ptpimg_uploader.UploadFailed, ValueError):
-                report(ui_text.rehost_failed, 1)
+                report.info(ui_text.rehost_failed)
                 self.upl_img_url = src_img_url

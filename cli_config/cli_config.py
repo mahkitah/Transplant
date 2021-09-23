@@ -18,7 +18,7 @@ del_dtors = False
 file_check = True
 
 # level of feedback.
-# 0: silent, 1: only errors, 2: normal, 3: include naptime, 4: debugging, 5: include upload data
+# 0: silent, 1: only errors, 2: normal, 3: debugging
 verbosity = 2
 
 # rehost non-whitelisted images to ptpimg

@@ -2,18 +2,25 @@ import sys
 import os
 import re
 import traceback
+import logging
 
 from lib.transplant import Transplanter, Job
-from gazelle.api_classes import KeyApi, RedApi, HtmlApi
-from gazelle.tracker_data import tr, tr_data
+from gazelle.api_classes import KeyApi, RedApi
+from gazelle.tracker_data import tr
 
 from cli_config import cli_config, api_keys
 from lib import ui_text
 
+verb_map = {
+    0: logging.CRITICAL,
+    1: logging.ERROR,
+    2: logging.INFO,
+    3: logging.DEBUG
+}
 
-def report_back(msg, msg_verb):
-    if msg_verb <= cli_config.verbosity:
-        print(msg)
+logging.getLogger('urllib3').setLevel(logging.WARNING)
+logging.basicConfig(stream=sys.stdout, level=verb_map[cli_config.verbosity], format="%(message)s",)
+report = logging.getLogger(__name__)
 
 def get_tr_by_id(id):
     for t in tr:
@@ -30,25 +37,25 @@ def parse_input():
 
         match_url = re.search(r"https://(.+?)/.+torrentid=(\d+)", arg)
         if match_url:
-            report_back(f"{arg}", 2)
+            report.info(arg)
             yield Job(src_dom=match_url.group(1), tor_id=match_url.group(2))
 
         match_id = re.fullmatch(r"(RED|OPS)(\d+)", arg)
         if match_id:
-            report_back(f"{arg}", 2)
+            report.info(arg)
             tracker = get_tr_by_id(match_id.group(1))
             yield Job(src_tr=tracker, tor_id=match_id.group(2))
 
     if batchmode:
         for scan in os.scandir(cli_config.scan_dir):
             if scan.is_file() and scan.name.endswith(".torrent"):
-                report_back(f"\n{scan.name}", 2)
+                report.info(f"\n{scan.name}")
                 yield Job(dtor_path=scan.path, del_dtors=cli_config.del_dtors)
 
-def cred_prompt():
-    u_name = input('username: ')
-    passw = input('password: ')
-    return u_name, passw
+# def cred_prompt():
+#     u_name = input('username: ')
+#     passw = input('password: ')
+#     return u_name, passw
 
 def main():
 
@@ -58,7 +65,7 @@ def main():
         # tr.bB: HtmlApi(tr.bB, f=cred_prompt)
     }
 
-    report_back(ui_text.start, 2)
+    report.info(ui_text.start)
 
     trpl_settings = {
         'data_dir': cli_config.data_dir,
@@ -71,7 +78,6 @@ def main():
         'img_rehost': cli_config.img_rehost,
         'whitelist': cli_config.whitelist,
         'ptpimg_key': cli_config.ptpimg_key,
-        'report': report_back
     }
     transplanter = Transplanter(api_map, **trpl_settings)
     for job in parse_input():
@@ -79,7 +85,7 @@ def main():
         try:
             transplanter.do_your_job(job)
         except Exception:
-            traceback.print_exc()
+            report.error(traceback.format_exc())
             continue
 
 if __name__ == "__main__":
