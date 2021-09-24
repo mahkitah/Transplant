@@ -659,7 +659,7 @@ class MainWindow(QWidget):
             for scan in os.scandir(self.le_scandir.text()):
                 if scan.is_file() and scan.name.endswith(".torrent"):
                     try:
-                        self.job_data.append(Job(dtor_path=scan.path, del_dtors=del_dtors))
+                        self.job_data.append(Job(dtor_path=scan.path, scanned=True))
                     except (AssertionError, BTFailure):
                         continue
 
@@ -768,6 +768,7 @@ class MainWindow(QWidget):
             'le_data_dir',
             'le_dtor_save_dir',
             'chb_save_dtors',
+            'chb_del_dtors'
             'chb_file_check',
             'te_rel_descr_templ',
             'chb_add_src_descr',

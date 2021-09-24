@@ -17,12 +17,12 @@ choose_the_other = utils.choose_the_other([tr.RED, tr.OPS])
 report = logging.getLogger(__name__)
 
 class Job:
-    def __init__(self, src_tr=None, tor_id=None, src_dom=None, dtor_path=None, del_dtors=False, dest_group=None,
+    def __init__(self, src_tr=None, tor_id=None, src_dom=None, dtor_path=None, scanned=False, dest_group=None,
                  new_dtor=False, dest_trs=None):
 
         self.src_tr = src_tr
         self.tor_id = tor_id
-        self.del_dtors = del_dtors
+        self.scanned = scanned
         self.dtor_path = dtor_path
         self.dest_group = dest_group
         self.new_dtor = new_dtor
@@ -77,15 +77,15 @@ class Job:
 
 
 class Transplanter:
-    def __init__(self, api_map, data_dir=None, dtor_save_dir=None, save_dtors=False, file_check=True,
+    def __init__(self, api_map, data_dir=None, dtor_save_dir=None, save_dtors=False, del_dtors=False, file_check=True,
                  rel_descr_templ=None, add_src_descr=True, src_descr_templ=None, img_rehost=False, whitelist=None,
                  ptpimg_key=None):
 
         self.api_map = api_map
-
         self.data_dir = data_dir
         self.dtor_save_dir = dtor_save_dir
         self.save_dtors = save_dtors
+        self.del_dtors = del_dtors
         self.file_check = file_check
         self.img_rehost = img_rehost
         self.whitelist = whitelist
@@ -95,8 +95,8 @@ class Transplanter:
         self.src_descr_templ = src_descr_templ
 
         if img_rehost:
-            assert type(whitelist) == list
-            assert type(ptpimg_key) == str
+            assert isinstance(whitelist, list)
+            assert isinstance(ptpimg_key, str)
 
         self.job = None
         self.tor_info = None
@@ -148,7 +148,7 @@ class Transplanter:
                 self.save_dtorrent(upl_files, new_url)
                 report.info(f"{ui_text.dtor_saved} {self.dtor_save_dir}")
 
-        if saul_goodman and self.job.del_dtors:
+        if saul_goodman and self.del_dtors and self.job.scanned:
             os.remove(self.job.dtor_path)
             report.info(ui_text.dtor_deleted)
 

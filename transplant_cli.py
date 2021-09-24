@@ -50,7 +50,7 @@ def parse_input():
         for scan in os.scandir(cli_config.scan_dir):
             if scan.is_file() and scan.name.endswith(".torrent"):
                 report.info(f"\n{scan.name}")
-                yield Job(dtor_path=scan.path, del_dtors=cli_config.del_dtors)
+                yield Job(dtor_path=scan.path, scanned=True)
 
 # def cred_prompt():
 #     u_name = input('username: ')
@@ -71,6 +71,7 @@ def main():
         'data_dir': cli_config.data_dir,
         'dtor_save_dir': cli_config.torrent_save_dir,
         'save_dtors': bool(cli_config.torrent_save_dir),
+        'del_dtors': cli_config.del_dtors,
         'file_check': cli_config.file_check,
         'rel_descr_templ': cli_config.rel_descr,
         'add_src_descr': cli_config.add_src_descr,
