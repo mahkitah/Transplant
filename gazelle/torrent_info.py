@@ -173,18 +173,6 @@ class OPSTorrentInfo(TorrentInfo):
         except AttributeError:
             pass
 
-        # BUG missing wiki info
-        # https://orpheus.network/forums.php?action=viewthread&threadid=10728
-        if not any((self.alb_descr, self.img_url)):
-            req_m = kwargs['req_m']
-            group_info = req_m('GET', 'torrentgroup', id=self.grp_id)
-            self.img_url = group_info['group']['wikiImage']
-            self.alb_descr = group_info['group']['wikiBBcode']
-
-        # BUG tags not a proper list
-        # https://orpheus.network/forums.php?action=viewthread&threadid=10859
-        if len(self.tags) == 1:
-            self.tags = self.tags[0].split(',')
 
 tr_map = {
     tr.RED: REDTorrentInfo,

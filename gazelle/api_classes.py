@@ -30,7 +30,7 @@ class BaseApi:
         self.session = requests.Session()
         self.last_x_reqs = deque([0], maxlen=tr_data[self.tr]['req_limit'])
         self.authenticate(kwargs)
-        self.account_info = self.account()
+        self._account_info = None
 
     def _rate_limit(self):
         t = time.time() - self.last_x_reqs[0]
@@ -44,14 +44,23 @@ class BaseApi:
     def announce(self):
         return tr_data[self.tr]['tracker'].format(**self.account_info)
 
-    def account(self):
+    @ property
+    def account_info(self):
+        if self._account_info:
+            return self._account_info
+
+        acc_info = self.get_account_info()
+        self._account_info = acc_info
+        return acc_info
+
+    def get_account_info(self):
         r = self.request('GET', 'index')
         return {k: v for k, v in r.copy().items() if k in ('authkey', 'passkey', 'id')}
 
-    def request(self, req_method, url_addon, data=None, files=None, **kwargs):
+    def request(self, req_method, url_suffix, data=None, files=None, **kwargs):
         assert req_method in ('GET', 'POST')
-        url = self.url + url_addon + '.php'
-        report.debug(f'{url_addon} {kwargs}')
+        url = self.url + url_suffix + '.php'
+        report.debug(f'{url_suffix} {kwargs}')
 
         self._rate_limit()
         r = self.session.request(req_method, url, params=kwargs, data=data, files=files)
@@ -158,7 +167,7 @@ class CookieApi(BaseApi):
 
 class HtmlApi(CookieApi):
 
-    def account(self):
+    def get_account_info(self):
         r = self.session.get(self.url + 'index.php')
         return {
             'authkey': re.search(r"authkey=(.+?)[^a-zA-Z0-9]", r.text).group(1),

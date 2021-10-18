@@ -1,4 +1,4 @@
-main_window_title = "Transplant 2.2.5"
+main_window_title = "Transplant 2.3"
 pb_placeholder = "Paste/type torrent ids and/or urls here.\n" \
                  "Space or newline separated.\n" \
                  "The source buttons only apply to ids."
@@ -25,8 +25,10 @@ header1 = 'torrent'
 header2 = 'dest. group'
 header3 = 'nt'
 
+# config
 config_window_title = "Settings"
 main_tab = 'Main'
+rehost_tab = 'Rehost'
 desc_tab = 'Rel Descr'
 looks_tab = 'Looks'
 pb_cancel = "Cancel"
@@ -108,7 +110,7 @@ tt_l_del_dtors = "If checked, .torrents from the scan folder will be deleted aft
             "These will not be deleted"
 tt_l_file_check = "if checked, Transplant will verify that the torrent content (~music files) can be found\n" \
                  "This will prevent transplanting torrents that you can't seed"
-tt_l_show_tips = "Reverse gravity locally"
+tt_l_show_tips = "Tip the tools"
 tt_l_verbosity = "Level of feedback.\n" \
                "0: silent\n" \
                "1: only errors\n" \
@@ -139,8 +141,7 @@ tt_pb_rem_tr1 = f"Remove all {tracker_1} jobs from job list"
 tt_pb_rem_tr2 = f"Remove all {tracker_2} jobs from job list"
 tt_pb_open_tsavedir = "Open torrent save location"
 tt_pb_open_upl_urls = "Open all uploads in browser"
-tt_tb_go = "Start Transplanting\n" \
-            "Or order some food. One of the two"
+tt_tb_go = "Start Transplanting\n"
 ttm_header3 = 'Create new .torrent file\n' \
              'Instead of modifying source torrent'
 ttm_splitter = 'Drag all the way up to collapse top section'

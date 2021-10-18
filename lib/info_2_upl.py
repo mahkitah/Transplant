@@ -22,6 +22,7 @@ class TorInfo2UplData(FormData):
         self.src_descr_templ = src_descr_templ
 
         self.parse_input()
+        # self.medium = 'blabla'
 
     def parse_input(self):
         self.parse_artists()

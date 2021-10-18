@@ -24,21 +24,16 @@ from PyQt5.QtCore import Qt, QObject, QSettings, QSize, QThread, pyqtSignal
 
 logging.getLogger('urllib3').setLevel(logging.WARNING)
 
-class Report(logging.Handler):
-    class Emit(QObject):
-        sig = pyqtSignal(str)
-
-    def __init__(self):
-        self.emit_log = self.Emit()
-        super().__init__()
+class Report(QObject, logging.Handler):
+    logging_sig = pyqtSignal(str)
 
     def emit(self, record):
-        repl = re.sub(r'(https?://[^\s\n\r]+)', r'<a href="\1">\1</a> ', record.msg)
-        self.emit_log.sig.emit(repl)
+        repl = re.sub(r'(https?://[^\s\n\r]+)', r'<a href="\1">\1</a> ', str(record.msg))
+        self.logging_sig.emit(repl)
 
 # noinspection PyBroadException
 class TransplantThread(QThread):
-    remove_job = pyqtSignal(Job)
+    upl_succes = pyqtSignal(Job)
 
     def __init__(self, job_list, key_1, key_2, trpl_settings):
         super().__init__()
@@ -69,7 +64,7 @@ class TransplantThread(QThread):
                 continue
 
             if success:
-                self.remove_job.emit(job)
+                self.upl_succes.emit(job)
 
 TYPE_MAP = {
     'le': QLineEdit,
@@ -141,7 +136,7 @@ class MainWindow(QWidget):
         self.report = logging.getLogger()
         self.handler = Report()
         self.report.addHandler(self.handler)
-        self.handler.emit_log.sig.connect(self.result_view.append)
+        self.handler.logging_sig.connect(self.result_view.append)
 
     def user_input_elements(self):
 
@@ -262,6 +257,7 @@ class MainWindow(QWidget):
         self.pb_stop = QPushButton(ui_text.pb_stop)
         self.pb_stop.hide()
 
+        # Config
         self.config_tabs = QTabWidget()
         self.config_tabs.setDocumentMode(True)
         self.main_settings = QWidget()
@@ -271,7 +267,6 @@ class MainWindow(QWidget):
         self.config_tabs.addTab(self.cust_descr, ui_text.desc_tab)
         self.config_tabs.addTab(self.looks, ui_text.looks_tab)
 
-        # Config
         self.config_window = QDialog(self)
         self.config_window.setWindowTitle(ui_text.config_window_title)
         self.config_window.setWindowIcon(QIcon('gui_files/gear.svg'))
@@ -523,28 +518,30 @@ class MainWindow(QWidget):
         self.chb_show_grid.stateChanged.connect(self.job_data.layoutChanged.emit)
         self.spb_row_height.valueChanged.connect(self.job_view.verticalHeader().setDefaultSectionSize)
 
+    def config_rename(self):
+        changes = (
+            ('te_rel_descr', 'te_rel_descr_templ'),
+            ('te_src_descr', 'te_src_descr_templ')
+        )
+        for old, new in changes:
+            if self.config.contains(old):
+                value = self.config.value(old)
+                self.config.setValue(new, value)
+                self.config.remove(old)
+
     def load_config(self):
+        self.config_rename()
+
         for name, (df, mk_lbl) in CONFIG_NAMES.items():
             obj = getattr(self, name)
 
             if not self.config.contains(name):
                 self.config.setValue(name, df)
 
-            renamed = {'te_rel_descr': 'te_rel_descr_templ', 'te_src_descr': 'te_src_descr_templ'}
-
             actions = ACTION_MAP[type(obj)]
             value = actions[2](self.config.value(name))
             actions[1](obj, value)
             actions[0](obj).emit(value)
-
-        for d in (('te_rel_descr', 'te_rel_descr_templ'), ('te_src_descr', 'te_src_descr_templ')):
-            if self.config.contains(d[0]):
-                if self.config.value(d[0]) != self.config.value(d[1]):
-                    obj = getattr(self, d[1])
-                    actions = ACTION_MAP[type(obj)]
-                    value = actions[2](self.config.value(d[0]))
-                    actions[1](obj, value)
-                    actions[0](obj).emit(value)
 
         self.le_key_1.setCursorPosition(0)
         self.le_key_2.setCursorPosition(0)
@@ -608,7 +605,7 @@ class MainWindow(QWidget):
         self.tr_thread.started.connect(lambda: self.go_stop_stack.setCurrentIndex(1))
         self.tr_thread.finished.connect(lambda: self.report.info(ui_text.thread_finish))
         self.tr_thread.finished.connect(lambda: self.go_stop_stack.setCurrentIndex(0))
-        self.tr_thread.remove_job.connect(self.job_data.remove)
+        self.tr_thread.upl_succes.connect(self.job_data.remove)
         self.tr_thread.start()
 
     def select_datadir(self):
@@ -734,7 +731,7 @@ class MainWindow(QWidget):
 
         for i in selected_rows:
             job = self.job_data.jobs[i]
-            if job.dtor_path and job.dtor_path.startswith(self.le_scandir.text()):
+            if job.scanned:
                 os.remove(job.dtor_path)
 
         self.job_data.del_multi(selected_rows)
@@ -768,7 +765,7 @@ class MainWindow(QWidget):
             'le_data_dir',
             'le_dtor_save_dir',
             'chb_save_dtors',
-            'chb_del_dtors'
+            'chb_del_dtors',
             'chb_file_check',
             'te_rel_descr_templ',
             'chb_add_src_descr',

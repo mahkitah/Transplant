@@ -33,11 +33,12 @@ class PtpimgUploader:
 
     def _perform(self, files=None, **data):
         # Compose request
-        headers = {'referer': 'https://ptpimg.me/index.php'}
+        # headers = {'referer': 'https://ptpimg.me/index.php'}
         data['api_key'] = self.api_key
         url = 'https://ptpimg.me/upload.php'
 
-        resp = requests.post(url, headers=headers, data=data, files=files)
+        # resp = requests.post(url, headers=headers, data=data, files=files)
+        resp = requests.post(url, data=data, files=files)
         # pylint: disable=no-member
         if resp.status_code == requests.codes.ok:
             try:
