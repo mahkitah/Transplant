@@ -167,6 +167,12 @@ class OPSTorrentInfo(TorrentInfo):
             self.rem_label = self.o_label
             self.rem_cat_nr = self.o_cat_nr
 
+        # tags = {id: name} on OPS
+        try:
+            self.tags = [x for x in self.tags.values()]
+        except AttributeError:
+            pass
+
         # BUG missing wiki info
         # https://orpheus.network/forums.php?action=viewthread&threadid=10728
         if not any((self.alb_descr, self.img_url)):
