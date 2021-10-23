@@ -1,7 +1,7 @@
 2.3
 - Major refactoring of gazelle api and transplant.
 - Logging instead of callback
-- Handle OPS api change, tahs are now dict
+- Handle OPS api change, tags are now dict
 2.2.5
 - Deal with OPS bug - no wiki info in torrent info
 2.2.4

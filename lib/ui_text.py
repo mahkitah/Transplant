@@ -36,6 +36,7 @@ pb_ok = "OK"
 l_key_1 = f"API-key {tracker_1}"
 l_key_2 = f"API-key {tracker_2}"
 l_data_dir = 'Data folder'
+l_scan_dir = 'Scan folder'
 l_dtor_save_dir = 'Save new .torrrents'
 l_del_dtors = 'Delete scanned .torrents'
 l_file_check = 'Check files'
@@ -104,6 +105,7 @@ tt_l_data_dir = "This should be the top level folder where the album folders can
 tt_l_dtor_save_dir = "Newly created .torrents from the destination tracker can be saved here\n" \
                    "A torrent client's watch folder would be a logical choice to select here"
 tt_ac_select_datadir = "Select data folder"
+tt_ac_select_scandir = "Select scan folder"
 tt_ac_select_torsave = "Select save folder"
 tt_l_del_dtors = "If checked, .torrents from the scan folder will be deleted after successful upload\n" \
             "This setting does not apply to .torrents that were added with the 'Add .torrent files' button\n" \
@@ -128,9 +130,8 @@ tt_tb_open_config2 = tt_tb_open_config
 tt_pb_add = "Add content of the paste box to the job list\n" \
                 "Only valid entries will be added"
 tt_pb_open_dtors = "Select .torrents to add to the job list"
-tt_le_scandir = "This folder will be scanned for .torrents when the 'Scan' button is pressed\n" \
+tt_le_scan_dir = "This folder will be scanned for .torrents when the 'Scan' button is pressed\n" \
                     "You can download the .torrents from the source tracker here"
-tt_ac_select_scandir = "Select scan folder"
 tt_pb_scan = "Scan the 'scan folder' for .torrents and add them to the job list\n" \
                  "Subfolders will not be scanned"
 tt_pb_clear_j = "Empty the job list"

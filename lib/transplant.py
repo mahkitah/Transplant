@@ -138,7 +138,7 @@ class Transplanter:
             try:
                 new_url = dest_api.upload(upl_data, upl_files)
                 report.info(f"{ui_text.upl2} {new_url}")
-            except Exception as e:
+            except Exception:
                 saul_goodman = False
                 report.error(f"{ui_text.upl3}")
                 report.error(traceback.format_exc())

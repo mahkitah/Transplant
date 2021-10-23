@@ -1,8 +1,32 @@
+import re
+
 from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction, QTableView
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel
+from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings
 from lib import ui_text
 from gazelle.tracker_data import tr
+
+
+class IniSettings(QSettings):
+    action_map = {
+        'le': lambda x: x,
+        'te': lambda x: x,
+        'chb': lambda x: bool(int(x)),
+        'spb': lambda x: int(x)
+    }
+
+    def __init__(self, path):
+        super().__init__(path, QSettings.IniFormat)
+
+    def value(self, key, defaultValue=None):
+        value = super().value(key, defaultValue=defaultValue)
+
+        match = re.match(r'(le|te|chb|spb)_.+', key)
+        if match:
+            value = self.action_map[match.group(1)](value)
+
+        return value
+
 
 class MyTextEdit(QTextEdit):
     plainTextChanged = pyqtSignal(str)
