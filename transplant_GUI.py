@@ -14,7 +14,7 @@ from gazelle.api_classes import KeyApi, RedApi
 from lib import ui_text, utils
 from GUI.settings_window import SettingsWindow
 from GUI.main_gui import MainGui
-from GUI.custom_gui_classes import IniSettings
+from GUI.custom_gui_classes import IniSettings, FolderSelectBox
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 from PyQt5.QtGui import QIcon
@@ -98,7 +98,7 @@ class MainWindow(QMainWindow):
         self.main.bg_source.idClicked.connect(lambda x: self.config.setValue('bg_source', x))
         self.main.pb_add.clicked.connect(self.parse_paste_input)
         self.main.pb_open_dtors.clicked.connect(self.select_dtors)
-        self.main.pb_scan.clicked.connect(self.scan_dtorrents)
+        self.main.pb_scan.clicked.connect(lambda: self.scan_dtorrents(self.set_window.fsb_scan_dir.currentText()))
         self.main.pb_clear_j.clicked.connect(self.main.job_data.clear)
         self.main.pb_clear_r.clicked.connect(self.main.result_view.clear)
         self.main.pb_rem_sel.clicked.connect(self.remove_selected)
@@ -135,11 +135,11 @@ class MainWindow(QMainWindow):
         self.set_window.pb_cancel.clicked.connect(self.set_window.reject)
         self.set_window.accepted.connect(
             lambda: self.config.setValue('geometry/config_window_size', self.set_window.size()))
-        self.set_window.ac_select_datadir.triggered.connect(self.select_datadir)
-        self.set_window.ac_select_scandir.triggered.connect(self.select_scan_dir)
-        self.set_window.ac_select_torsave.triggered.connect(self.select_torsave)
-        self.set_window.le_scan_dir.textChanged.connect(lambda: self.main.pb_scan.setEnabled(bool(self.set_window.le_scan_dir.text())))
-        self.set_window.le_dtor_save_dir.textChanged.connect(lambda x: self.main.pb_open_tsavedir.setEnabled(bool(x)))
+        self.set_window.accepted.connect(self.consolidate_fsbs)
+        self.set_window.fsb_scan_dir.list_changed.connect(
+            lambda: self.main.pb_scan.setEnabled(bool(self.set_window.fsb_scan_dir.currentText())))
+        self.set_window.fsb_dtor_save_dir.list_changed.connect(
+            lambda: self.main.pb_open_tsavedir.setEnabled(bool(self.set_window.fsb_dtor_save_dir.currentText())))
         self.set_window.chb_show_tips.stateChanged.connect(self.tooltips)
         self.set_window.spb_verbosity.valueChanged.connect(self.set_verbosity)
         self.set_window.chb_show_add_dtors.stateChanged.connect(lambda x: self.main.section_add_dtor_btn.setVisible(x)),
@@ -152,7 +152,27 @@ class MainWindow(QMainWindow):
         self.set_window.chb_show_grid.stateChanged.connect(self.main.job_data.layoutChanged.emit)
         self.set_window.spb_row_height.valueChanged.connect(self.main.job_view.verticalHeader().setDefaultSectionSize)
 
+    def config_rename(self):
+        changes = (
+            ('te_rel_descr', 'te_rel_descr_templ', None),
+            ('te_src_descr', 'te_src_descr_templ', None),
+            ('le_scandir', 'le_scan_dir', None),
+            ('geometry/header', 'geometry/job_view_header', None),
+            ('le_data_dir', 'fsb_data_dir', lambda x: [x]),
+            ('le_scan_dir', 'fsb_scan_dir', lambda x: [x]),
+            ('le_dtor_save_dir', 'fsb_dtor_save_dir', lambda x: [x]),
+        )
+        for old, new, conversion in changes:
+            if self.config.contains(old):
+                value = self.config.value(old)
+                if conversion:
+                    value = conversion(value)
+                self.config.setValue(new, value)
+                self.config.remove(old)
+
     def load_config(self):
+        self.config_rename()
+
         source_id = int(self.config.value('bg_source', defaultValue=0))
         self.main.bg_source.buttons()[source_id].click()
         self.resize(self.config.value('geometry/size', defaultValue=QSize(550, 500)))
@@ -166,9 +186,13 @@ class MainWindow(QMainWindow):
         self.main.splitter.setSizes(splittersizes)
         self.main.splitter.splitterMoved.emit(splittersizes[0], 1)
         try:
-            self.main.job_view.horizontalHeader().restoreState(self.config.value('geometry/header'))
+            self.main.job_view.horizontalHeader().restoreState(self.config.value('geometry/job_view_header'))
         except TypeError:
             self.main.job_view.horizontalHeader().set_all_sections_visible()
+
+    def consolidate_fsbs(self):
+        for fsb in self.set_window.findChildren(FolderSelectBox):
+            fsb.consolidate()
 
     def tooltips(self, flag):
 
@@ -193,7 +217,7 @@ class MainWindow(QMainWindow):
         if not self.main.job_data:
             return
 
-        min_req_config = ("le_key_1", "le_key_2", "le_data_dir")
+        min_req_config = ("le_key_1", "le_key_2", "fsb_data_dir")
         if not all(self.config.value(x) for x in min_req_config):
             self.set_window.open()
             return
@@ -217,23 +241,7 @@ class MainWindow(QMainWindow):
         self.tr_thread.upl_succes.connect(self.main.job_data.remove)
         self.tr_thread.start()
 
-    def select_datadir(self):
-        d_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_ac_select_datadir, self.config.value('le_data_dir'))
-        if not d_dir:
-            return
-        d_dir = os.path.normpath(d_dir)
-        self.set_window.le_data_dir.setText(d_dir)
-
-    def select_torsave(self):
-        t_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_ac_select_torsave,
-                                                 self.config.value('le_dtor_save_dir'))
-        if not t_dir:
-            return
-        t_dir = os.path.normpath(t_dir)
-        self.set_window.le_dtor_save_dir.setText(t_dir)
-
     def select_dtors(self):
-
         file_paths = QFileDialog.getOpenFileNames(self, ui_text.sel_dtors_window_title,
                                                   self.config.value('torselect_dir'),
                                                   "torrents (*.torrent);;All Files (*)")[0]
@@ -255,8 +263,7 @@ class MainWindow(QMainWindow):
                 except (AssertionError, BTFailure):
                     continue
 
-    def scan_dtorrents(self):
-        path = self.config.value('le_scan_dir')
+    def scan_dtorrents(self, path):
         if path and os.path.isdir(path):
             self.main.tabs.setCurrentIndex(0)
 
@@ -268,8 +275,9 @@ class MainWindow(QMainWindow):
                         continue
 
     def settings_check(self):
-        data_dir = self.config.value('le_data_dir')
-        dtor_save_dir = self.config.value('le_dtor_save_dir')
+        data_dir = self.set_window.fsb_data_dir.currentText()
+        scan_dir = self.set_window.fsb_scan_dir.currentText()
+        dtor_save_dir = self.set_window.fsb_dtor_save_dir.currentText()
         save_dtors = self.config.value('chb_save_dtors')
         rehost = self.config.value('chb_rehost')
         ptpimg_key = self.config.value('le_ptpimg_key')
@@ -278,12 +286,14 @@ class MainWindow(QMainWindow):
         sum_ting_wong = []
         if not os.path.isdir(data_dir):
             sum_ting_wong.append(ui_text.sum_ting_wong_1)
-        if save_dtors and not os.path.isdir(dtor_save_dir):
+        if scan_dir and not os.path.isdir(scan_dir):
             sum_ting_wong.append(ui_text.sum_ting_wong_2)
-        if rehost and not ptpimg_key:
+        if save_dtors and not os.path.isdir(dtor_save_dir):
             sum_ting_wong.append(ui_text.sum_ting_wong_3)
-        if add_src_descr and '%src_descr%' not in self.set_window.te_src_descr_templ.toPlainText():
+        if rehost and not ptpimg_key:
             sum_ting_wong.append(ui_text.sum_ting_wong_4)
+        if add_src_descr and '%src_descr%' not in self.set_window.te_src_descr_templ.toPlainText():
+            sum_ting_wong.append(ui_text.sum_ting_wong_5)
 
         if sum_ting_wong:
             warning = QMessageBox()
@@ -320,9 +330,9 @@ class MainWindow(QMainWindow):
         self.main.te_paste_box.clear()
 
     def open_tor_urls(self):
-        for word in self.main.result_view.toPlainText().split():
-            if 'torrentid' in word:
-                webbrowser.open(word)
+        for slice in self.main.result_view.toPlainText().split():
+            if 'torrentid' in slice:
+                webbrowser.open(slice)
 
     def remove_selected(self):
         selected_rows = list(set((x.row() for x in self.main.job_view.selectedIndexes())))
@@ -343,13 +353,6 @@ class MainWindow(QMainWindow):
 
         self.main.job_data.del_multi(selected_rows)
 
-    def select_scan_dir(self):
-        s_dir = QFileDialog.getExistingDirectory(self, ui_text.tt_ac_select_scandir, self.config.value('le_scan_dir'))
-        if not s_dir:
-            return
-        s_dir = os.path.normpath(s_dir)
-        self.set_window.le_scan_dir.setText(s_dir)
-
     def set_verbosity(self, lvl):
         verb_map = {
             0: logging.CRITICAL,
@@ -362,7 +365,7 @@ class MainWindow(QMainWindow):
         self.config.setValue('geometry/size', self.size())
         self.config.setValue('geometry/position', self.pos())
         self.config.setValue('geometry/splitter_pos', self.main.splitter.sizes())
-        self.config.setValue('geometry/header', self.main.job_view.horizontalHeader().saveState())
+        self.config.setValue('geometry/job_view_header', self.main.job_view.horizontalHeader().saveState())
 
 
 if __name__ == "__main__":

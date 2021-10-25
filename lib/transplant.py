@@ -183,7 +183,6 @@ class Transplanter:
             assert files.logs, ui_text.no_log
 
     def create_new_torrent(self):
-
         from dottorrent import Torrent
 
         torfolder = os.path.join(self.data_dir, self.tor_info.folder_name)

@@ -1,6 +1,6 @@
 from gazelle.tracker_data import tr
 from lib import ui_text
-from GUI.custom_gui_classes import MyTextEdit, MyHeaderView, MyTableView, JobModel
+from GUI.custom_gui_classes import TPTextEdit, TPHeaderView, TPTableView, JobModel
 
 from PyQt5.QtWidgets import QWidget, QTabBar, QTextBrowser, QTextEdit, QPushButton, QToolButton, QRadioButton,\
     QButtonGroup, QHBoxLayout, QVBoxLayout, QGridLayout, QSplitter, QTableView, QHeaderView, QSizePolicy, QStackedLayout
@@ -28,7 +28,7 @@ class MainGui(QWidget):
         self.tb_open_config2.setIcon(QIcon('gui_files/gear.svg'))
         self.tb_open_config2.setAutoRaise(True)
 
-        self.te_paste_box = MyTextEdit()
+        self.te_paste_box = TPTextEdit()
         self.te_paste_box.setAcceptDrops(False)
         self.te_paste_box.setLineWrapMode(QTextEdit.NoWrap)
         self.te_paste_box.setPlaceholderText(ui_text.pb_placeholder)
@@ -47,8 +47,8 @@ class MainGui(QWidget):
         self.pb_scan = QPushButton(ui_text.pb_scan)
         self.pb_scan.setEnabled(False)
 
-        self.job_view = MyTableView()
-        self.job_view.setHorizontalHeader(MyHeaderView(Qt.Horizontal, self.job_data.headers))
+        self.job_view = TPTableView()
+        self.job_view.setHorizontalHeader(TPHeaderView(Qt.Horizontal, self.job_data.headers))
         self.job_view.setEditTriggers(QTableView.SelectedClicked | QTableView.DoubleClicked | QTableView.AnyKeyPressed)
         self.job_view.setModel(self.job_data)
         self.job_view.setSelectionBehavior(QTableView.SelectRows)
@@ -85,6 +85,7 @@ class MainGui(QWidget):
         self.pb_rem_tr2 = QPushButton(ui_text.pb_del_tr2)
         self.pb_rem_tr2.setEnabled(False)
         self.pb_open_tsavedir = QPushButton(ui_text.pb_open_tsavedir)
+        self.pb_open_tsavedir.setEnabled(False)
         self.pb_open_upl_urls = QPushButton(ui_text.pb_open_upl_urls)
         self.pb_open_upl_urls.setEnabled(False)
         self.tb_go = QToolButton()

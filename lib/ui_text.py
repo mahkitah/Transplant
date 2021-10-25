@@ -25,7 +25,7 @@ header1 = 'torrent'
 header2 = 'dest. group'
 header3 = 'nt'
 
-# config
+# Settings
 config_window_title = "Settings"
 main_tab = 'Main'
 rehost_tab = 'Rehost'
@@ -70,9 +70,10 @@ l_row_height = 'Row height'
 
 default_whitelist = "ptpimg.me, thesungod.xyz"
 sum_ting_wong_1 = 'Invalid data folder'
-sum_ting_wong_2 = 'Invalid torrent save folder'
-sum_ting_wong_3 = 'No PTPimg API-key'
-sum_ting_wong_4 = 'Source description text must contain %src_descr%'
+sum_ting_wong_2 = 'Invalid scan folder'
+sum_ting_wong_3 = 'Invalid torrent save folder'
+sum_ting_wong_4 = 'No PTPimg API-key'
+sum_ting_wong_5 = 'Source description text must contain %src_descr%'
 
 # Job
 bad_tor = f'Not a {tracker_1} or {tracker_2} .torrent'
@@ -102,11 +103,13 @@ tt_l_key_1 = "Get your API-key from the site's user settings\n" \
           "Please note that these keys are stored in plain text"
 tt_l_key_2 = tt_l_key_1
 tt_l_data_dir = "This should be the top level folder where the album folders can be found"
+tt_l_scan_dir = "This folder will be scanned for .torrents when the 'Scan' button is pressed\n" \
+                    "You can download the .torrents from the source tracker here"
 tt_l_dtor_save_dir = "Newly created .torrents from the destination tracker can be saved here\n" \
                    "A torrent client's watch folder would be a logical choice to select here"
-tt_ac_select_datadir = "Select data folder"
-tt_ac_select_scandir = "Select scan folder"
-tt_ac_select_torsave = "Select save folder"
+tt_fsb_data_dir = "Select data folder"
+tt_fsb_scan_dir = "Select scan folder"
+tt_fsb_dtor_save_dir = "Select save folder"
 tt_l_del_dtors = "If checked, .torrents from the scan folder will be deleted after successful upload\n" \
             "This setting does not apply to .torrents that were added with the 'Add .torrent files' button\n" \
             "These will not be deleted"
@@ -130,8 +133,6 @@ tt_tb_open_config2 = tt_tb_open_config
 tt_pb_add = "Add content of the paste box to the job list\n" \
                 "Only valid entries will be added"
 tt_pb_open_dtors = "Select .torrents to add to the job list"
-tt_le_scan_dir = "This folder will be scanned for .torrents when the 'Scan' button is pressed\n" \
-                    "You can download the .torrents from the source tracker here"
 tt_pb_scan = "Scan the 'scan folder' for .torrents and add them to the job list\n" \
                  "Subfolders will not be scanned"
 tt_pb_clear_j = "Empty the job list"
@@ -145,4 +146,4 @@ tt_pb_open_upl_urls = "Open all uploads in browser"
 tt_tb_go = "Start Transplanting\n"
 ttm_header3 = 'Create new .torrent file\n' \
              'Instead of modifying source torrent'
-ttm_splitter = 'Drag all the way up to collapse top section'
+ttm_splitter = 'Drag all the way up to hide top section'

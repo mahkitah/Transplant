@@ -1,30 +1,32 @@
 from lib import ui_text
-from GUI.custom_gui_classes import MyTextEdit
+from GUI.custom_gui_classes import TPTextEdit, FolderSelectBox
 
 from PyQt5.QtWidgets import QWidget, QLabel, QTabWidget, QLineEdit, QPushButton, QHBoxLayout, QVBoxLayout, QFormLayout,\
-    QSpinBox, QCheckBox, QAction, QDialog
+    QSpinBox, QCheckBox, QDialog, QSizePolicy
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSettings, QSize
 
 TYPE_MAP = {
     'le': QLineEdit,
-    'te': MyTextEdit,
+    'te': TPTextEdit,
     'chb': QCheckBox,
-    'spb': QSpinBox
+    'spb': QSpinBox,
+    'fsb': FolderSelectBox
 }
 ACTION_MAP = {
     QLineEdit: (lambda x: x.textChanged, lambda x, y: x.setText(y)),
-    MyTextEdit: (lambda x: x.plainTextChanged, lambda x, y: x.setText(y)),
+    TPTextEdit: (lambda x: x.plainTextChanged, lambda x, y: x.setText(y)),
     QCheckBox: (lambda x: x.stateChanged, lambda x, y: x.setChecked(y)),
-    QSpinBox: (lambda x: x.valueChanged, lambda x, y: x.setValue(y))
+    QSpinBox: (lambda x: x.valueChanged, lambda x, y: x.setValue(y)),
+    FolderSelectBox: (lambda x: x.list_changed, lambda x, y: x.set_list(y))
 }
 # name: (default value, make label, )
 CONFIG_NAMES = {
-    'le_scan_dir': ('', True),
     'le_key_1': (None, True),
     'le_key_2': (None, True),
-    'le_data_dir': ('', True),
-    'le_dtor_save_dir': ('', True),
+    'fsb_data_dir': ([], True),
+    'fsb_scan_dir': ([], True),
+    'fsb_dtor_save_dir': ([], True),
     'chb_save_dtors': (0, False),
     'chb_del_dtors': (0, True),
     'chb_file_check': (2, True),
@@ -58,17 +60,19 @@ class SettingsWindow(QDialog):
 
     def user_input_elements(self):
 
+        def make_lambda(name):
+            return lambda x: self.config.setValue(name, x)
+
         for el_name, (df, mk_lbl) in CONFIG_NAMES.items():
-            typ, name = el_name.split('_', maxsplit=1)
+            typ_str, name = el_name.split('_', maxsplit=1)
+            obj_type = TYPE_MAP[typ_str]
 
             # instantiate
-            setattr(self, el_name, TYPE_MAP[typ]())
+            setattr(self, el_name, obj_type())
+            obj = getattr(self, el_name)
+            obj.setObjectName(el_name)
 
             # connection to ini
-            def make_lambda(name):
-                return lambda x: self.config.setValue(name, x)
-
-            obj = getattr(self, el_name)
             ACTION_MAP[type(obj)][0](obj).connect(make_lambda(el_name))
 
             # instantiate Label
@@ -77,8 +81,10 @@ class SettingsWindow(QDialog):
                 setattr(self, label_name, QLabel(getattr(ui_text, label_name)))
 
     def set_element_properties(self):
-
-        self.le_scan_dir.setPlaceholderText(ui_text.tt_ac_select_scandir)
+        for fsb in self.findChildren(FolderSelectBox):
+            fsb.setMaxCount(8)
+            fsb.folder_button.setIcon(QIcon("gui_files/open-folder.svg"))
+            fsb.dialog_caption = getattr(ui_text, f'tt_{fsb.objectName()}')
 
         self.spb_verbosity.setMaximum(3)
         self.spb_verbosity.setMaximumWidth(40)
@@ -105,14 +111,6 @@ class SettingsWindow(QDialog):
         self.pb_cancel = QPushButton(ui_text.pb_cancel)
         self.pb_ok = QPushButton(ui_text.pb_ok)
 
-        # main
-        self.ac_select_datadir = QAction()
-        self.ac_select_datadir.setIcon(QIcon("gui_files/open-folder.svg"))
-        self.ac_select_scandir = QAction()
-        self.ac_select_scandir.setIcon(QIcon("gui_files/open-folder.svg"))
-        self.ac_select_torsave = QAction()
-        self.ac_select_torsave.setIcon(QIcon("gui_files/open-folder.svg"))
-
         # descr tab
         self.l_variables = QLabel(ui_text.l_placeholders)
         self.pb_def_descr = QPushButton()
@@ -129,13 +127,10 @@ class SettingsWindow(QDialog):
         bottom_row.addWidget(self.pb_ok)
 
         # main
-        self.le_data_dir.addAction(self.ac_select_datadir, QLineEdit.TrailingPosition)
-        self.le_scan_dir.addAction(self.ac_select_scandir, QLineEdit.TrailingPosition)
-        self.le_dtor_save_dir.addAction(self.ac_select_torsave, QLineEdit.TrailingPosition)
-
         save_dtor = QHBoxLayout()
         save_dtor.addWidget(self.chb_save_dtors)
-        save_dtor.addWidget(self.le_dtor_save_dir)
+        save_dtor.addWidget(self.fsb_dtor_save_dir)
+        self.fsb_dtor_save_dir.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 
         settings_form = QFormLayout(self.main_settings)
         settings_form.setLabelAlignment(Qt.AlignRight)
@@ -143,8 +138,8 @@ class SettingsWindow(QDialog):
         settings_form.setHorizontalSpacing(20)
         settings_form.addRow(self.l_key_1, self.le_key_1)
         settings_form.addRow(self.l_key_2, self.le_key_2)
-        settings_form.addRow(self.l_data_dir, self.le_data_dir)
-        settings_form.addRow(self.l_scan_dir, self.le_scan_dir)
+        settings_form.addRow(self.l_data_dir, self.fsb_data_dir)
+        settings_form.addRow(self.l_scan_dir, self.fsb_scan_dir)
         settings_form.addRow(self.l_dtor_save_dir, save_dtor)
         settings_form.addRow(self.l_del_dtors, self.chb_del_dtors)
         settings_form.addRow(self.l_file_check, self.chb_file_check)
@@ -195,21 +190,7 @@ class SettingsWindow(QDialog):
         total_layout.addSpacing(20)
         total_layout.addLayout(bottom_row)
 
-    def config_rename(self):
-        changes = (
-            ('te_rel_descr', 'te_rel_descr_templ'),
-            ('te_src_descr', 'te_src_descr_templ'),
-            ('le_scandir', 'le_scan_dir')
-        )
-        for old, new in changes:
-            if self.config.contains(old):
-                value = self.config.value(old)
-                self.config.setValue(new, value)
-                self.config.remove(old)
-
     def load_config(self):
-        self.config_rename()
-
         for name, (df, mk_lbl) in CONFIG_NAMES.items():
             obj = getattr(self, name)
 
@@ -229,8 +210,6 @@ class SettingsWindow(QDialog):
 
     def trpl_settings(self):
         user_settings = (
-            'le_data_dir',
-            'le_dtor_save_dir',
             'chb_save_dtors',
             'chb_del_dtors',
             'chb_file_check',
@@ -238,7 +217,10 @@ class SettingsWindow(QDialog):
             'chb_add_src_descr',
             'te_src_descr_templ'
         )
-        settings_dict = {}
+        settings_dict = {
+            'data_dir': self.fsb_data_dir.currentText(),
+            'dtor_save_dir': self.fsb_dtor_save_dir.currentText()
+        }
         for x in user_settings:
             _, arg_name = x.split('_', maxsplit=1)
             settings_dict[arg_name] = self.config.value(x)

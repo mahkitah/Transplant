@@ -1,10 +1,64 @@
+import os
 import re
 
-from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction, QTableView
+from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction, QTableView, QComboBox, QFileDialog, QLineEdit
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings
 from lib import ui_text
 from gazelle.tracker_data import tr
+
+
+class HistoryBox(QComboBox):
+    list_changed = pyqtSignal(list)
+
+    def set_list(self, item_list):
+        if item_list:
+            self.addItems(item_list)
+            self.list_changed.emit(item_list)
+
+    def contains(self, txt):
+        if self.findText(txt) < 0:
+            return False
+        else:
+            return True
+
+    def items(self):
+        for i in range(self.count()):
+            yield self.itemText(i)
+
+    def top_insert(self, txt):
+        if not self.contains(txt):
+            self.insertItem(0, txt)
+            self.setCurrentIndex(0)
+            self.list_changed.emit(list(self.items()))
+
+    def consolidate(self):
+        if not self.contains(self.currentText()):
+            self.top_insert(self.currentText())
+        if self.currentIndex() > 0:
+            txt = self.currentText()
+            self.removeItem(self.currentIndex())
+            self.top_insert(txt)
+
+
+class FolderSelectBox(HistoryBox):
+    def __init__(self):
+        super().__init__()
+        self.setEditable(True)
+        self.folder_button = QAction()
+        self.lineEdit().addAction(self.folder_button, QLineEdit.TrailingPosition)
+        self.folder_button.triggered.connect(self.select_folder)
+        self.dialog_caption = None
+
+    def select_folder(self):
+        selected = QFileDialog.getExistingDirectory(self, self.dialog_caption, self.currentText())
+        if not selected:
+            return
+        selected = os.path.normpath(selected)
+        self.top_insert(selected)
+
+    def setToolTip(self, txt):
+        self.folder_button.setToolTip(txt)
 
 
 class IniSettings(QSettings):
@@ -28,7 +82,7 @@ class IniSettings(QSettings):
         return value
 
 
-class MyTextEdit(QTextEdit):
+class TPTextEdit(QTextEdit):
     plainTextChanged = pyqtSignal(str)
 
     def __init__(self):
@@ -36,7 +90,7 @@ class MyTextEdit(QTextEdit):
         self.textChanged.connect(lambda: self.plainTextChanged.emit(self.toPlainText()))
 
 
-class MyTableView(QTableView):
+class TPTableView(QTableView):
     selectionChange = pyqtSignal(list)
 
     def __init__(self):
@@ -47,7 +101,7 @@ class MyTableView(QTableView):
         self.selectionChange.emit(self.selectedIndexes())
 
 
-class MyHeaderView(QHeaderView):
+class TPHeaderView(QHeaderView):
     sectionVisibilityChanged = pyqtSignal(int, bool)
 
     def __init__(self, orientation, headers):
