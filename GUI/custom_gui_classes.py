@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction, QTableView, QComboB
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings
 from lib import ui_text
-from gazelle.tracker_data import tr
+from gazelle.tracker_data import tr_data
 
 
 class HistoryBox(QComboBox):
@@ -198,7 +198,6 @@ class JobModel(QAbstractTableModel):
                 index += 1
 
     def data(self, index, role):
-
         column = index.column()
         job = self.jobs[index.row()]
         no_icon = bool(int(self.config.value('chb_no_icon')))
@@ -215,10 +214,7 @@ class JobModel(QAbstractTableModel):
             return Qt.Checked if job.new_dtor else Qt.Unchecked
 
         if role == Qt.DecorationRole and column == 0 and not no_icon:
-            if job.src_tr == tr.RED:
-                return QIcon('gui_files/pth.ico')
-            if job.src_tr == tr.OPS:
-                return QIcon('gui_files/ops.ico')
+            return QIcon(tr_data[job.src_tr]['favicon'])
 
     def rowCount(self, index):
         return len(self.jobs)
@@ -236,7 +232,6 @@ class JobModel(QAbstractTableModel):
             return super().flags(index)
 
     def headerData(self, section, orientation, role):
-
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             return self.headers[section]
 

@@ -1,4 +1,4 @@
-main_window_title = "Transplant 2.3"
+main_window_title = "Transplant {}"
 pb_placeholder = "Paste/type torrent ids and/or urls here.\n" \
                  "Space or newline separated.\n" \
                  "The source buttons only apply to ids."
@@ -26,7 +26,7 @@ header2 = 'dest. group'
 header3 = 'nt'
 
 # Settings
-config_window_title = "Settings"
+settings_window_title = "Settings"
 main_tab = 'Main'
 rehost_tab = 'Rehost'
 desc_tab = 'Rel Descr'
@@ -128,7 +128,7 @@ tt_pb_def_descr = 'Restore default descriptions'
 tt_rb_tracker1 = "Select source tracker for torrent id's entered in the paste box\n" \
                     "This setting does not apply to url's and .torrents"
 tt_rb_tracker2 = tt_rb_tracker1
-tt_tb_open_config = config_window_title
+tt_tb_open_config = settings_window_title
 tt_tb_open_config2 = tt_tb_open_config
 tt_pb_add = "Add content of the paste box to the job list\n" \
                 "Only valid entries will be added"

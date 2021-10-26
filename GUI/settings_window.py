@@ -51,7 +51,7 @@ CONFIG_NAMES = {
 class SettingsWindow(QDialog):
     def __init__(self, parent, config: QSettings):
         super().__init__(parent)
-        self.setWindowTitle(ui_text.config_window_title)
+        self.setWindowTitle(ui_text.settings_window_title)
         self.setWindowIcon(QIcon('gui_files/gear.svg'))
         self.config = config
         self.user_input_elements()
@@ -65,9 +65,9 @@ class SettingsWindow(QDialog):
 
         for el_name, (df, mk_lbl) in CONFIG_NAMES.items():
             typ_str, name = el_name.split('_', maxsplit=1)
-            obj_type = TYPE_MAP[typ_str]
 
             # instantiate
+            obj_type = TYPE_MAP[typ_str]
             setattr(self, el_name, obj_type())
             obj = getattr(self, el_name)
             obj.setObjectName(el_name)

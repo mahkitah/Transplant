@@ -2,23 +2,24 @@ import sys
 import os
 import re
 import logging
-
 import traceback
 import webbrowser
 
 from bencoder import BTFailure
 
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
+from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import QObject, QSize, QThread, pyqtSignal
+
+from lib import ui_text, utils
 from lib.transplant import Transplanter, Job
+from lib.version import __version__
 from gazelle.tracker_data import tr
 from gazelle.api_classes import KeyApi, RedApi
-from lib import ui_text, utils
 from GUI.settings_window import SettingsWindow
 from GUI.main_gui import MainGui
 from GUI.custom_gui_classes import IniSettings, FolderSelectBox
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QObject, QSize, QThread, pyqtSignal
 
 logging.getLogger('urllib3').setLevel(logging.WARNING)
 
@@ -67,7 +68,7 @@ class TransplantThread(QThread):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle(ui_text.main_window_title)
+        self.setWindowTitle(ui_text.main_window_title.format(__version__))
         self.setWindowIcon(QIcon('gui_files/switch.svg'))
 
         try:
@@ -76,7 +77,7 @@ class MainWindow(QMainWindow):
             self.setStyleSheet(stylesheet)
         except FileNotFoundError:
             pass
-        self.config = IniSettings("gui_files/gui_config.ini")
+        self.init_config()
         self.setCentralWidget(MainGui(self.config))
         self.main = self.centralWidget()
         self.set_window = SettingsWindow(self, self.config)
@@ -86,6 +87,31 @@ class MainWindow(QMainWindow):
         self.load_config()
         self.set_window.load_config()
         self.show()
+
+    def init_config(self):
+        self.config = IniSettings("gui_files/gui_config.ini")
+        config_version = self.config.value('config_version')
+        if config_version != __version__:
+            self.config_update()
+            self.config.setValue('config_version', __version__)
+
+    def config_update(self):
+        changes = (
+            ('te_rel_descr', 'te_rel_descr_templ', None),
+            ('te_src_descr', 'te_src_descr_templ', None),
+            ('le_scandir', 'le_scan_dir', None),
+            ('geometry/header', 'geometry/job_view_header', None),
+            ('le_data_dir', 'fsb_data_dir', lambda x: [x]),
+            ('le_scan_dir', 'fsb_scan_dir', lambda x: [x]),
+            ('le_dtor_save_dir', 'fsb_dtor_save_dir', lambda x: [x]),
+        )
+        for old, new, conversion in changes:
+            if self.config.contains(old):
+                value = self.config.value(old)
+                if conversion:
+                    value = conversion(value)
+                self.config.setValue(new, value)
+                self.config.remove(old)
 
     def set_logging(self):
         self.report = logging.getLogger()
@@ -152,27 +178,7 @@ class MainWindow(QMainWindow):
         self.set_window.chb_show_grid.stateChanged.connect(self.main.job_data.layoutChanged.emit)
         self.set_window.spb_row_height.valueChanged.connect(self.main.job_view.verticalHeader().setDefaultSectionSize)
 
-    def config_rename(self):
-        changes = (
-            ('te_rel_descr', 'te_rel_descr_templ', None),
-            ('te_src_descr', 'te_src_descr_templ', None),
-            ('le_scandir', 'le_scan_dir', None),
-            ('geometry/header', 'geometry/job_view_header', None),
-            ('le_data_dir', 'fsb_data_dir', lambda x: [x]),
-            ('le_scan_dir', 'fsb_scan_dir', lambda x: [x]),
-            ('le_dtor_save_dir', 'fsb_dtor_save_dir', lambda x: [x]),
-        )
-        for old, new, conversion in changes:
-            if self.config.contains(old):
-                value = self.config.value(old)
-                if conversion:
-                    value = conversion(value)
-                self.config.setValue(new, value)
-                self.config.remove(old)
-
     def load_config(self):
-        self.config_rename()
-
         source_id = int(self.config.value('bg_source', defaultValue=0))
         self.main.bg_source.buttons()[source_id].click()
         self.resize(self.config.value('geometry/size', defaultValue=QSize(550, 500)))
@@ -195,7 +201,6 @@ class MainWindow(QMainWindow):
             fsb.consolidate()
 
     def tooltips(self, flag):
-
         for t_name, ttip in vars(ui_text).items():
             if t_name.startswith('tt_'):
                 obj_name = t_name.split('_', maxsplit=1)[1]
@@ -264,15 +269,14 @@ class MainWindow(QMainWindow):
                     continue
 
     def scan_dtorrents(self, path):
-        if path and os.path.isdir(path):
-            self.main.tabs.setCurrentIndex(0)
+        self.main.tabs.setCurrentIndex(0)
 
-            for scan in os.scandir(path):
-                if scan.is_file() and scan.name.endswith(".torrent"):
-                    try:
-                        self.main.job_data.append(Job(dtor_path=scan.path, scanned=True))
-                    except (AssertionError, BTFailure):
-                        continue
+        for scan in os.scandir(path):
+            if scan.is_file() and scan.name.endswith(".torrent"):
+                try:
+                    self.main.job_data.append(Job(dtor_path=scan.path, scanned=True))
+                except (AssertionError, BTFailure):
+                    continue
 
     def settings_check(self):
         data_dir = self.set_window.fsb_data_dir.currentText()

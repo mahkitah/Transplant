@@ -135,11 +135,6 @@ class MainGui(QWidget):
         top_layout.addWidget(self.section_add_dtor_btn)
 
         # Bottom
-        scan_row = QHBoxLayout()
-        scan_row.addStretch()
-        scan_row.addWidget(self.pb_scan)
-        scan_row.addWidget(self.tb_open_config2)
-
         buttons_job = QVBoxLayout(self.job_buttons)
         buttons_job.setContentsMargins(0, 0, 0, 0)
         buttons_job.addWidget(self.pb_scan)
@@ -174,15 +169,18 @@ class MainGui(QWidget):
         self.view_stack.addWidget(self.result_view)
 
         open_config2 = QHBoxLayout()
+        right_side = QVBoxLayout()
+        right_side.addWidget(self.tb_open_config2)
+        right_side.addSpacing(5)
         open_config2.addStretch()
-        open_config2.addWidget(self.tb_open_config2)
+        open_config2.addLayout(right_side)
 
         view_n_buttons = QGridLayout()
         view_n_buttons.setVerticalSpacing(0)
-        view_n_buttons.addLayout(open_config2, 0, 1)
-        view_n_buttons.addWidget(self.tabs, 0, 0)
-        view_n_buttons.addLayout(self.view_stack, 1, 0)
-        view_n_buttons.addLayout(control_buttons, 1, 1)
+        view_n_buttons.addLayout(open_config2, 0, 1, 2, 1)
+        view_n_buttons.addWidget(self.tabs, 1, 0)
+        view_n_buttons.addLayout(self.view_stack, 2, 0)
+        view_n_buttons.addLayout(control_buttons, 2, 1)
         view_n_buttons.setColumnStretch(0, 1)
         view_n_buttons.setColumnStretch(1, 0)
 
