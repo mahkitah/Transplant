@@ -77,7 +77,7 @@ class MainWindow(QMainWindow):
             self.setStyleSheet(stylesheet)
         except FileNotFoundError:
             pass
-        self.init_config()
+        self.set_config()
         self.setCentralWidget(MainGui(self.config))
         self.main = self.centralWidget()
         self.set_window = SettingsWindow(self, self.config)
@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
         self.set_window.load_config()
         self.show()
 
-    def init_config(self):
+    def set_config(self):
         self.config = IniSettings("gui_files/gui_config.ini")
         config_version = self.config.value('config_version')
         if config_version != __version__:
@@ -113,6 +113,17 @@ class MainWindow(QMainWindow):
                 self.config.setValue(new, value)
                 self.config.remove(old)
 
+        for key in self.config.allKeys():
+            if key.startswith('chb_'):
+                value = self.config.value(key)
+                if not value.startswith('#'):
+                    value = 2 if bool(int(value)) else 0
+                    self.config.setValue(key, value)
+            if key.startswith('spb_'):
+                value = self.config.value(key)
+                if not value.startswith('#'):
+                    self.config.setValue(key, int(value))
+
     def set_logging(self):
         self.report = logging.getLogger()
         self.handler = Report()
@@ -131,9 +142,10 @@ class MainWindow(QMainWindow):
         self.main.pb_del_sel.clicked.connect(self.delete_selected)
         self.main.pb_rem_tr1.clicked.connect(lambda: self.main.job_data.filter_for_attr('src_tr', tr.RED))
         self.main.pb_rem_tr2.clicked.connect(lambda: self.main.job_data.filter_for_attr('src_tr', tr.OPS))
-        self.main.pb_open_tsavedir.clicked.connect(lambda: utils.open_local_folder(self.config.value('le_dtor_save_dir')))
-        # self.main.tb_go.clicked.connect(self.gogogo)
-        self.main.tb_go.clicked.connect(self.blabla)
+        self.main.pb_open_tsavedir.clicked.connect(
+            lambda: utils.open_local_folder(self.config.value('le_dtor_save_dir')))
+        self.main.tb_go.clicked.connect(self.gogogo)
+        # self.main.tb_go.clicked.connect(self.blabla)
         self.main.pb_open_upl_urls.clicked.connect(self.open_tor_urls)
         self.main.job_view.horizontalHeader().sectionDoubleClicked.connect(self.main.job_data.header_double_clicked)
         self.main.job_view.selectionChange.connect(lambda x: self.main.pb_rem_sel.setEnabled(bool(x)))
@@ -145,7 +157,8 @@ class MainWindow(QMainWindow):
             lambda: self.main.pb_rem_tr1.setEnabled(any(j.src_tr == tr.RED for j in self.main.job_data)))
         self.main.job_data.layoutChanged.connect(
             lambda: self.main.pb_rem_tr2.setEnabled(any(j.src_tr == tr.OPS for j in self.main.job_data)))
-        self.main.result_view.textChanged.connect(lambda: self.main.pb_clear_r.setEnabled(bool(self.main.result_view.toPlainText())))
+        self.main.result_view.textChanged.connect(
+            lambda: self.main.pb_clear_r.setEnabled(bool(self.main.result_view.toPlainText())))
         self.main.result_view.textChanged.connect(
             lambda: self.main.pb_open_upl_urls.setEnabled('torrentid' in self.main.result_view.toPlainText()))
         self.main.tb_open_config.clicked.connect(self.set_window.open)
@@ -230,7 +243,7 @@ class MainWindow(QMainWindow):
         key_1 = self.config.value('le_key_1')
         key_2 = self.config.value('le_key_2')
 
-        settings = self.trpl_settings()
+        settings = self.set_window.trpl_settings()
 
         if self.main.tabs.count() == 1:
             self.main.tabs.addTab(ui_text.tab_results)

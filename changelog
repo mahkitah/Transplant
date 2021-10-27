@@ -1,3 +1,6 @@
+2.3.1
+- Scan folder selection to settings window
+- Folder selection boxes now have history
 2.3
 - Major refactoring of gazelle api and transplant.
 - Logging instead of callback
