@@ -62,22 +62,26 @@ class FolderSelectBox(HistoryBox):
 
 
 class IniSettings(QSettings):
-    action_map = {
-        'le': lambda x: x,
-        'te': lambda x: x,
-        'chb': lambda x: bool(int(x)),
-        'spb': lambda x: int(x)
-    }
-
     def __init__(self, path):
         super().__init__(path, QSettings.IniFormat)
 
+    def setValue(self, key, value):
+        if type(value) == int:
+            value = f'#int({value})'
+        elif type(value) == bool:
+            value = f'#bool({value})'
+
+        super().setValue(key, value)
+
     def value(self, key, defaultValue=None):
         value = super().value(key, defaultValue=defaultValue)
-
-        match = re.match(r'(le|te|chb|spb)_.+', key)
-        if match:
-            value = self.action_map[match.group(1)](value)
+        if isinstance(value, str):
+            if value.startswith('#int('):
+                as_str = re.match(r'#int\((\d+)\)', value).group(1)
+                value = int(as_str)
+            elif value.startswith('#bool('):
+                as_str = re.match(r'#bool\((True|False)\)', value).group(1)
+                value = as_str == 'True'
 
         return value
 
@@ -92,9 +96,6 @@ class TPTextEdit(QTextEdit):
 
 class TPTableView(QTableView):
     selectionChange = pyqtSignal(list)
-
-    def __init__(self):
-        super().__init__()
 
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)

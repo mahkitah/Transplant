@@ -16,7 +16,7 @@ TYPE_MAP = {
 ACTION_MAP = {
     QLineEdit: (lambda x: x.textChanged, lambda x, y: x.setText(y)),
     TPTextEdit: (lambda x: x.plainTextChanged, lambda x, y: x.setText(y)),
-    QCheckBox: (lambda x: x.stateChanged, lambda x, y: x.setChecked(y)),
+    QCheckBox: (lambda x: x.stateChanged, lambda x, y: x.setCheckState(y)),
     QSpinBox: (lambda x: x.valueChanged, lambda x, y: x.setValue(y)),
     FolderSelectBox: (lambda x: x.list_changed, lambda x, y: x.set_list(y))
 }
@@ -81,6 +81,10 @@ class SettingsWindow(QDialog):
                 setattr(self, label_name, QLabel(getattr(ui_text, label_name)))
 
     def set_element_properties(self):
+        """
+        This function must be called after (or by) 'load_config'
+        Otherwise spinbox minimum will be set in config.
+        """
         for fsb in self.findChildren(FolderSelectBox):
             fsb.setMaxCount(8)
             fsb.folder_button.setIcon(QIcon("gui_files/open-folder.svg"))
