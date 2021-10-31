@@ -89,6 +89,7 @@ class SettingsWindow(QDialog):
             fsb.setMaxCount(8)
             fsb.folder_button.setIcon(QIcon("gui_files/open-folder.svg"))
             fsb.dialog_caption = getattr(ui_text, f'tt_{fsb.objectName()}')
+            fsb.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 
         self.spb_verbosity.setMaximum(3)
         self.spb_verbosity.setMaximumWidth(40)
@@ -134,7 +135,6 @@ class SettingsWindow(QDialog):
         save_dtor = QHBoxLayout()
         save_dtor.addWidget(self.chb_save_dtors)
         save_dtor.addWidget(self.fsb_dtor_save_dir)
-        self.fsb_dtor_save_dir.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 
         settings_form = QFormLayout(self.main_settings)
         settings_form.setLabelAlignment(Qt.AlignRight)
