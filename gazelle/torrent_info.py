@@ -151,9 +151,6 @@ class REDTorrentInfo(TorrentInfo):
                 self.rem_label = self.o_label
                 self.rem_cat_nr = self.o_cat_nr
 
-    def further_actions(self, **kwargs):
-        pass
-
 class OPSTorrentInfo(TorrentInfo):
 
     def unknown_etc(self):
@@ -166,12 +163,6 @@ class OPSTorrentInfo(TorrentInfo):
             self.rem_year = self.o_year
             self.rem_label = self.o_label
             self.rem_cat_nr = self.o_cat_nr
-
-        # tags = {id: name} on OPS
-        try:
-            self.tags = [x for x in self.tags.values()]
-        except AttributeError:
-            pass
 
 
 tr_map = {

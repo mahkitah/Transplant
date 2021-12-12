@@ -1,5 +1,6 @@
 from lib import ui_text
 from GUI.custom_gui_classes import TPTextEdit, FolderSelectBox
+# from GUI.rehost_tab import RehostTable, RehostData
 
 from PyQt5.QtWidgets import QWidget, QLabel, QTabWidget, QLineEdit, QPushButton, QHBoxLayout, QVBoxLayout, QFormLayout,\
     QSpinBox, QCheckBox, QDialog, QSizePolicy
@@ -32,9 +33,6 @@ CONFIG_NAMES = {
     'chb_file_check': (2, True),
     'chb_show_tips': (2, True),
     'spb_verbosity': (2, True),
-    'chb_rehost': (0, True),
-    'le_whitelist': (ui_text.default_whitelist, True),
-    'le_ptpimg_key': (None, True),
     'te_rel_descr_templ': (ui_text.def_rel_descr, False),
     'te_src_descr_templ': (ui_text.def_src_descr, False),
     'chb_add_src_descr': (1, False),
@@ -45,7 +43,10 @@ CONFIG_NAMES = {
     'spb_row_height': (20, True),
     'chb_show_add_dtors': (2, True),
     'chb_show_rem_tr1': (0, True),
-    'chb_show_rem_tr2': (0, True)
+    'chb_show_rem_tr2': (0, True),
+    'chb_rehost': (0, True),
+    'le_whitelist': (ui_text.default_whitelist, True),
+    'le_ptpimg_key': (None, True),
 }
 
 class SettingsWindow(QDialog):
@@ -109,9 +110,11 @@ class SettingsWindow(QDialog):
         self.main_settings = QWidget()
         self.cust_descr = QWidget()
         self.looks = QWidget()
+        # self.rehost = QWidget()
         self.config_tabs.addTab(self.main_settings, ui_text.main_tab)
         self.config_tabs.addTab(self.cust_descr, ui_text.desc_tab)
         self.config_tabs.addTab(self.looks, ui_text.looks_tab)
+        # self.config_tabs.addTab(self.rehost, ui_text.rehost_tab)
 
         self.pb_cancel = QPushButton(ui_text.pb_cancel)
         self.pb_ok = QPushButton(ui_text.pb_ok)
@@ -125,6 +128,9 @@ class SettingsWindow(QDialog):
         # looks tab
         self.l_job_list = QLabel(ui_text.l_job_list)
 
+        # # rehost tab
+        # self.ih_table = RehostTable(self.config)
+        #
     def ui_layout(self):
         bottom_row = QHBoxLayout()
         bottom_row.addStretch()
@@ -187,6 +193,8 @@ class SettingsWindow(QDialog):
         looks.addWidget(self.l_job_list)
         looks.addLayout(job_list)
         looks.addStretch()
+
+        # rehost
 
         total_layout = QVBoxLayout(self)
         total_layout.setContentsMargins(0, 0, 10, 10)

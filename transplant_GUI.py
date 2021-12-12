@@ -1,3 +1,4 @@
+import random
 import sys
 import os
 import re
@@ -8,8 +9,8 @@ import webbrowser
 from bencoder import BTFailure
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import QObject, QSize, QThread, pyqtSignal
+from PyQt5.QtGui import QIcon, QKeyEvent
+from PyQt5.QtCore import Qt, QObject, QSize, QThread, pyqtSignal
 
 from lib import ui_text, utils
 from lib.transplant import Transplanter, Job
@@ -70,7 +71,6 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle(ui_text.main_window_title.format(__version__))
         self.setWindowIcon(QIcon('gui_files/switch.svg'))
-
         try:
             with open('gui_files/stylesheet.qsst', 'r') as f:
                 stylesheet = f.read()
@@ -86,7 +86,18 @@ class MainWindow(QMainWindow):
         self.set_logging()
         self.load_config()
         self.set_window.load_config()
+        self.main.pb_scan.setFocus()
         self.show()
+
+    def keyPressEvent(self, event: QKeyEvent):
+        if not event.modifiers():
+            if event.key() == Qt.Key_Backspace:
+                self.remove_selected()
+        elif event.modifiers() == Qt.ControlModifier:
+            if event.key() == Qt.Key_S:
+                self.scan_dtorrents()
+        else:
+            super().keyPressEvent(event)
 
     def set_config(self):
         self.config = IniSettings("gui_files/gui_config.ini")
@@ -135,7 +146,7 @@ class MainWindow(QMainWindow):
         self.main.bg_source.idClicked.connect(lambda x: self.config.setValue('bg_source', x))
         self.main.pb_add.clicked.connect(self.parse_paste_input)
         self.main.pb_open_dtors.clicked.connect(self.select_dtors)
-        self.main.pb_scan.clicked.connect(lambda: self.scan_dtorrents(self.set_window.fsb_scan_dir.currentText()))
+        self.main.pb_scan.clicked.connect(self.scan_dtorrents)
         self.main.pb_clear_j.clicked.connect(self.main.job_data.clear)
         self.main.pb_clear_r.clicked.connect(self.main.result_view.clear)
         self.main.pb_rem_sel.clicked.connect(self.remove_selected)
@@ -143,7 +154,7 @@ class MainWindow(QMainWindow):
         self.main.pb_rem_tr1.clicked.connect(lambda: self.main.job_data.filter_for_attr('src_tr', tr.RED))
         self.main.pb_rem_tr2.clicked.connect(lambda: self.main.job_data.filter_for_attr('src_tr', tr.OPS))
         self.main.pb_open_tsavedir.clicked.connect(
-            lambda: utils.open_local_folder(self.config.value('le_dtor_save_dir')))
+            lambda: utils.open_local_folder(self.set_window.fsb_dtor_save_dir.currentText()))
         self.main.tb_go.clicked.connect(self.gogogo)
         # self.main.tb_go.clicked.connect(self.blabla)
         self.main.pb_open_upl_urls.clicked.connect(self.open_tor_urls)
@@ -151,6 +162,7 @@ class MainWindow(QMainWindow):
         self.main.job_view.selectionChange.connect(lambda x: self.main.pb_rem_sel.setEnabled(bool(x)))
         self.main.job_view.selectionChange.connect(lambda x: self.main.pb_del_sel.setEnabled(bool(x)))
         self.main.job_view.doubleClicked.connect(self.open_torrent_page)
+        self.main.job_view.key_with_mod_sig.connect(self.keyPressEvent)
         self.main.job_data.layoutChanged.connect(self.main.job_view.clearSelection)
         self.main.job_data.layoutChanged.connect(lambda: self.main.tb_go.setEnabled(bool(self.main.job_data)))
         self.main.job_data.layoutChanged.connect(lambda: self.main.pb_clear_j.setEnabled(bool(self.main.job_data)))
@@ -282,7 +294,8 @@ class MainWindow(QMainWindow):
                 except (AssertionError, BTFailure):
                     continue
 
-    def scan_dtorrents(self, path):
+    def scan_dtorrents(self):
+        path = self.set_window.fsb_scan_dir.currentText()
         self.main.tabs.setCurrentIndex(0)
 
         for scan in os.scandir(path):
@@ -291,6 +304,7 @@ class MainWindow(QMainWindow):
                     self.main.job_data.append(Job(dtor_path=scan.path, scanned=True))
                 except (AssertionError, BTFailure):
                     continue
+        self.main.job_view.setFocus()
 
     def settings_check(self):
         data_dir = self.set_window.fsb_data_dir.currentText()
@@ -353,23 +367,23 @@ class MainWindow(QMainWindow):
                 webbrowser.open(piece)
 
     def remove_selected(self):
-        selected_rows = list(set((x.row() for x in self.main.job_view.selectedIndexes())))
-        if not selected_rows:
+        selection = self.main.job_view.selected_rows()
+        if not selection:
             return
 
-        self.main.job_data.del_multi(selected_rows)
+        self.main.job_data.del_multi(selection)
 
     def delete_selected(self):
-        selected_rows = list(set((x.row() for x in self.main.job_view.selectedIndexes())))
-        if not selected_rows:
+        selection = self.main.job_view.selected_rows()
+        if not selection:
             return
 
-        for i in selected_rows:
+        for i in selection:
             job = self.main.job_data.jobs[i]
             if job.scanned:
                 os.remove(job.dtor_path)
 
-        self.main.job_data.del_multi(selected_rows)
+        self.main.job_data.del_multi(selection)
 
     def open_torrent_page(self, index):
         if index.column() > 1:
