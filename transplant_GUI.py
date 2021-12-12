@@ -14,7 +14,7 @@ from PyQt5.QtCore import QObject, QSize, QThread, pyqtSignal
 from lib import ui_text, utils
 from lib.transplant import Transplanter, Job
 from lib.version import __version__
-from gazelle.tracker_data import tr
+from gazelle.tracker_data import tr, tr_data
 from gazelle.api_classes import KeyApi, RedApi
 from GUI.settings_window import SettingsWindow
 from GUI.main_gui import MainGui
@@ -150,6 +150,7 @@ class MainWindow(QMainWindow):
         self.main.job_view.horizontalHeader().sectionDoubleClicked.connect(self.main.job_data.header_double_clicked)
         self.main.job_view.selectionChange.connect(lambda x: self.main.pb_rem_sel.setEnabled(bool(x)))
         self.main.job_view.selectionChange.connect(lambda x: self.main.pb_del_sel.setEnabled(bool(x)))
+        self.main.job_view.doubleClicked.connect(self.open_torrent_page)
         self.main.job_data.layoutChanged.connect(self.main.job_view.clearSelection)
         self.main.job_data.layoutChanged.connect(lambda: self.main.tb_go.setEnabled(bool(self.main.job_data)))
         self.main.job_data.layoutChanged.connect(lambda: self.main.pb_clear_j.setEnabled(bool(self.main.job_data)))
@@ -347,9 +348,9 @@ class MainWindow(QMainWindow):
         self.main.te_paste_box.clear()
 
     def open_tor_urls(self):
-        for slice in self.main.result_view.toPlainText().split():
-            if 'torrentid' in slice:
-                webbrowser.open(slice)
+        for piece in self.main.result_view.toPlainText().split():
+            if 'torrentid' in piece:
+                webbrowser.open(piece)
 
     def remove_selected(self):
         selected_rows = list(set((x.row() for x in self.main.job_view.selectedIndexes())))
@@ -369,6 +370,19 @@ class MainWindow(QMainWindow):
                 os.remove(job.dtor_path)
 
         self.main.job_data.del_multi(selected_rows)
+
+    def open_torrent_page(self, index):
+        if index.column() > 1:
+            return
+        job = self.main.job_data.jobs[index.row()]
+        domain = tr_data[job.src_tr]['site']
+        if job.info_hash:
+            url = domain + 'torrents.php?searchstr=' + job.info_hash
+        elif job.tor_id:
+            url = domain + 'torrents.php?torrentid=' + job.tor_id
+        else:
+            return
+        webbrowser.open(url)
 
     def set_verbosity(self, lvl):
         verb_map = {
