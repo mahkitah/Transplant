@@ -1,8 +1,9 @@
 import os
 import re
+import random
 
 from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction, QTableView, QComboBox, QFileDialog, QLineEdit
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings
 from lib import ui_text
 from gazelle.tracker_data import tr_data
@@ -96,10 +97,19 @@ class TPTextEdit(QTextEdit):
 
 class TPTableView(QTableView):
     selectionChange = pyqtSignal(list)
+    key_with_mod_sig = pyqtSignal(QKeyEvent)
 
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)
         self.selectionChange.emit(self.selectedIndexes())
+
+    def selected_rows(self):
+        return list(set((x.row() for x in self.selectedIndexes())))
+
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.modifiers() == Qt.ControlModifier:
+            self.key_with_mod_sig.emit(event)
+        super().keyPressEvent(event)
 
 
 class TPHeaderView(QHeaderView):
