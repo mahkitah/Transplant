@@ -3,6 +3,7 @@ import re
 import logging
 import base64
 import traceback
+from collections import defaultdict
 
 from bencoder import bencode, bdecode
 from hashlib import sha1, sha256
@@ -100,9 +101,12 @@ class Transplanter:
 
         self.job = None
         self.tor_info = None
+        self._subdir_index = None
+        self._torrent_folder_path = None
 
     def do_your_job(self, job):
         self.tor_info = None
+        self._torrent_folder_path = None
         self.job = job
         report.info(f"\n{self.job.src_tr.name} {self.job.display_name or self.job.tor_id}")
 
@@ -154,6 +158,32 @@ class Transplanter:
 
         return True
 
+    @property
+    def subdir_index(self):
+        if not self._subdir_index:
+            subdirs = defaultdict(list)
+            for root, dirs, files in os.walk(self.data_dir):
+                for d in dirs:
+                    subdirs[d].append(root)
+            self._subdir_index = dict(subdirs)
+
+        return self._subdir_index
+
+    @property
+    def torrent_folder_path(self):
+        if not self._torrent_folder_path:
+            try:
+                rootpath_list = self.subdir_index[self.tor_info.folder_name]
+            except KeyError:
+                raise FileNotFoundError(f"{ui_text.missing} {self.tor_info.folder_name}")
+
+            if len(rootpath_list) > 1:
+                raise Exception(f'"{self.tor_info.folder_name}" found multiple times')
+
+            self._torrent_folder_path = os.path.join(rootpath_list[0], self.tor_info.folder_name)
+
+        return self._torrent_folder_path
+
     def get_dtor(self, files):
         if self.job.new_dtor:
             files.add_dtor(self.create_new_torrent(), as_dict=True)
@@ -173,10 +203,7 @@ class Transplanter:
                 assert log_checksum == r['log_sha256']
                 files.add_log(log_bytes)
         else:
-            base_path = os.path.join(self.data_dir, self.tor_info.folder_name)
-            assert os.path.isdir(base_path), f"{ui_text.missing} {base_path}"
-
-            for path in utils.file_list_gen(base_path):
+            for path in utils.file_list_gen(self.torrent_folder_path):
                 fn = os.path.basename(path)
                 if fn.endswith(".log") and fn.lower() not in upload.LOGS_TO_IGNORE:
                     files.add_log(path, as_path=True)
@@ -185,9 +212,8 @@ class Transplanter:
     def create_new_torrent(self):
         from dottorrent import Torrent
 
-        torfolder = os.path.join(self.data_dir, self.tor_info.folder_name)
         report.info(ui_text.new_tor)
-        t = Torrent(torfolder, private=True)
+        t = Torrent(self.torrent_folder_path, private=True)
         t.generate()
 
         # dottorrent creates dict with string keys.
@@ -197,9 +223,9 @@ class Transplanter:
 
     def check_files(self):
         for fl in self.tor_info.file_list:
-            full_path = os.path.join(self.data_dir, self.tor_info.folder_name, *fl['names'])
-            if not os.path.isfile(full_path):
-                raise FileNotFoundError(f"{ui_text.missing} {full_path}")
+            file_path = os.path.join(self.torrent_folder_path, *fl['names'])
+            if not os.path.isfile(file_path):
+                raise FileNotFoundError(f"{ui_text.missing} {file_path}")
         report.info(ui_text.f_checked)
 
     def save_dtorrent(self, files, comment=None):
