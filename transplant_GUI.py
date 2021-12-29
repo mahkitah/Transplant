@@ -1,4 +1,3 @@
-import random
 import sys
 import os
 import re
@@ -89,16 +88,6 @@ class MainWindow(QMainWindow):
         self.main.pb_scan.setFocus()
         self.show()
 
-    def keyPressEvent(self, event: QKeyEvent):
-        if not event.modifiers():
-            if event.key() == Qt.Key_Backspace:
-                self.remove_selected()
-        elif event.modifiers() == Qt.ControlModifier:
-            if event.key() == Qt.Key_S:
-                self.scan_dtorrents()
-        else:
-            super().keyPressEvent(event)
-
     def set_config(self):
         self.config = IniSettings("gui_files/gui_config.ini")
         config_version = self.config.value('config_version')
@@ -162,7 +151,7 @@ class MainWindow(QMainWindow):
         self.main.job_view.selectionChange.connect(lambda x: self.main.pb_rem_sel.setEnabled(bool(x)))
         self.main.job_view.selectionChange.connect(lambda x: self.main.pb_del_sel.setEnabled(bool(x)))
         self.main.job_view.doubleClicked.connect(self.open_torrent_page)
-        self.main.job_view.key_with_mod_sig.connect(self.keyPressEvent)
+        self.main.job_view.key_override_sig.connect(self.keyPressEvent)
         self.main.job_data.layoutChanged.connect(self.main.job_view.clearSelection)
         self.main.job_data.layoutChanged.connect(lambda: self.main.tb_go.setEnabled(bool(self.main.job_data)))
         self.main.job_data.layoutChanged.connect(lambda: self.main.pb_clear_j.setEnabled(bool(self.main.job_data)))
@@ -225,6 +214,43 @@ class MainWindow(QMainWindow):
     def consolidate_fsbs(self):
         for fsb in self.set_window.findChildren(FolderSelectBox):
             fsb.consolidate()
+
+    def keyPressEvent(self, event: QKeyEvent):
+        if not event.modifiers():
+            if event.key() == Qt.Key_Backspace:
+                self.remove_selected()
+        elif event.modifiers() == Qt.ControlModifier | Qt.ShiftModifier:
+            if event.key() == Qt.Key_Return:
+                self.main.tb_go.click()
+        elif event.modifiers() == Qt.ControlModifier:
+            if event.key() == Qt.Key_S:
+                self.main.pb_scan.click()
+            if event.key() == Qt.Key_Tab:
+                count = self.main.tabs.count()
+                if count > 1:
+                    index = self.main.tabs.currentIndex()
+                    if index < count - 1:
+                        self.main.tabs.setCurrentIndex(index + 1)
+                    else:
+                        self.main.tabs.setCurrentIndex(0)
+            if event.key() == Qt.Key_W:
+                for clr_button in (self.main.pb_clear_j, self.main.pb_clear_r):
+                    if clr_button.isVisible():
+                        clr_button.click()
+            if event.key() == Qt.Key_O:
+                if self.main.pb_open_upl_urls.isVisible():
+                    self.main.pb_open_upl_urls.click()
+            # number keys:
+            if 0x31 <= event.key() <= 0x39:
+                nr = event.key() - 0x30
+                try:
+                    pb_rem_tr = getattr(self.main, f'pb_rem_tr{nr}')
+                except AttributeError:
+                    return
+                if pb_rem_tr.isVisible():
+                    pb_rem_tr.click()
+        else:
+            super().keyPressEvent(event)
 
     def tooltips(self, flag):
         for t_name, ttip in vars(ui_text).items():
