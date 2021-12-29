@@ -1,6 +1,5 @@
 import os
 import re
-import random
 
 from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction, QTableView, QComboBox, QFileDialog, QLineEdit
 from PyQt5.QtGui import QIcon, QKeyEvent
@@ -97,7 +96,7 @@ class TPTextEdit(QTextEdit):
 
 class TPTableView(QTableView):
     selectionChange = pyqtSignal(list)
-    key_with_mod_sig = pyqtSignal(QKeyEvent)
+    key_override_sig = pyqtSignal(QKeyEvent)
 
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)
@@ -107,9 +106,10 @@ class TPTableView(QTableView):
         return list(set((x.row() for x in self.selectedIndexes())))
 
     def keyPressEvent(self, event: QKeyEvent):
-        if event.modifiers() == Qt.ControlModifier:
-            self.key_with_mod_sig.emit(event)
-        super().keyPressEvent(event)
+        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Tab:
+            self.key_override_sig.emit(event)
+        else:
+            super().keyPressEvent(event)
 
 
 class TPHeaderView(QHeaderView):

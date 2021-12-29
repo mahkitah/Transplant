@@ -134,16 +134,16 @@ tt_pb_add = "Add content of the paste box to the job list\n" \
                 "Only valid entries will be added"
 tt_pb_open_dtors = "Select .torrents to add to the job list"
 tt_pb_scan = "Scan the 'scan folder' for .torrents and add them to the job list\n" \
-                 "Subfolders will not be scanned"
-tt_pb_clear_j = "Empty the job list"
-tt_pb_clear_r = "Empty the results pane"
-tt_pb_rem_sel = "Remove selected jobs (torrents) from the job list"
+                 "Subfolders will not be scanned (ctrl-S)"
+tt_pb_clear_j = "Empty the job list (ctrl-W)"
+tt_pb_clear_r = "Empty the results pane (ctrl-W)"
+tt_pb_rem_sel = "Remove selected jobs (torrents) from the job list (Backspace)"
 tt_pb_del_sel = "Delete selected .torrent files from scan dir"
-tt_pb_rem_tr1 = f"Remove all {tracker_1} jobs from job list"
-tt_pb_rem_tr2 = f"Remove all {tracker_2} jobs from job list"
+tt_pb_rem_tr1 = f"Remove all {tracker_1} jobs from job list (ctrl-1)"
+tt_pb_rem_tr2 = f"Remove all {tracker_2} jobs from job list (ctrl-2)"
 tt_pb_open_tsavedir = "Open torrent save location"
-tt_pb_open_upl_urls = "Open all uploads in browser"
-tt_tb_go = "Start Transplanting\n"
+tt_pb_open_upl_urls = "Open all uploads in browser (ctrl-O)"
+tt_tb_go = "Start Transplanting\n (ctrl-shift-Enter)"
 ttm_header3 = 'Create new .torrent file\n' \
              'Instead of modifying source torrent'
 ttm_splitter = 'Drag all the way up to hide top section'
