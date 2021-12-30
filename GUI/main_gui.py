@@ -1,6 +1,6 @@
 from gazelle.tracker_data import tr
 from lib import ui_text
-from GUI.custom_gui_classes import TPTextEdit, TPHeaderView, TPTableView, JobModel
+from GUI.custom_gui_classes import TPTextEdit, TPHeaderView, TPTableView, JobModel, CyclingTabBar
 
 from PyQt5.QtWidgets import QWidget, QTabBar, QTextBrowser, QTextEdit, QPushButton, QToolButton, QRadioButton,\
     QButtonGroup, QHBoxLayout, QVBoxLayout, QGridLayout, QSplitter, QTableView, QHeaderView, QSizePolicy, QStackedLayout
@@ -64,7 +64,7 @@ class MainGui(QWidget):
         self.result_view = QTextBrowser()
         self.result_view.setOpenExternalLinks(True)
 
-        self.tabs = QTabBar()
+        self.tabs = CyclingTabBar()
         self.tabs.setDrawBase(False)
         self.tabs.setExpanding(False)
         self.tabs.addTab(ui_text.tab_joblist)

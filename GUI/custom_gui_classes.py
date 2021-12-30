@@ -1,7 +1,7 @@
 import os
 import re
 
-from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction, QTableView, QComboBox, QFileDialog, QLineEdit
+from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction, QTableView, QComboBox, QFileDialog, QLineEdit, QTabBar
 from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings
 from lib import ui_text
@@ -92,6 +92,18 @@ class TPTextEdit(QTextEdit):
     def __init__(self):
         super().__init__()
         self.textChanged.connect(lambda: self.plainTextChanged.emit(self.toPlainText()))
+
+
+class CyclingTabBar(QTabBar):
+    def next(self):
+        total = self.count()
+        if total > 1:
+            current = self.currentIndex()
+
+            if current < total - 1:
+                self.setCurrentIndex(current + 1)
+            else:
+                self.setCurrentIndex(0)
 
 
 class TPTableView(QTableView):
