@@ -32,7 +32,6 @@ class TorInfo2UplData(FormData):
         self.do_img()
         for name in self.one_on_one:
             if not hasattr(self, name):
-                print(name)
                 raise AttributeError
             setattr(self, name, getattr(self.tor_info, name))
 

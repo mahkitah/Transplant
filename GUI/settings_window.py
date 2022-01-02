@@ -1,6 +1,6 @@
 from lib import ui_text
+from GUI.files import get_file
 from GUI.custom_gui_classes import TPTextEdit, FolderSelectBox
-# from GUI.rehost_tab import RehostTable, RehostData
 
 from PyQt5.QtWidgets import QWidget, QLabel, QTabWidget, QLineEdit, QPushButton, QHBoxLayout, QVBoxLayout, QFormLayout,\
     QSpinBox, QCheckBox, QDialog, QSizePolicy
@@ -21,7 +21,7 @@ ACTION_MAP = {
     QSpinBox: (lambda x: x.valueChanged, lambda x, y: x.setValue(y)),
     FolderSelectBox: (lambda x: x.list_changed, lambda x, y: x.set_list(y))
 }
-# name: (default value, make label, )
+# name: (default value, make label)
 CONFIG_NAMES = {
     'le_key_1': (None, True),
     'le_key_2': (None, True),
@@ -53,7 +53,7 @@ class SettingsWindow(QDialog):
     def __init__(self, parent, config: QSettings):
         super().__init__(parent)
         self.setWindowTitle(ui_text.settings_window_title)
-        self.setWindowIcon(QIcon('gui_files/gear.svg'))
+        self.setWindowIcon(QIcon(get_file('gear.svg')))
         self.config = config
         self.user_input_elements()
         self.ui_elements()
@@ -88,7 +88,7 @@ class SettingsWindow(QDialog):
         """
         for fsb in self.findChildren(FolderSelectBox):
             fsb.setMaxCount(8)
-            fsb.folder_button.setIcon(QIcon("gui_files/open-folder.svg"))
+            fsb.folder_button.setIcon(QIcon(get_file('open-folder.svg')))
             fsb.dialog_caption = getattr(ui_text, f'tt_{fsb.objectName()}')
             fsb.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 
@@ -110,11 +110,9 @@ class SettingsWindow(QDialog):
         self.main_settings = QWidget()
         self.cust_descr = QWidget()
         self.looks = QWidget()
-        # self.rehost = QWidget()
         self.config_tabs.addTab(self.main_settings, ui_text.main_tab)
         self.config_tabs.addTab(self.cust_descr, ui_text.desc_tab)
         self.config_tabs.addTab(self.looks, ui_text.looks_tab)
-        # self.config_tabs.addTab(self.rehost, ui_text.rehost_tab)
 
         self.pb_cancel = QPushButton(ui_text.pb_cancel)
         self.pb_ok = QPushButton(ui_text.pb_ok)
@@ -128,9 +126,6 @@ class SettingsWindow(QDialog):
         # looks tab
         self.l_job_list = QLabel(ui_text.l_job_list)
 
-        # # rehost tab
-        # self.ih_table = RehostTable(self.config)
-        #
     def ui_layout(self):
         bottom_row = QHBoxLayout()
         bottom_row.addStretch()
@@ -194,8 +189,7 @@ class SettingsWindow(QDialog):
         looks.addLayout(job_list)
         looks.addStretch()
 
-        # rehost
-
+        # Total
         total_layout = QVBoxLayout(self)
         total_layout.setContentsMargins(0, 0, 10, 10)
         total_layout.addWidget(self.config_tabs)

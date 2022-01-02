@@ -1,6 +1,8 @@
 import os
 import re
 
+from GUI.files import get_file
+
 from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction, QTableView, QComboBox, QFileDialog, QLineEdit, QTabBar
 from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings
@@ -177,6 +179,8 @@ class TPHeaderView(QHeaderView):
         if not self.hiddenSectionCount():
             self.ac_restore_all.setEnabled(False)
 
+        # Disable action for last visible section
+        # so it's impossible to hide all sections
         elif self.hiddenSectionCount() == self.count() - 1:
             section = 0
             while self.isSectionHidden(section):
@@ -190,9 +194,9 @@ class TPHeaderView(QHeaderView):
 
     def set_action_icons(self, index, hidden):
         if hidden:
-            self.actions()[index + 1].setIcon(QIcon('gui_files/blank-check-box.svg'))
+            self.actions()[index + 1].setIcon(QIcon(get_file('blank-check-box.svg')))
         else:
-            self.actions()[index + 1].setIcon(QIcon('gui_files/check-box.svg'))
+            self.actions()[index + 1].setIcon(QIcon(get_file('check-box.svg')))
 
 
 class JobModel(QAbstractTableModel):
@@ -237,7 +241,7 @@ class JobModel(QAbstractTableModel):
             return Qt.Checked if job.new_dtor else Qt.Unchecked
 
         if role == Qt.DecorationRole and column == 0 and not no_icon:
-            return QIcon(tr_data[job.src_tr]['favicon'])
+            return QIcon(get_file(tr_data[job.src_tr]['favicon']))
 
     def rowCount(self, index):
         return len(self.jobs)

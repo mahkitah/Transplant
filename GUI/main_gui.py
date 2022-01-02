@@ -1,8 +1,9 @@
 from gazelle.tracker_data import tr
 from lib import ui_text
+from GUI.files import get_file
 from GUI.custom_gui_classes import TPTextEdit, TPHeaderView, TPTableView, JobModel, CyclingTabBar
 
-from PyQt5.QtWidgets import QWidget, QTabBar, QTextBrowser, QTextEdit, QPushButton, QToolButton, QRadioButton,\
+from PyQt5.QtWidgets import QWidget, QTextBrowser, QTextEdit, QPushButton, QToolButton, QRadioButton,\
     QButtonGroup, QHBoxLayout, QVBoxLayout, QGridLayout, QSplitter, QTableView, QHeaderView, QSizePolicy, QStackedLayout
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
@@ -22,10 +23,10 @@ class MainGui(QWidget):
         self.section_add_dtor_btn = QWidget()
 
         self.tb_open_config = QToolButton()
-        self.tb_open_config.setIcon(QIcon('gui_files/gear.svg'))
+        self.tb_open_config.setIcon(QIcon(get_file('gear.svg')))
         self.tb_open_config.setAutoRaise(True)
         self.tb_open_config2 = QToolButton()
-        self.tb_open_config2.setIcon(QIcon('gui_files/gear.svg'))
+        self.tb_open_config2.setIcon(QIcon(get_file('gear.svg')))
         self.tb_open_config2.setAutoRaise(True)
 
         self.te_paste_box = TPTextEdit()
@@ -90,7 +91,7 @@ class MainGui(QWidget):
         self.pb_open_upl_urls.setEnabled(False)
         self.tb_go = QToolButton()
         self.tb_go.setEnabled(False)
-        self.tb_go.setIcon(QIcon('gui_files/switch.svg'))
+        self.tb_go.setIcon(QIcon(get_file('switch.svg')))
         self.tb_go.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
 
         self.pb_stop = QPushButton(ui_text.pb_stop)

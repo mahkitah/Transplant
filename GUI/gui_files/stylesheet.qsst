@@ -17,5 +17,5 @@ QHeaderView::section:last {
 }
 QSplitter::handle {
 	background-color: palette(midlight);
-	image: url(gui_files/dotsdots.png);
+	image: url(##dots##);
 }

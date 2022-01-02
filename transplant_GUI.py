@@ -16,10 +16,10 @@ from lib.transplant import Transplanter, Job
 from lib.version import __version__
 from gazelle.tracker_data import tr, tr_data
 from gazelle.api_classes import KeyApi, RedApi
+from GUI.files import get_file
 from GUI.settings_window import SettingsWindow
 from GUI.main_gui import MainGui
 from GUI.custom_gui_classes import IniSettings, FolderSelectBox
-
 
 logging.getLogger('urllib3').setLevel(logging.WARNING)
 
@@ -69,13 +69,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(ui_text.main_window_title.format(__version__))
-        self.setWindowIcon(QIcon('gui_files/switch.svg'))
-        try:
-            with open('gui_files/stylesheet.qsst', 'r') as f:
-                stylesheet = f.read()
-            self.setStyleSheet(stylesheet)
-        except FileNotFoundError:
-            pass
+        self.setWindowIcon(QIcon(get_file('switch.svg')))
+        self.set_stylesheet()
         self.set_config()
         self.setCentralWidget(MainGui(self.config))
         self.main = self.centralWidget()
@@ -88,8 +83,18 @@ class MainWindow(QMainWindow):
         self.main.pb_scan.setFocus()
         self.show()
 
+    def set_stylesheet(self):
+        try:
+            with open(get_file('stylesheet.qsst'), 'r') as f:
+                stylesheet = f.read()
+        except FileNotFoundError:
+            pass
+
+        stylesheet = stylesheet.replace('##dots##', get_file('dotsdots.png').replace('\\', '/'))
+        self.setStyleSheet(stylesheet)
+
     def set_config(self):
-        self.config = IniSettings("gui_files/gui_config.ini")
+        self.config = IniSettings("Transplant.ini")
         config_version = self.config.value('config_version')
         if config_version != __version__:
             self.config_update()
@@ -144,8 +149,8 @@ class MainWindow(QMainWindow):
         self.main.pb_rem_tr2.clicked.connect(lambda: self.main.job_data.filter_for_attr('src_tr', tr.OPS))
         self.main.pb_open_tsavedir.clicked.connect(
             lambda: utils.open_local_folder(self.set_window.fsb_dtor_save_dir.currentText()))
-        # self.main.tb_go.clicked.connect(self.gogogo)
-        self.main.tb_go.clicked.connect(self.blabla)
+        self.main.tb_go.clicked.connect(self.gogogo)
+        # self.main.tb_go.clicked.connect(self.blabla)
         self.main.pb_open_upl_urls.clicked.connect(self.open_tor_urls)
         self.main.job_view.horizontalHeader().sectionDoubleClicked.connect(self.main.job_data.header_double_clicked)
         self.main.job_view.selectionChange.connect(lambda x: self.main.pb_rem_sel.setEnabled(bool(x)))

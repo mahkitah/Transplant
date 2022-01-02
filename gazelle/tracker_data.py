@@ -9,7 +9,7 @@ tr_data = {
     tr.RED: {
         'site': 'https://redacted.ch/',
         'tracker': 'https://flacsfor.me/{passkey}/announce',
-        'favicon': 'gui_files/pth.ico',
+        'favicon': 'pth.ico',
         'api': True,
         'key': True,
         'source_flag': True,
@@ -18,7 +18,7 @@ tr_data = {
     tr.OPS: {
         'site': 'https://orpheus.network/',
         'tracker': 'https://home.opsfet.ch/{passkey}/announce',
-        'favicon': 'gui_files/ops.ico',
+        'favicon': 'ops.ico',
         'api': True,
         'key': True,
         'source_flag': True,

@@ -24,7 +24,7 @@ report = logging.getLogger(__name__)
 # noinspection PyTypeChecker
 class BaseApi:
     def __init__(self, tracker, **kwargs):
-        assert tracker in tr, 'Unknown Tracker'
+        assert tracker in tr, 'Unknown Tracker'  # TODO uitext
         self.tr = tracker
         self.url = tr_data[self.tr]['site']
         self.session = requests.Session()
