@@ -5,8 +5,6 @@ import logging
 import traceback
 import webbrowser
 
-from bencoder import BTFailure
-
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5.QtCore import Qt, QObject, QSize, QThread, pyqtSignal
@@ -316,7 +314,7 @@ class MainWindow(QMainWindow):
             if os.path.isfile(p) and p.endswith(".torrent"):
                 try:
                     self.main.job_data.append(Job(dtor_path=p))
-                except (AssertionError, BTFailure):
+                except (AssertionError, TypeError, AttributeError):
                     continue
 
     def scan_dtorrents(self):
@@ -327,7 +325,7 @@ class MainWindow(QMainWindow):
             if scan.is_file() and scan.name.endswith(".torrent"):
                 try:
                     self.main.job_data.append(Job(dtor_path=scan.path, scanned=True))
-                except (AssertionError, BTFailure):
+                except (AssertionError, TypeError, AttributeError):
                     continue
         self.main.job_view.setFocus()
 

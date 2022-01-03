@@ -1,6 +1,6 @@
 import re
 from lib import utils
-from bencoder import bencode, bdecode
+from bcoding import bencode, bdecode
 from gazelle.tracker_data import tr, tr_data, RELEASE_TYPE_MAP
 
 LOGS_TO_IGNORE = ["audiochecker.log", "aucdtect.log", "info.log"]
@@ -181,9 +181,9 @@ class Dtor:
             except AttributeError:
                 raise TypeError("Input doesn't seem to be a dict")  # TODO uitext
 
-            self._tdict = {b'info': tdict[b'info']}
-            if b'announce' in tdict:
-                self._tdict[b'announce'] = tdict[b'announce']
+            self._tdict = {'info': tdict['info']}
+            if 'announce' in tdict:
+                self._tdict['announce'] = tdict['announce']
         if path:
             with open(path, 'rb') as f:
                 self._tdict = bdecode(f.read())
@@ -198,12 +198,12 @@ class Dtor:
 
     def trackerise(self, announce=None, source=None):
         if announce:
-            self._tdict[b'announce'] = announce.encode()
+            self._tdict['announce'] = announce
         if source:
-            self._tdict[b'info'][b'source'] = source.encode()
+            self._tdict['info']['source'] = source
         else:
             try:
-                del self._tdict[b'info'][b'source']
+                del self._tdict['info']['source']
             except KeyError:
                 pass
 

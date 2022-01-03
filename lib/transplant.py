@@ -5,7 +5,7 @@ import base64
 import traceback
 from collections import defaultdict
 
-from bencoder import bencode, bdecode
+from bcoding import bencode, bdecode
 from hashlib import sha1, sha256
 
 from gazelle import upload
@@ -59,7 +59,7 @@ class Job:
         with open(path, "rb") as f:
             torbytes = f.read()
         self.dtor_dict = bdecode(torbytes)
-        announce = self.dtor_dict[b'announce'].decode()
+        announce = self.dtor_dict['announce']
 
         tr_domain = re.search(r"https?://(.+?)/.+", announce).group(1)
         for t, data in tr_data.items():
@@ -67,7 +67,7 @@ class Job:
                 self.src_tr = t
                 break
 
-        info = self.dtor_dict[b'info']
+        info = self.dtor_dict['info']
         self.info_hash = sha1(bencode(info)).hexdigest()
 
     def __hash__(self):
@@ -216,9 +216,6 @@ class Transplanter:
         t = Torrent(self.torrent_folder_path, private=True)
         t.generate()
 
-        # dottorrent creates dict with string keys.
-        # Following code will add bytes keys. and key type must be uniform for bencoder to encode.
-        utils.dict_stringkeys_to_bytes(t.data)
         return t.data
 
     def check_files(self):
@@ -231,7 +228,7 @@ class Transplanter:
     def save_dtorrent(self, files, comment=None):
         dtor = files.dtors[0].as_dict
         if comment:
-            dtor[b'comment'] = comment.encode()
+            dtor['comment'] = comment
         file_path = os.path.join(self.dtor_save_dir, self.tor_info.folder_name) + ".torrent"
         with open(file_path, "wb") as f:
             f.write(bencode(dtor))
