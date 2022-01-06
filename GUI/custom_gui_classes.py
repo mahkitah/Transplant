@@ -126,16 +126,23 @@ class TPTableView(QTableView):
             super().keyPressEvent(event)
 
 
-class TPHeaderView(QHeaderView):
+class ContextHeaderView(QHeaderView):
+    a_model_has_been_set = pyqtSignal()
     sectionVisibilityChanged = pyqtSignal(int, bool)
 
-    def __init__(self, orientation, headers):
-        super().__init__(orientation)
-        self.headers = headers
-        self.context_actions()
-        self.sectionVisibilityChanged.connect(self.set_action_icons)
+    def __init__(self, orientation, parent):
+        super().__init__(orientation, parent)
+        self.sectionVisibilityChanged.connect(self.set_action_icon)
         self.sectionVisibilityChanged.connect(self.disable_actions)
+        self.a_model_has_been_set.connect(self.context_actions)
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
+
+    def setModel(self, model):
+        super().setModel(model)
+        self.a_model_has_been_set.emit()
+
+    def text(self, section):
+        return self.model().headerData(section, self.orientation(), Qt.DisplayRole)
 
     def hideSection(self, index):
         super().hideSection(index)
@@ -159,17 +166,18 @@ class TPHeaderView(QHeaderView):
         self.addAction(self.ac_restore_all)
         self.ac_restore_all.triggered.connect(self.set_all_sections_visible)
 
-        for n, h in enumerate(self.headers):
-            action_name = f'ac_header{n}'
+        for i in range(self.model().columnCount(None)):
+            action_name = f'ac_header{i}'
             setattr(self, action_name, QAction())
             action = getattr(self, action_name)
-            action.setText(h)
+            action.setText(self.text(i))
             self.addAction(action)
+            self.set_action_icon(i, self.isSectionHidden(i))
 
             def make_lambda(index):
                 return lambda: self.setSectionHidden(index, not self.isSectionHidden(index))
 
-            action.triggered.connect(make_lambda(n))
+            action.triggered.connect(make_lambda(i))
 
     def set_all_sections_visible(self):
         for x in range(self.count()):
@@ -192,7 +200,7 @@ class TPHeaderView(QHeaderView):
             for action in self.actions():
                 action.setEnabled(True)
 
-    def set_action_icons(self, index, hidden):
+    def set_action_icon(self, index, hidden):
         if hidden:
             self.actions()[index + 1].setIcon(QIcon(get_file('blank-check-box.svg')))
         else:

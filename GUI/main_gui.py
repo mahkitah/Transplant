@@ -1,7 +1,7 @@
 from gazelle.tracker_data import tr
 from lib import ui_text
 from GUI.files import get_file
-from GUI.custom_gui_classes import TPTextEdit, TPHeaderView, TPTableView, JobModel, CyclingTabBar
+from GUI.custom_gui_classes import TPTextEdit, ContextHeaderView, TPTableView, JobModel, CyclingTabBar
 
 from PyQt5.QtWidgets import QWidget, QTextBrowser, QTextEdit, QPushButton, QToolButton, QRadioButton,\
     QButtonGroup, QHBoxLayout, QVBoxLayout, QGridLayout, QSplitter, QTableView, QHeaderView, QSizePolicy, QStackedLayout
@@ -49,9 +49,9 @@ class MainGui(QWidget):
         self.pb_scan.setEnabled(False)
 
         self.job_view = TPTableView()
-        self.job_view.setHorizontalHeader(TPHeaderView(Qt.Horizontal, self.job_data.headers))
-        self.job_view.setEditTriggers(QTableView.SelectedClicked | QTableView.DoubleClicked | QTableView.AnyKeyPressed)
         self.job_view.setModel(self.job_data)
+        self.job_view.setHorizontalHeader(ContextHeaderView(Qt.Horizontal, self.job_view))
+        self.job_view.setEditTriggers(QTableView.SelectedClicked | QTableView.DoubleClicked | QTableView.AnyKeyPressed)
         self.job_view.setSelectionBehavior(QTableView.SelectRows)
         self.job_view.verticalHeader().hide()
         self.job_view.verticalHeader().setMinimumSectionSize(12)
