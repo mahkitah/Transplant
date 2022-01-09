@@ -5,7 +5,7 @@ from GUI.files import get_file
 
 from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction, QTableView, QComboBox, QFileDialog, QLineEdit, QTabBar
 from PyQt5.QtGui import QIcon, QKeyEvent
-from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings
+from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings, QModelIndex
 from lib import ui_text
 from gazelle.tracker_data import tr_data
 
@@ -208,6 +208,8 @@ class ContextHeaderView(QHeaderView):
 
 
 class JobModel(QAbstractTableModel):
+    layout_changed = pyqtSignal()
+
     def __init__(self, parentconfig):
         """
         Can keep a job.
@@ -216,6 +218,8 @@ class JobModel(QAbstractTableModel):
         self.jobs = []
         self.config = parentconfig
         self._headers = None
+        self.rowsInserted.connect(self.layout_changed.emit)
+        self.rowsRemoved.connect(self.layout_changed.emit)
 
     @property
     def headers(self):
@@ -309,26 +313,38 @@ class JobModel(QAbstractTableModel):
 
     def append(self, item):
         if item not in self.jobs:
+            pos = len(self.jobs)
+            self.beginInsertRows(QModelIndex(), pos, pos)
             self.jobs.append(item)
-            self.layoutChanged.emit()
+            self.endInsertRows()
+
+    @staticmethod
+    def continuous_slices(numbers):
+        if not numbers:
+            return
+        numbers.sort(reverse=True)
+        start_idx = 0
+        for idx in range(1, len(numbers)):
+            if numbers[idx - 1] > (numbers[idx] + 1):
+                yield numbers[idx - 1], numbers[start_idx]
+                start_idx = idx
+        yield numbers[-1], numbers[start_idx]
 
     def clear(self):
-        self.jobs.clear()
-        self.layoutChanged.emit()
+        self.remove_jobs(0, self.rowCount(None) - 1)
 
-    def remove(self, item):
-        self.jobs.remove(item)
-        self.layoutChanged.emit()
+    def remove_jobs(self, first, last):
+        self.beginRemoveRows(QModelIndex(), first, last)
+        del self.jobs[first: last + 1]
+        self.endRemoveRows()
 
     def del_multi(self, indices):
-        indices.sort(reverse=True)
-        for i in indices:
-            del self.jobs[i]
-        self.layoutChanged.emit()
+        for first, last in self.continuous_slices(indices):
+            self.remove_jobs(first, last)
 
     def filter_for_attr(self, attr, value):
-        self.jobs[:] = (j for j in self.jobs if not getattr(j, attr) == value)
-        self.layoutChanged.emit()
+        indices = [i for i, j in enumerate(self.jobs) if getattr(j, attr) == value]
+        self.del_multi(indices)
 
     def __bool__(self):
         return bool(self.jobs)

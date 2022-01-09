@@ -30,7 +30,7 @@ class Report(QObject, logging.Handler):
 
 # noinspection PyBroadException
 class TransplantThread(QThread):
-    upl_succes = pyqtSignal(Job)
+    upl_succes = pyqtSignal(int)
 
     def __init__(self, job_list, key_1, key_2, trpl_settings):
         super().__init__()
@@ -61,7 +61,7 @@ class TransplantThread(QThread):
                 continue
 
             if success:
-                self.upl_succes.emit(job)
+                self.upl_succes.emit(self.job_list.index(job))
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -155,12 +155,12 @@ class MainWindow(QMainWindow):
         self.main.job_view.selectionChange.connect(lambda x: self.main.pb_del_sel.setEnabled(bool(x)))
         self.main.job_view.doubleClicked.connect(self.open_torrent_page)
         self.main.job_view.key_override_sig.connect(self.keyPressEvent)
-        self.main.job_data.layoutChanged.connect(self.main.job_view.clearSelection)
-        self.main.job_data.layoutChanged.connect(lambda: self.main.tb_go.setEnabled(bool(self.main.job_data)))
-        self.main.job_data.layoutChanged.connect(lambda: self.main.pb_clear_j.setEnabled(bool(self.main.job_data)))
-        self.main.job_data.layoutChanged.connect(
+        self.main.job_data.layout_changed.connect(self.main.job_view.clearSelection)
+        self.main.job_data.layout_changed.connect(lambda: self.main.tb_go.setEnabled(bool(self.main.job_data)))
+        self.main.job_data.layout_changed.connect(lambda: self.main.pb_clear_j.setEnabled(bool(self.main.job_data)))
+        self.main.job_data.layout_changed.connect(
             lambda: self.main.pb_rem_tr1.setEnabled(any(j.src_tr == tr.RED for j in self.main.job_data)))
-        self.main.job_data.layoutChanged.connect(
+        self.main.job_data.layout_changed.connect(
             lambda: self.main.pb_rem_tr2.setEnabled(any(j.src_tr == tr.OPS for j in self.main.job_data)))
         self.main.result_view.textChanged.connect(
             lambda: self.main.pb_clear_r.setEnabled(bool(self.main.result_view.toPlainText())))
@@ -292,7 +292,7 @@ class MainWindow(QMainWindow):
         self.tr_thread.started.connect(lambda: self.main.go_stop_stack.setCurrentIndex(1))
         self.tr_thread.finished.connect(lambda: self.report.info(ui_text.thread_finish))
         self.tr_thread.finished.connect(lambda: self.main.go_stop_stack.setCurrentIndex(0))
-        self.tr_thread.upl_succes.connect(self.main.job_data.remove)
+        self.tr_thread.upl_succes.connect(lambda x: self.main.job_data.remove_jobs(x, x))
         self.tr_thread.start()
 
     def select_dtors(self):
@@ -401,10 +401,12 @@ class MainWindow(QMainWindow):
         if not selection:
             return
 
-        for i in selection:
+        for i in selection.copy():
             job = self.main.job_data.jobs[i]
             if job.scanned:
                 os.remove(job.dtor_path)
+            else:
+                selection.remove(i)
 
         self.main.job_data.del_multi(selection)
 
