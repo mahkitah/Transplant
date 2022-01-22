@@ -16,7 +16,7 @@ TYPE_MAP = {
 }
 ACTION_MAP = {
     QLineEdit: (lambda x: x.textChanged, lambda x, y: x.setText(y)),
-    TPTextEdit: (lambda x: x.plainTextChanged, lambda x, y: x.setText(y)),
+    TPTextEdit: (lambda x: x.plain_text_changed, lambda x, y: x.setText(y)),
     QCheckBox: (lambda x: x.stateChanged, lambda x, y: x.setCheckState(y)),
     QSpinBox: (lambda x: x.valueChanged, lambda x, y: x.setValue(y)),
     FolderSelectBox: (lambda x: x.list_changed, lambda x, y: x.set_list(y))
@@ -38,7 +38,7 @@ CONFIG_NAMES = {
     'chb_add_src_descr': (1, False),
     'spb_splitter_weight': (0, True),
     'chb_no_icon': (0, True),
-    'chb_alt_row_colour': (1, True),
+    'chb_alt_row_colour': (2, True),
     'chb_show_grid': (0, True),
     'spb_row_height': (20, True),
     'chb_show_add_dtors': (2, True),

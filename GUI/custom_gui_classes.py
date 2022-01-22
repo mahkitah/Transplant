@@ -89,11 +89,11 @@ class IniSettings(QSettings):
 
 
 class TPTextEdit(QTextEdit):
-    plainTextChanged = pyqtSignal(str)
+    plain_text_changed = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
-        self.textChanged.connect(lambda: self.plainTextChanged.emit(self.toPlainText()))
+        self.textChanged.connect(lambda: self.plain_text_changed.emit(self.toPlainText()))
 
 
 class CyclingTabBar(QTabBar):
@@ -108,13 +108,28 @@ class CyclingTabBar(QTabBar):
                 self.setCurrentIndex(0)
 
 
-class TPTableView(QTableView):
-    selectionChange = pyqtSignal(list)
+class JobView(QTableView):
+    selection_changed = pyqtSignal(list)
     key_override_sig = pyqtSignal(QKeyEvent)
+
+    def __init__(self, model):
+        super().__init__()
+        self.setModel(model)
+        self.setEditTriggers(QTableView.SelectedClicked | QTableView.DoubleClicked | QTableView.AnyKeyPressed)
+        self.setHorizontalHeader(ContextHeaderView(Qt.Horizontal, self))
+        self.setSelectionBehavior(QTableView.SelectRows)
+        self.verticalHeader().hide()
+        self.verticalHeader().setMinimumSectionSize(12)
+        self.horizontalHeader().setSectionsMovable(True)
+        self.horizontalHeader().setMinimumSectionSize(18)
+        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        self.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
 
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)
-        self.selectionChange.emit(self.selectedIndexes())
+        self.selection_changed.emit(self.selectedIndexes())
 
     def selected_rows(self):
         return list(set((x.row() for x in self.selectedIndexes())))
@@ -128,12 +143,12 @@ class TPTableView(QTableView):
 
 class ContextHeaderView(QHeaderView):
     a_model_has_been_set = pyqtSignal()
-    sectionVisibilityChanged = pyqtSignal(int, bool)
+    section_visibility_changed = pyqtSignal(int, bool)
 
     def __init__(self, orientation, parent):
         super().__init__(orientation, parent)
-        self.sectionVisibilityChanged.connect(self.set_action_icon)
-        self.sectionVisibilityChanged.connect(self.disable_actions)
+        self.section_visibility_changed.connect(self.set_action_icon)
+        self.section_visibility_changed.connect(self.disable_actions)
         self.a_model_has_been_set.connect(self.context_actions)
         self.setContextMenuPolicy(Qt.ActionsContextMenu)
 
@@ -146,20 +161,20 @@ class ContextHeaderView(QHeaderView):
 
     def hideSection(self, index):
         super().hideSection(index)
-        self.sectionVisibilityChanged.emit(index, True)
+        self.section_visibility_changed.emit(index, True)
 
     def showSection(self, index):
         super().showSection(index)
-        self.sectionVisibilityChanged.emit(index, False)
+        self.section_visibility_changed.emit(index, False)
 
     def setSectionHidden(self, index, hide):
         super().setSectionHidden(index, hide)
-        self.sectionVisibilityChanged.emit(index, hide)
+        self.section_visibility_changed.emit(index, hide)
 
     def restoreState(self, state):
         super().restoreState(state)
         for x in range(self.count()):
-            self.sectionVisibilityChanged.emit(x, self.isSectionHidden(x))
+            self.section_visibility_changed.emit(x, self.isSectionHidden(x))
 
     def context_actions(self):
         self.ac_restore_all = QAction(ui_text.header_restore)
@@ -255,10 +270,14 @@ class JobModel(QAbstractTableModel):
         if role == Qt.DecorationRole and column == 0 and not no_icon:
             return QIcon(get_file(tr_data[job.src_tr]['favicon']))
 
-    def rowCount(self, index):
+    def rowCount(self, parent):
+        if parent and parent.isValid():
+            return 0
         return len(self.jobs)
 
-    def columnCount(self, index):
+    def columnCount(self, parent):
+        if parent and parent.isValid():
+            return 0
         return len(self.headers)
 
     # noinspection PyTypeChecker

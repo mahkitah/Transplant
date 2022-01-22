@@ -1,7 +1,7 @@
 from gazelle.tracker_data import tr
 from lib import ui_text
 from GUI.files import get_file
-from GUI.custom_gui_classes import TPTextEdit, ContextHeaderView, TPTableView, JobModel, CyclingTabBar
+from GUI.custom_gui_classes import TPTextEdit, ContextHeaderView, JobView, JobModel, CyclingTabBar
 
 from PyQt5.QtWidgets import QWidget, QTextBrowser, QTextEdit, QPushButton, QToolButton, QRadioButton,\
     QButtonGroup, QHBoxLayout, QVBoxLayout, QGridLayout, QSplitter, QTableView, QHeaderView, QSizePolicy, QStackedLayout
@@ -48,19 +48,7 @@ class MainGui(QWidget):
         self.pb_scan = QPushButton(ui_text.pb_scan)
         self.pb_scan.setEnabled(False)
 
-        self.job_view = TPTableView()
-        self.job_view.setModel(self.job_data)
-        self.job_view.setHorizontalHeader(ContextHeaderView(Qt.Horizontal, self.job_view))
-        self.job_view.setEditTriggers(QTableView.SelectedClicked | QTableView.DoubleClicked | QTableView.AnyKeyPressed)
-        self.job_view.setSelectionBehavior(QTableView.SelectRows)
-        self.job_view.verticalHeader().hide()
-        self.job_view.verticalHeader().setMinimumSectionSize(12)
-        self.job_view.horizontalHeader().setSectionsMovable(True)
-        self.job_view.horizontalHeader().setMinimumSectionSize(18)
-        self.job_view.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.job_view.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
-        self.job_view.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        self.job_view.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        self.job_view = JobView(self.job_data)
 
         self.result_view = QTextBrowser()
         self.result_view.setOpenExternalLinks(True)

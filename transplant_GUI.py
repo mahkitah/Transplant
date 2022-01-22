@@ -134,7 +134,7 @@ class MainWindow(QMainWindow):
         self.handler.logging_sig.connect(self.main.result_view.append)
 
     def main_connections(self):
-        self.main.te_paste_box.plainTextChanged.connect(lambda x: self.main.pb_add.setEnabled(bool(x)))
+        self.main.te_paste_box.plain_text_changed.connect(lambda x: self.main.pb_add.setEnabled(bool(x)))
         self.main.bg_source.idClicked.connect(lambda x: self.config.setValue('bg_source', x))
         self.main.pb_add.clicked.connect(self.parse_paste_input)
         self.main.pb_open_dtors.clicked.connect(self.select_dtors)
@@ -151,8 +151,8 @@ class MainWindow(QMainWindow):
         # self.main.tb_go.clicked.connect(self.blabla)
         self.main.pb_open_upl_urls.clicked.connect(self.open_tor_urls)
         self.main.job_view.horizontalHeader().sectionDoubleClicked.connect(self.main.job_data.header_double_clicked)
-        self.main.job_view.selectionChange.connect(lambda x: self.main.pb_rem_sel.setEnabled(bool(x)))
-        self.main.job_view.selectionChange.connect(lambda x: self.main.pb_del_sel.setEnabled(bool(x)))
+        self.main.job_view.selection_changed.connect(lambda x: self.main.pb_rem_sel.setEnabled(bool(x)))
+        self.main.job_view.selection_changed.connect(lambda x: self.main.pb_del_sel.setEnabled(bool(x)))
         self.main.job_view.doubleClicked.connect(self.open_torrent_page)
         self.main.job_view.key_override_sig.connect(self.keyPressEvent)
         self.main.job_data.layout_changed.connect(self.main.job_view.clearSelection)
