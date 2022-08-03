@@ -178,7 +178,7 @@ class Transplanter:
                 raise FileNotFoundError(f"{ui_text.missing} {self.tor_info.folder_name}")
 
             if len(rootpath_list) > 1:
-                raise Exception(f'"{self.tor_info.folder_name}" found multiple times')
+                raise Exception(f'"{self.tor_info.folder_name}" {ui_text.multiple}')
 
             self._torrent_folder_path = os.path.join(rootpath_list[0], self.tor_info.folder_name)
 

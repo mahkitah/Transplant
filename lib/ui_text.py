@@ -80,6 +80,7 @@ bad_tor = f'Not a {tracker_1} or {tracker_2} .torrent'
 
 # Transplanter
 missing = "Can't locate:"
+multiple = "found multiple times"
 no_log = "No logs found"
 f_checked = 'Files checked'
 dtor_saved = 'New .torrent saved to:'
