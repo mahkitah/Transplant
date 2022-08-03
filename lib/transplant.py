@@ -78,12 +78,13 @@ class Job:
 
 
 class Transplanter:
-    def __init__(self, api_map, data_dir=None, dtor_save_dir=None, save_dtors=False, del_dtors=False, file_check=True,
+    def __init__(self, api_map, data_dir=None, deep_search=False, dtor_save_dir=None, save_dtors=False, del_dtors=False, file_check=True,
                  rel_descr_templ=None, add_src_descr=True, src_descr_templ=None, img_rehost=False, whitelist=None,
                  ptpimg_key=None):
 
         self.api_map = api_map
         self.data_dir = data_dir
+        self.deep_search = deep_search
         self.dtor_save_dir = dtor_save_dir
         self.save_dtors = save_dtors
         self.del_dtors = del_dtors
@@ -172,15 +173,18 @@ class Transplanter:
     @property
     def torrent_folder_path(self):
         if not self._torrent_folder_path:
-            try:
-                rootpath_list = self.subdir_index[self.tor_info.folder_name]
-            except KeyError:
-                raise FileNotFoundError(f"{ui_text.missing} {self.tor_info.folder_name}")
+            if self.deep_search:
+                try:
+                    rootpath_list = self.subdir_index[self.tor_info.folder_name]
+                except KeyError:
+                    raise FileNotFoundError(f"{ui_text.missing} {self.tor_info.folder_name}")
 
-            if len(rootpath_list) > 1:
-                raise Exception(f'"{self.tor_info.folder_name}" {ui_text.multiple}')
+                if len(rootpath_list) > 1:
+                    raise Exception(f'"{self.tor_info.folder_name}" {ui_text.multiple}')
 
-            self._torrent_folder_path = os.path.join(rootpath_list[0], self.tor_info.folder_name)
+                self._torrent_folder_path = os.path.join(rootpath_list[0], self.tor_info.folder_name)
+            else:
+                self._torrent_folder_path = os.path.join(self.data_dir, self.tor_info.folder_name)
 
         return self._torrent_folder_path
 

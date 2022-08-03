@@ -26,6 +26,7 @@ CONFIG_NAMES = {
     'le_key_1': (None, True),
     'le_key_2': (None, True),
     'fsb_data_dir': ([], True),
+    'chb_deep_search': (0, False),
     'fsb_scan_dir': ([], True),
     'fsb_dtor_save_dir': ([], True),
     'chb_save_dtors': (0, False),
@@ -92,6 +93,7 @@ class SettingsWindow(QDialog):
             fsb.dialog_caption = getattr(ui_text, f'tt_{fsb.objectName()}')
             fsb.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
 
+        self.chb_deep_search.setText(ui_text.chb_deep_search)
         self.spb_verbosity.setMaximum(3)
         self.spb_verbosity.setMaximumWidth(40)
 
@@ -133,6 +135,11 @@ class SettingsWindow(QDialog):
         bottom_row.addWidget(self.pb_ok)
 
         # main
+        data_dir = QVBoxLayout()
+        data_dir.addWidget(self.fsb_data_dir)
+        data_dir.addWidget(self.chb_deep_search)
+        data_dir.setSpacing(5)
+
         save_dtor = QHBoxLayout()
         save_dtor.addWidget(self.chb_save_dtors)
         save_dtor.addWidget(self.fsb_dtor_save_dir)
@@ -143,7 +150,7 @@ class SettingsWindow(QDialog):
         settings_form.setHorizontalSpacing(20)
         settings_form.addRow(self.l_key_1, self.le_key_1)
         settings_form.addRow(self.l_key_2, self.le_key_2)
-        settings_form.addRow(self.l_data_dir, self.fsb_data_dir)
+        settings_form.addRow(self.l_data_dir, data_dir)
         settings_form.addRow(self.l_scan_dir, self.fsb_scan_dir)
         settings_form.addRow(self.l_dtor_save_dir, save_dtor)
         settings_form.addRow(self.l_del_dtors, self.chb_del_dtors)
@@ -216,6 +223,7 @@ class SettingsWindow(QDialog):
 
     def trpl_settings(self):
         user_settings = (
+            'chb_deep_search',
             'chb_save_dtors',
             'chb_del_dtors',
             'chb_file_check',

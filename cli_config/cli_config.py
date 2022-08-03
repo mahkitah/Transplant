@@ -2,6 +2,8 @@
 
 # Music files can be found here:
 data_dir = "D:\\Test"
+# Set to True if torrent folders can be deeper than a direct subfolder of data_dir
+deep_search = False
 
 # .torrent is saved here
 # Put 'None' (without quotes) if you don't want the .torrent to be saved to disc:
