@@ -52,17 +52,11 @@ def parse_input():
                 report.info(f"\n{scan.name}")
                 yield Job(dtor_path=scan.path, scanned=True)
 
-# def cred_prompt():
-#     u_name = input('username: ')
-#     passw = input('password: ')
-#     return u_name, passw
-
 def main():
 
     api_map = {
         tr.RED: RedApi(tr.RED, key=api_keys.get_key("RED")),
         tr.OPS: KeyApi(tr.OPS, key=api_keys.get_key("OPS")),
-        # tr.bB: HtmlApi(tr.bB, f=cred_prompt)
     }
 
     report.info(ui_text.start)

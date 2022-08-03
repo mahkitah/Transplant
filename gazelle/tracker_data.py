@@ -3,7 +3,6 @@ from enum import Enum
 class tr(Enum):
     RED = 1
     OPS = 2
-    bB = 3
 
 tr_data = {
     tr.RED: {
@@ -24,14 +23,6 @@ tr_data = {
         'source_flag': True,
         'req_limit': 5,
     },
-    tr.bB: {
-        'site': 'https://baconbits.org/',
-        'tracker': 'http://tracker.baconbits.org:34000/{passkey}/announce',
-        'api': False,
-        'key': False,
-        'source_flag': True,
-        'req_limit': 5,
-    }
 }
 RELEASE_TYPE_MAP = {
     tr.RED: {

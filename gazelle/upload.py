@@ -90,9 +90,6 @@ class FormData:
         if not dest_group:
             field_map.update(self.field_mapping['group'])
 
-        if dest == tr.bB:
-            return self.bacon_dict(field_map)
-
         upl_data = {'type': 0}
         for k, v in field_map.items():
             value = self._get_field(k, dest)
@@ -110,61 +107,6 @@ class FormData:
                 # https://orpheus.network/forums.php?action=viewthread&threadid=10003
                 # https://orpheus.network/forums.php?action=viewthread&threadid=5994
                 upl_data['remaster_year'] = '1990'
-        return upl_data
-
-    def bacon_dict(self, field_map):
-        dont_do = ('remastered',
-                   'rem_year',
-                   'rem_title',
-                   'rem_label',
-                   'rem_cat_nr',
-                   'extra_format',
-                   'extra_encoding',
-                   'extra_rel_descr',
-                   'request_id',
-                   'rel_descr',
-                   'rel_type',
-                   'artists',
-                   'importances',
-                   'vanity',
-                   'medium')
-
-        for x in dont_do:
-            del field_map[x]
-
-        upl_data = {'submit': True, 'type': 'Music'}
-
-        for k, v in field_map.items():
-            value = getattr(self, k)
-            if value:
-                upl_data[v] = value
-
-        mains = [name for name, imp in zip(self.artists, self.importances) if imp == 1]
-        if len(mains) <= 3:
-            artists = utils.joiner(mains)
-        else:
-            artists = 'Various Artists'
-
-        upl_data.update({
-            "artist": artists,
-            "media": self.medium.replace('WEB', 'Web'),
-        })
-
-        if 'Lossless' in self.encoding:
-            upl_data['bitrate'] = 'Lossless'
-        if '24bit' in self.encoding:
-            upl_data['format'] = '24bit FLAC'
-
-        if self.o_year != self.rem_year:
-            upl_data['remaster'] = True
-            upl_data['remaster_year'] = self.rem_year
-            if self.rem_title:
-                upl_data['remaster_title'] = self.rem_title
-
-        rel_descr = ' / '.join((x for x in (str(self.rem_year), self.rem_label, self.rem_cat_nr, self.rem_title) if x))
-        rel_descr += '\n\n' + re.sub(r'\[/?hide.*?]', '', self.rel_descr)
-        upl_data['release_desc'] = rel_descr
-
         return upl_data
 
 
