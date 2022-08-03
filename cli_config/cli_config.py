@@ -39,6 +39,7 @@ ptpimg_key = '123456'
 # "%gr_id% :    Source torrent group id
 
 rel_descr = "Transplanted from %src_id%, thanks to the original uploader."
+rel_descr_own_uploads = "Transplant of my own upload on %src_id%"
 
 # Add release description from source if present
 add_src_descr = True

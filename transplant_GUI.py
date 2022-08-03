@@ -361,6 +361,7 @@ class MainWindow(QMainWindow):
 
     def default_descr(self):
         self.set_window.te_rel_descr_templ.setText(ui_text.def_rel_descr)
+        self.set_window.te_rel_descr_own_templ.setText(ui_text.def_rel_descr_own)
         self.set_window.te_src_descr_templ.setText(ui_text.def_src_descr)
 
     def parse_paste_input(self):

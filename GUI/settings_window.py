@@ -35,6 +35,7 @@ CONFIG_NAMES = {
     'chb_show_tips': (2, True),
     'spb_verbosity': (2, True),
     'te_rel_descr_templ': (ui_text.def_rel_descr, False),
+    'te_rel_descr_own_templ': (ui_text.def_rel_descr_own, False),
     'te_src_descr_templ': (ui_text.def_src_descr, False),
     'chb_add_src_descr': (1, False),
     'spb_splitter_weight': (0, True),
@@ -121,6 +122,7 @@ class SettingsWindow(QDialog):
 
         # descr tab
         self.l_variables = QLabel(ui_text.l_placeholders)
+        self.l_own_uploads = QLabel(ui_text.l_own_uploads)
         self.pb_def_descr = QPushButton()
         self.pb_def_descr.setText(ui_text.pb_def_descr)
         self.l_variables.setTextInteractionFlags(Qt.TextSelectableByMouse)
@@ -174,6 +176,8 @@ class SettingsWindow(QDialog):
         desc_layout = QVBoxLayout(self.cust_descr)
         desc_layout.addLayout(top_row_descr)
         desc_layout.addWidget(self.te_rel_descr_templ)
+        desc_layout.addWidget(self.l_own_uploads)
+        desc_layout.addWidget(self.te_rel_descr_own_templ)
         desc_layout.addWidget(self.chb_add_src_descr)
         desc_layout.addWidget(self.te_src_descr_templ)
 
@@ -228,6 +232,7 @@ class SettingsWindow(QDialog):
             'chb_del_dtors',
             'chb_file_check',
             'te_rel_descr_templ',
+            'te_rel_descr_own_templ',
             'chb_add_src_descr',
             'te_src_descr_templ'
         )

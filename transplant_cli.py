@@ -69,6 +69,7 @@ def main():
         'del_dtors': cli_config.del_dtors,
         'file_check': cli_config.file_check,
         'rel_descr_templ': cli_config.rel_descr,
+        'rel_descr_own_templ': cli_config.rel_descr_own_uploads,
         'add_src_descr': cli_config.add_src_descr,
         'src_descr_templ': cli_config.src_descr,
         'img_rehost': cli_config.img_rehost,

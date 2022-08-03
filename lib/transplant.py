@@ -79,7 +79,7 @@ class Job:
 
 class Transplanter:
     def __init__(self, api_map, data_dir=None, deep_search=False, dtor_save_dir=None, save_dtors=False, del_dtors=False, file_check=True,
-                 rel_descr_templ=None, add_src_descr=True, src_descr_templ=None, img_rehost=False, whitelist=None,
+                 rel_descr_templ=None, rel_descr_own_templ=None, add_src_descr=True, src_descr_templ=None, img_rehost=False, whitelist=None,
                  ptpimg_key=None):
 
         self.api_map = api_map
@@ -93,6 +93,7 @@ class Transplanter:
         self.whitelist = whitelist
         self.ptpimg_key = ptpimg_key
         self.rel_descr_templ = rel_descr_templ
+        self.rel_descr_own_templ = rel_descr_own_templ
         self.add_src_descr = add_src_descr
         self.src_descr_templ = src_descr_templ
 
@@ -128,7 +129,8 @@ class Transplanter:
             self.check_files()
 
         upl_data = TorInfo2UplData(self.tor_info, self.img_rehost, self.whitelist, self.ptpimg_key,
-                                   self.rel_descr_templ, self.add_src_descr, self.src_descr_templ)
+                                   self.rel_descr_templ, self.rel_descr_own_templ, self.add_src_descr,
+                                   self.src_descr_templ, src_api.account_info['id'])
         upl_files = upload.Files()
         self.get_dtor(upl_files)
         if self.tor_info.haslog:

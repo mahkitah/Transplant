@@ -46,12 +46,10 @@ class BaseApi:
 
     @ property
     def account_info(self):
-        if self._account_info:
-            return self._account_info
+        if not self._account_info:
+            self._account_info = self.get_account_info()
 
-        acc_info = self.get_account_info()
-        self._account_info = acc_info
-        return acc_info
+        return self._account_info
 
     def get_account_info(self):
         r = self.request('GET', 'index')

@@ -54,9 +54,11 @@ l_placeholders = "Set a custom release description.\n\n" \
               "%upl_id% :   id of uploader\n" \
               "%tor_id% :   Source torrent id\n" \
               "%gr_id% :    Source torrent group id\n"
-pb_def_descr = 'Defaults'
+l_own_uploads = "Description for own uploads."
+pb_def_descr = 'Restore Defaults'
 chb_add_src_descr = "Add release description from source if present. (Must contain %src_descr%)"
 def_rel_descr = "Transplanted from %src_id%, thanks to the original uploader."
+def_rel_descr_own = "Transplant of my own upload on %src_id%."
 def_src_descr = "[hide=source description:]%src_descr%[/hide]"
 
 l_job_list = 'Job list:'

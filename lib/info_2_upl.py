@@ -10,7 +10,8 @@ class TorInfo2UplData(FormData):
     one_on_one = ('medium', 'format', 'rem_year', 'rem_title', 'rem_label', 'rem_cat_nr', 'src_tr', 'unknown',
                   'rel_type_name', 'title', 'o_year', 'vanity', 'scene', 'remastered', 'alb_descr')
 
-    def __init__(self, tor_info, img_rehost, whitelist, ptpimg_key, rel_descr_templ, add_src_descr, src_descr_templ):
+    def __init__(self, tor_info, img_rehost, whitelist, ptpimg_key, rel_descr_templ, rel_descr_own_templ, add_src_descr,
+                 src_descr_templ, user_id):
         super().__init__()
         self.tor_info = tor_info
 
@@ -18,8 +19,10 @@ class TorInfo2UplData(FormData):
         self.whitelist = whitelist
         self.ptpimg_key = ptpimg_key
         self.rel_descr_templ = rel_descr_templ
+        self.rel_descr_own_templ = rel_descr_own_templ
         self.add_src_descr = add_src_descr
         self.src_descr_templ = src_descr_templ
+        self.user_id = user_id
 
         self.parse_input()
         # self.medium = 'blabla'
@@ -84,8 +87,12 @@ class TorInfo2UplData(FormData):
             '%tor_id%': str(self.tor_info.tor_id),
             '%gr_id%': str(self.tor_info.grp_id)
         }
+        if self.user_id == self.tor_info.uploader_id:
+            templ = self.rel_descr_own_templ
+        else:
+            templ = self.rel_descr_templ
 
-        rel_descr = utils.multi_replace(self.rel_descr_templ, descr_placeholders)
+        rel_descr = utils.multi_replace(templ, descr_placeholders)
 
         src_descr = self.tor_info.rel_descr
         if src_descr and self.add_src_descr:
