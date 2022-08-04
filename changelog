@@ -1,3 +1,11 @@
+2.4
+- Switch bencode module: bencoder.pyx > bcoding
+- GUI files are now stored in .exe, config.ini not in subfolder anymore and renamed to Transplant.ini
+- Searching for torrent folder in subfolders of data folder (deep search) is now optional
+- Separate release description for own uploads
+- Use http tracker for bymblyboo's
+- Check for merged uploads and different log scores
+- Able to transplant Blu-Ray / BD
 2.3.3
 - Data folder is searched in subfolders
 - More hotkeys
