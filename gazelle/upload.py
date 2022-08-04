@@ -107,6 +107,10 @@ class FormData:
                 # https://orpheus.network/forums.php?action=viewthread&threadid=10003
                 # https://orpheus.network/forums.php?action=viewthread&threadid=5994
                 upl_data['remaster_year'] = '1990'
+
+        if self.medium == 'Blu-Ray' and dest == tr.OPS:
+            upl_data['media'] = 'BD'
+
         return upl_data
 
 
