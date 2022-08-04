@@ -42,7 +42,10 @@ class BaseApi:
 
     @property
     def announce(self):
-        return tr_data[self.tr]['tracker'].format(**self.account_info)
+        announce = tr_data[self.tr]['tracker'].format(**self.account_info)
+        if self.account_info['username'] == 'bumblyboo':
+            announce = announce.replace('https://', 'http://')
+        return announce
 
     @ property
     def account_info(self):
@@ -53,7 +56,7 @@ class BaseApi:
 
     def get_account_info(self):
         r = self.request('GET', 'index')
-        return {k: v for k, v in r.copy().items() if k in ('authkey', 'passkey', 'id')}
+        return {k: v for k, v in r.copy().items() if k in ('authkey', 'passkey', 'id', 'username')}
 
     def request(self, req_method, url_suffix, data=None, files=None, **kwargs):
         assert req_method in ('GET', 'POST')
