@@ -114,7 +114,7 @@ class KeyApi(BaseApi):
         group_id = r.get('groupId', r.get('groupid'))
         torrent_id = r.get('torrentId', r.get('torrentid'))
 
-        return self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
+        return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
 
 class CookieApi(BaseApi):
 
@@ -186,14 +186,14 @@ class RedApi(KeyApi):
         if data.get('unknown'):
             del data['unknown']
             unknown = True
-        group_id, torrent_id = super()._uploader(data, files, dest_group)
+        torrent_id, group_id = super()._uploader(data, files, dest_group)
         if unknown:
             try:
                 self.request("POST", "torrentedit", id=torrent_id, data={'unknown': True})
                 report.info(ui_text.upl_to_unkn)
             except (RequestFailure, requests.HTTPError) as e:
                 report.error(f'{ui_text.edit_fail}{str(e)}')
-        return self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
+        return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
 
     def upl_response_handler(self, r):
-        return r.get('groupid'), r.get('torrentid')
+        return r.get('torrentid'), r.get('groupid')

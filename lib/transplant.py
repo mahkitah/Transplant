@@ -78,9 +78,9 @@ class Job:
 
 
 class Transplanter:
-    def __init__(self, api_map, data_dir=None, deep_search=False, dtor_save_dir=None, save_dtors=False, del_dtors=False, file_check=True,
-                 rel_descr_templ=None, rel_descr_own_templ=None, add_src_descr=True, src_descr_templ=None, img_rehost=False, whitelist=None,
-                 ptpimg_key=None):
+    def __init__(self, api_map, data_dir=None, deep_search=False, dtor_save_dir=None, save_dtors=False, del_dtors=False,
+                 file_check=True, rel_descr_templ=None, rel_descr_own_templ=None, add_src_descr=True, src_descr_templ=None,
+                 img_rehost=False, whitelist=None, ptpimg_key=None, post_compare=False):
 
         self.api_map = api_map
         self.data_dir = data_dir
@@ -96,6 +96,7 @@ class Transplanter:
         self.rel_descr_own_templ = rel_descr_own_templ
         self.add_src_descr = add_src_descr
         self.src_descr_templ = src_descr_templ
+        self.post_compare = post_compare
 
         if img_rehost:
             assert isinstance(whitelist, list)
@@ -143,13 +144,16 @@ class Transplanter:
 
             report.info(f"{ui_text.upl1} {dest_api.tr.name}")
             try:
-                new_url = dest_api.upload(upl_data, upl_files)
+                new_id, new_group, new_url = dest_api.upload(upl_data, upl_files)
                 report.info(f"{ui_text.upl2} {new_url}")
             except Exception:
                 saul_goodman = False
                 report.error(f"{ui_text.upl3}")
                 report.error(traceback.format_exc())
                 continue
+
+            if self.post_compare:
+                self.compare_upl_info(src_api, dest_api, new_id)
 
             if self.save_dtors:
                 self.save_dtorrent(upl_files, new_url)
@@ -189,6 +193,21 @@ class Transplanter:
                 self._torrent_folder_path = os.path.join(self.data_dir, self.tor_info.folder_name)
 
         return self._torrent_folder_path
+
+    def compare_upl_info(self, src_api, dest_api, new_id):
+        new_tor_info = dest_api.torrent_info(id=new_id)
+
+        if self.tor_info.haslog:
+            score_1 = self.tor_info.log_score
+            score_2 = new_tor_info.log_score
+            if not score_1 == score_2:
+                report.info(ui_text.log_score_dif.format(score_1, score_2))
+
+        src_descr = self.tor_info.alb_descr.replace(src_api.url, '')
+        dest_descr = new_tor_info.alb_descr.replace(dest_api.url, '')
+
+        if src_descr != dest_descr or self.tor_info.title != new_tor_info.title:
+            report.info(ui_text.merged)
 
     def get_dtor(self, files):
         if self.job.new_dtor:

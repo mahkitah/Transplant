@@ -41,6 +41,7 @@ l_scan_dir = 'Scan folder'
 l_dtor_save_dir = 'Save new .torrrents'
 l_del_dtors = 'Delete scanned .torrents'
 l_file_check = 'Check files'
+l_post_compare = 'Post upload checks'
 l_show_tips = "Show tooltips"
 l_verbosity = 'Verbosity'
 l_rehost = 'Rehost img to ptpimg'
@@ -97,6 +98,8 @@ upl_to_unkn = "Upload edited to 'Unknown Release'"
 edit_fail = "Failed to edit to 'Unknown Release' because of: "
 img_rehosted = "Image rehosted:"
 rehost_failed = "Image rehost failed. Using source url"
+log_score_dif = 'Log scores different: {} - {}'
+merged = 'Probably merged into an existing group'
 
 # GUI
 start = 'Starting'
@@ -120,6 +123,7 @@ tt_l_del_dtors = "If checked, .torrents from the scan folder will be deleted aft
             "These will not be deleted"
 tt_l_file_check = "if checked, Transplant will verify that the torrent content (~music files) can be found\n" \
                  "This will prevent transplanting torrents that you can't seed"
+tt_l_post_compare = "Check if the upload was merged into an existing group or if the log scores are different"
 tt_l_show_tips = "Tip the tools"
 tt_l_verbosity = "Level of feedback.\n" \
                "0: silent\n" \

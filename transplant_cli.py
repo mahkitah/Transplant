@@ -75,6 +75,7 @@ def main():
         'img_rehost': cli_config.img_rehost,
         'whitelist': cli_config.whitelist,
         'ptpimg_key': cli_config.ptpimg_key,
+        'post_compare': cli_config.post_upload_checks,
     }
     transplanter = Transplanter(api_map, **trpl_settings)
     for job in parse_input():

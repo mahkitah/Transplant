@@ -27,6 +27,7 @@ class TorrentInfo:
         'rem_cat_nr': ('torrent', 'remasterCatalogueNumber'),
         'scene': ('torrent', 'scene'),
         'haslog': ('torrent', 'hasLog'),
+        'log_score': ('torrent', 'logScore'),
         'rel_descr': ('torrent', 'description'),
         'files_str': ('torrent', 'fileList'),
         'folder_name': ('torrent', 'filePath'),
@@ -68,6 +69,7 @@ class TorrentInfo:
         self.rem_cat_nr = None
         self.scene = None
         self.haslog = None
+        self.log_score = None
         self.log_ids = None
         self.rel_descr = None
         self.files_str = None
@@ -90,8 +92,7 @@ class TorrentInfo:
         self.further_actions(**kwargs)
 
     def set_fields(self, fields, api_r):
-        for k, v in fields.items():
-            sub, name = v
+        for k, (sub, name) in fields.items():
             value = self.value_action(api_r[sub][name])
             setattr(self, k, value)
 

@@ -32,6 +32,7 @@ CONFIG_NAMES = {
     'chb_save_dtors': (0, False),
     'chb_del_dtors': (0, True),
     'chb_file_check': (2, True),
+    'chb_post_compare': (0, True),
     'chb_show_tips': (2, True),
     'spb_verbosity': (2, True),
     'te_rel_descr_templ': (ui_text.def_rel_descr, False),
@@ -157,6 +158,7 @@ class SettingsWindow(QDialog):
         settings_form.addRow(self.l_dtor_save_dir, save_dtor)
         settings_form.addRow(self.l_del_dtors, self.chb_del_dtors)
         settings_form.addRow(self.l_file_check, self.chb_file_check)
+        settings_form.addRow(self.l_post_compare, self.chb_post_compare)
         settings_form.addRow(self.l_show_tips, self.chb_show_tips)
         settings_form.addRow(self.l_verbosity, self.spb_verbosity)
         settings_form.addRow(self.l_rehost, self.chb_rehost)
@@ -231,6 +233,7 @@ class SettingsWindow(QDialog):
             'chb_save_dtors',
             'chb_del_dtors',
             'chb_file_check',
+            'chb_post_compare',
             'te_rel_descr_templ',
             'te_rel_descr_own_templ',
             'chb_add_src_descr',

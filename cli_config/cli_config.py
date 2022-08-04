@@ -19,6 +19,9 @@ del_dtors = False
 # Be very careful when setting this to False. It will allow you to transplant torrents you can't seed.
 file_check = True
 
+# Check if the upload was merged into an existing group or if the log scores are different.
+post_upload_checks = False
+
 # level of feedback.
 # 0: silent, 1: only errors, 2: normal, 3: debugging
 verbosity = 2
