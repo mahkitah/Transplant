@@ -65,7 +65,6 @@ class FormData:
         self.extra_encoding = None
         self.extra_rel_descr = None
 
-        self.submit = False
         self.src_tr = None
         self.unknown = False
 
@@ -93,8 +92,6 @@ class FormData:
             value = self._get_field(k, dest)
             if value:
                 upl_data[v] = value
-        if self.submit:
-            upl_data['submit'] = True
         if self.unknown:
             if dest == tr.RED:
                 upl_data['remaster_year'] = '1990'
@@ -177,7 +174,6 @@ class Files:
             else:
                 name = f'extra_file_{index}'
             index += 1
-            yield name
 
     def files_list(self, announce=None, source=None):
         files = []
