@@ -110,11 +110,7 @@ class KeyApi(BaseApi):
         return self.upl_response_handler(r)
 
     def upl_response_handler(self, r):
-        # RED = lowercase keys. OPS = camelCase keys
-        group_id = r.get('groupId', r.get('groupid'))
-        torrent_id = r.get('torrentId', r.get('torrentid'))
-
-        return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
+        raise NotImplementedError
 
 class CookieApi(BaseApi):
 
@@ -180,6 +176,8 @@ class HtmlApi(CookieApi):
         raise AttributeError(f'{self.tr.name} does not provide torrent info')
 
 class RedApi(KeyApi):
+    def __init__(self, key=None):
+        super().__init__(tr.RED, key=key)
 
     def _uploader(self, data, files, dest_group):
         unknown = False
@@ -197,3 +195,13 @@ class RedApi(KeyApi):
 
     def upl_response_handler(self, r):
         return r.get('torrentid'), r.get('groupid')
+
+class OpsApi(KeyApi):
+    def __init__(self, key=None):
+        super().__init__(tr.OPS, key=f"token {key}")
+
+    def upl_response_handler(self, r):
+        group_id = r.get('groupId')
+        torrent_id = r.get('torrentId')
+
+        return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
