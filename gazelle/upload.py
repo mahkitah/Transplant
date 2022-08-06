@@ -167,12 +167,13 @@ class Files:
             self.dtors.append(Dtor(tbytes=dtor))
 
     @staticmethod
-    def tor_field_names(index=0):
+    def tor_field_names():
+        index = 0
         while True:
             if not index:
-                name = 'file_input'
+                yield 'file_input'
             else:
-                name = f'extra_file_{index}'
+                yield f'extra_file_{index}'
             index += 1
 
     def files_list(self, announce=None, source=None):
