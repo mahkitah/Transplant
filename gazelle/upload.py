@@ -1,5 +1,3 @@
-import re
-from lib import utils
 from bcoding import bencode, bdecode
 from gazelle.tracker_data import tr, tr_data, RELEASE_TYPE_MAP
 
@@ -116,17 +114,13 @@ class FormData:
 
 class Dtor:
     def __init__(self, tbytes=None, tdict=None, path=None):
+
         assert len([x for x in (tbytes, tdict, path) if x]) == 1
         self._tdict = None
 
         if tbytes:
             self._tdict = bdecode(tbytes)
         if tdict:
-            try:
-                utils.dict_stringkeys_to_bytes(tdict)
-            except AttributeError:
-                raise TypeError("Input doesn't seem to be a dict")  # TODO uitext
-
             self._tdict = {'info': tdict['info']}
             if 'announce' in tdict:
                 self._tdict['announce'] = tdict['announce']
