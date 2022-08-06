@@ -5,7 +5,7 @@ LOGS_TO_IGNORE = ["audiochecker.log", "aucdtect.log", "info.log"]
 
 class FormData:
     field_mapping = {
-        'release': {
+        'edition': {
             'unknown': 'unknown',
             'remastered': 'remaster',
             'rem_year': 'remaster_year',
@@ -84,7 +84,7 @@ class FormData:
 
     def upl_dict(self, dest, dest_group=None):
 
-        field_map = self.field_mapping['release'].copy()
+        field_map = self.field_mapping['edition'].copy()
         if not dest_group:
             field_map.update(self.field_mapping['group'])
 
