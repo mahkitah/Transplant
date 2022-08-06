@@ -5,7 +5,6 @@ import traceback
 import logging
 
 from lib.transplant import Transplanter, Job
-from gazelle.api_classes import KeyApi, RedApi
 from gazelle.tracker_data import tr
 
 from cli_config import cli_config, api_keys
@@ -53,12 +52,6 @@ def parse_input():
                 yield Job(dtor_path=scan.path, scanned=True)
 
 def main():
-
-    api_map = {
-        tr.RED: RedApi(tr.RED, key=api_keys.get_key("RED")),
-        tr.OPS: KeyApi(tr.OPS, key=api_keys.get_key("OPS")),
-    }
-
     report.info(ui_text.start)
 
     trpl_settings = {
@@ -77,7 +70,9 @@ def main():
         'ptpimg_key': cli_config.ptpimg_key,
         'post_compare': cli_config.post_upload_checks,
     }
-    transplanter = Transplanter(api_map, **trpl_settings)
+    key_dict = {trckr: api_keys.API_KEYS[trckr.name] for trckr in tr}
+
+    transplanter = Transplanter(key_dict, **trpl_settings)
     for job in parse_input():
         # noinspection PyBroadException
         try:

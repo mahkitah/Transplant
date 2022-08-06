@@ -13,7 +13,6 @@ from lib import ui_text, utils
 from lib.transplant import Transplanter, Job
 from lib.version import __version__
 from gazelle.tracker_data import tr, tr_data
-from gazelle.api_classes import KeyApi, RedApi
 from GUI.files import get_file
 from GUI.settings_window import SettingsWindow
 from GUI.main_gui import MainGui
@@ -32,11 +31,10 @@ class Report(QObject, logging.Handler):
 class TransplantThread(QThread):
     upl_succes = pyqtSignal(int)
 
-    def __init__(self, job_list, key_1, key_2, trpl_settings):
+    def __init__(self, job_list, key_dict, trpl_settings):
         super().__init__()
         self.job_list = job_list
-        self.key_1 = key_1
-        self.key_2 = key_2
+        self.key_dict = key_dict
         self.trpl_settings = trpl_settings
         self.stop_run = False
 
@@ -45,11 +43,7 @@ class TransplantThread(QThread):
 
     # noinspection PyUnresolvedReferences
     def run(self):
-
-        api_map = {tr.RED: RedApi(tr.RED, key=self.key_1),
-                   tr.OPS: KeyApi(tr.OPS, key=f"token {self.key_2}")}
-
-        transplanter = Transplanter(api_map, **self.trpl_settings)
+        transplanter = Transplanter(self.key_dict, **self.trpl_settings)
 
         for job in self.job_list:
             if self.stop_run:
@@ -276,8 +270,10 @@ class MainWindow(QMainWindow):
             self.set_window.open()
             return
 
-        key_1 = self.config.value('le_key_1')
-        key_2 = self.config.value('le_key_2')
+        key_dict = {
+            tr.RED: self.config.value('le_key_1'),
+            tr.OPS: self.config.value('le_key_2')
+        }
 
         settings = self.set_window.trpl_settings()
 
@@ -285,7 +281,7 @@ class MainWindow(QMainWindow):
             self.main.tabs.addTab(ui_text.tab_results)
         self.main.tabs.setCurrentIndex(1)
 
-        self.tr_thread = TransplantThread(self.main.job_data.jobs.copy(), key_1, key_2, settings)
+        self.tr_thread = TransplantThread(self.main.job_data.jobs.copy(), key_dict, settings)
 
         self.main.pb_stop.clicked.connect(self.tr_thread.stop)
         self.tr_thread.started.connect(lambda: self.report.info(ui_text.start))

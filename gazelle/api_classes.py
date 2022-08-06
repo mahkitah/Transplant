@@ -205,3 +205,11 @@ class OpsApi(KeyApi):
         torrent_id = r.get('torrentId')
 
         return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
+
+
+def sleeve(trckr, **kwargs):
+    api_map = {
+        tr.RED: RedApi,
+        tr.OPS: OpsApi
+    }
+    return api_map[trckr](**kwargs)

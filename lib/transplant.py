@@ -10,6 +10,7 @@ from hashlib import sha1, sha256
 
 from gazelle import upload
 from gazelle.tracker_data import tr, tr_data
+from gazelle.api_classes import sleeve
 
 from lib import utils, ui_text
 from lib.info_2_upl import TorInfo2UplData
@@ -78,11 +79,11 @@ class Job:
 
 
 class Transplanter:
-    def __init__(self, api_map, data_dir=None, deep_search=False, dtor_save_dir=None, save_dtors=False, del_dtors=False,
+    def __init__(self, key_dict, data_dir=None, deep_search=False, dtor_save_dir=None, save_dtors=False, del_dtors=False,
                  file_check=True, rel_descr_templ=None, rel_descr_own_templ=None, add_src_descr=True, src_descr_templ=None,
                  img_rehost=False, whitelist=None, ptpimg_key=None, post_compare=False):
 
-        self.api_map = api_map
+        self.api_map = {trckr: sleeve(trckr, key=key_dict[trckr]) for trckr in tr}
         self.data_dir = data_dir
         self.deep_search = deep_search
         self.dtor_save_dir = dtor_save_dir
