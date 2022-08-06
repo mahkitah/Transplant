@@ -1,3 +1,5 @@
+2.4.1
+- Bug fix, last forgotten remnants of switch to bcoding removed
 2.4
 - Switch bencode module: bencoder.pyx > bcoding
 - GUI files are now stored in .exe, config.ini not in subfolder anymore and renamed to Transplant.ini
