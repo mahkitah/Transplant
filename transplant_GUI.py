@@ -44,18 +44,20 @@ class TransplantThread(QThread):
     # noinspection PyUnresolvedReferences
     def run(self):
         transplanter = Transplanter(self.key_dict, **self.trpl_settings)
-
+        failed_job_count = 0
         for job in self.job_list:
             if self.stop_run:
                 break
             try:
                 success = transplanter.do_your_job(job)
             except Exception:
+                failed_job_count += 1
                 logging.error(traceback.format_exc())
                 continue
-
             if success:
-                self.upl_succes.emit(self.job_list.index(job))
+                self.upl_succes.emit(failed_job_count)
+            else:
+                failed_job_count += 1
 
 class MainWindow(QMainWindow):
     def __init__(self):
