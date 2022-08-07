@@ -30,7 +30,7 @@ class TorInfo2UplData(FormData):
     def parse_input(self):
         self.parse_artists()
         self.bitrate()
-        self.do_tags()
+        self.tags_to_string()
         self.release_description()
         self.do_img()
         for name in self.one_on_one:
@@ -64,19 +64,14 @@ class TorInfo2UplData(FormData):
 
             self.other_bitrate = inp_encoding
 
-    def do_tags(self):
-        # There's a 200 character limit for tags
-        ch_count = 0
-        index = 0
-        for i, t in enumerate(self.tor_info.tags):
-            ch_count += len(t)
-            if ch_count > 200:
-                index = i
-                break
-        if not index:
-            index = len(self.tor_info.tags)
+    def tags_to_string(self):
+        # There's a 200 character limit for tags (including commas)
+        tag_string = ",".join(self.tor_info.tags)
 
-        self.tags = ",".join(self.tor_info.tags[:index])
+        if len(tag_string) > 200:
+            tag_string = tag_string[:tag_string.rfind(',', 0, 201)]
+
+        self.tags = tag_string
 
     def release_description(self):
         descr_placeholders = {
