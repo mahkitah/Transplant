@@ -293,9 +293,13 @@ class JobModel(QAbstractTableModel):
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             return self.headers[section]
 
-        if role == Qt.ToolTipRole and orientation == Qt.Horizontal and section == 3:
-            if bool(int(self.config.value('chb_show_tips'))):
-                return ui_text.ttm_header3
+        if role == Qt.ToolTipRole and orientation == Qt.Horizontal:
+            if section == 2:
+                if bool(int(self.config.value('chb_show_tips'))):
+                    return ui_text.ttm_header2
+            if section == 3:
+                if bool(int(self.config.value('chb_show_tips'))):
+                    return ui_text.ttm_header3
         else:
             return super().headerData(section, orientation, role)
 

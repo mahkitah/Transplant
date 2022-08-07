@@ -155,6 +155,7 @@ tt_pb_rem_tr2 = f"Remove all {tracker_2} jobs from job list (ctrl-2)"
 tt_pb_open_tsavedir = "Open torrent save location"
 tt_pb_open_upl_urls = "Open all uploads in browser (ctrl-O)"
 tt_tb_go = "Start Transplanting\n (ctrl-shift-Enter)"
+ttm_header2 = "Upload to a specific group"
 ttm_header3 = 'Create new .torrent file\n' \
              'Instead of modifying source torrent'
 ttm_splitter = 'Drag all the way up to hide top section'
