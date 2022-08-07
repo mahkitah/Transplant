@@ -66,11 +66,9 @@ class BaseApi:
         self._rate_limit()
         r = self.session.request(req_method, url, params=kwargs, data=data, files=files)
         self.last_x_reqs.append(time.time())
-        r.raise_for_status()
 
         try:
             r_dict = r.json()
-            logging.debug(r_dict)
             if r_dict["status"] == "success":
                 return r_dict["response"]
             elif r_dict["status"] == "failure":
@@ -86,9 +84,14 @@ class BaseApi:
     def upload(self, data, files, dest_group=None):
         data_dict = data.upl_dict(self.tr, dest_group)
         upl_files = files.files_list(self.announce, self.tr.name)
-        return self._uploader(data_dict, upl_files, dest_group)
+        return self._uploader(data_dict, upl_files)
 
-    def _uploader(self, data, files, dest_group):
+    def _uploader(self, data, files):
+        r = self.request('POST', 'upload', data=data, files=files)
+
+        return self.upl_response_handler(r)
+
+    def upl_response_handler(self, r):
         raise NotImplementedError
 
 class KeyApi(BaseApi):
@@ -100,14 +103,6 @@ class KeyApi(BaseApi):
     def request(self, req_method, action, data=None, files=None, **kwargs):
         kwargs.update(action=action)
         return super().request(req_method, 'ajax', data=data, files=files, **kwargs)
-
-    def _uploader(self, data, files, dest_group):
-        if dest_group:
-            data['groupid'] = dest_group
-
-        r = self.request('POST', 'upload', data=data, files=files)
-
-        return self.upl_response_handler(r)
 
     def upl_response_handler(self, r):
         raise NotImplementedError
@@ -149,18 +144,15 @@ class CookieApi(BaseApi):
 
         return super().request(req_method, url_addon, data=data, files=files, **kwargs)
 
-    def _uploader(self, data, files, dest_group=None):
+    def _uploader(self, data, files):
         data['submit'] = True
-        r = self.request('POST', 'upload', data=data, files=files, groupid=dest_group)
+        super()._uploader(data, files)
 
-        if 'torrents.php' not in r.url:  # TODO better warning regex. Soup?
-            with open('ooops.html', 'wb') as f:
-                f.write(r.content)
-            import webbrowser
-            webbrowser.open('ooops.html')
+    def upl_response_handler(self, r):
+        if 'torrents.php' not in r.url:
             warning = re.search(r'<p style="color: red;text-align:center;">(.+?)</p>', r.text)
             raise RequestFailure(f"{warning.group(1) if warning else r.url}")
-        return r.url
+        return r.url  # TODO re torrentid from url and return
 
 class HtmlApi(CookieApi):
 
@@ -179,12 +171,12 @@ class RedApi(KeyApi):
     def __init__(self, key=None):
         super().__init__(tr.RED, key=key)
 
-    def _uploader(self, data, files, dest_group):
+    def _uploader(self, data, files):
         unknown = False
         if data.get('unknown'):
             del data['unknown']
             unknown = True
-        torrent_id, group_id = super()._uploader(data, files, dest_group)
+        torrent_id, group_id = super()._uploader(data, files)
         if unknown:
             try:
                 self.request("POST", "torrentedit", id=torrent_id, data={'unknown': True})

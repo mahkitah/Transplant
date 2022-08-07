@@ -71,8 +71,7 @@ class FormData:
     def _get_field(self, name, dest):
 
         if name == 'rel_type':
-            if dest in RELEASE_TYPE_MAP:
-                return RELEASE_TYPE_MAP[dest][self.rel_type_name]
+            return RELEASE_TYPE_MAP[dest][self.rel_type_name]
 
         if name == 'alb_descr':
             src_url = tr_data[self.src_tr]['site']
@@ -84,27 +83,32 @@ class FormData:
     def upl_dict(self, dest, dest_group=None):
 
         field_map = self.field_mapping['edition'].copy()
-        if not dest_group:
+        upl_data = {'type': 0}
+
+        if dest_group:
+            upl_data['groupid'] = dest_group
+        else:
             field_map.update(self.field_mapping['group'])
 
-        upl_data = {'type': 0}
         for k, v in field_map.items():
             value = self._get_field(k, dest)
             if value:
                 upl_data[v] = value
-        if self.unknown:
-            if dest == tr.RED:
+
+        if dest == tr.RED:
+            if self.unknown:
                 upl_data['remaster_year'] = '1990'
                 upl_data['remaster_title'] = 'Unknown release year'
 
-            elif dest == tr.OPS:
+        elif dest == tr.OPS:
+            if self.unknown:
                 # BUG There has to be a rem.year > 1982
                 # https://orpheus.network/forums.php?action=viewthread&threadid=10003
                 # https://orpheus.network/forums.php?action=viewthread&threadid=5994
                 upl_data['remaster_year'] = '1990'
 
-        if self.medium == 'Blu-Ray' and dest == tr.OPS:
-            upl_data['media'] = 'BD'
+            if self.medium == 'Blu-Ray':
+                upl_data['media'] = 'BD'
 
         return upl_data
 
