@@ -138,6 +138,7 @@ class MainWindow(QMainWindow):
         self.main.pb_clear_j.clicked.connect(self.main.job_data.clear)
         self.main.pb_clear_r.clicked.connect(self.main.result_view.clear)
         self.main.pb_rem_sel.clicked.connect(self.remove_selected)
+        self.main.pb_crop.clicked.connect(self.crop)
         self.main.pb_del_sel.clicked.connect(self.delete_selected)
         self.main.pb_rem_tr1.clicked.connect(lambda: self.main.job_data.filter_for_attr('src_tr', tr.RED))
         self.main.pb_rem_tr2.clicked.connect(lambda: self.main.job_data.filter_for_attr('src_tr', tr.OPS))
@@ -148,6 +149,8 @@ class MainWindow(QMainWindow):
         self.main.pb_open_upl_urls.clicked.connect(self.open_tor_urls)
         self.main.job_view.horizontalHeader().sectionDoubleClicked.connect(self.main.job_data.header_double_clicked)
         self.main.job_view.selection_changed.connect(lambda x: self.main.pb_rem_sel.setEnabled(bool(x)))
+        self.main.job_view.selection_changed.connect(
+            lambda x: self.main.pb_crop.setEnabled(0 < len(x) < len(self.main.job_data.jobs)))
         self.main.job_view.selection_changed.connect(lambda x: self.main.pb_del_sel.setEnabled(bool(x)))
         self.main.job_view.doubleClicked.connect(self.open_torrent_page)
         self.main.job_view.key_override_sig.connect(self.keyPressEvent)
@@ -226,6 +229,8 @@ class MainWindow(QMainWindow):
                 self.main.pb_scan.click()
             if event.key() == Qt.Key_Tab:
                 self.main.tabs.next()
+            if event.key() == Qt.Key_R:
+                self.crop()
             if event.key() == Qt.Key_W:
                 for clr_button in (self.main.pb_clear_j, self.main.pb_clear_r):
                     if clr_button.isVisible():
@@ -394,6 +399,14 @@ class MainWindow(QMainWindow):
             return
 
         self.main.job_data.del_multi(selection)
+
+    def crop(self):
+        selection = self.main.job_view.selected_rows()
+        if not selection:
+            return
+
+        reversed_selection = [x for x in range(len(self.main.job_data.jobs)) if x not in selection]
+        self.main.job_data.del_multi(reversed_selection)
 
     def delete_selected(self):
         selection = self.main.job_view.selected_rows()

@@ -129,7 +129,7 @@ class JobView(QTableView):
 
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)
-        self.selection_changed.emit(self.selectedIndexes())
+        self.selection_changed.emit(self.selected_rows())
 
     def selected_rows(self):
         return list(set((x.row() for x in self.selectedIndexes())))
