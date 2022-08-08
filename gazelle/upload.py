@@ -1,5 +1,5 @@
 from bcoding import bencode, bdecode
-from gazelle.tracker_data import tr, tr_data, RELEASE_TYPE_MAP
+from gazelle.tracker_data import tr, RELEASE_TYPE_MAP
 
 LOGS_TO_IGNORE = ["audiochecker.log", "aucdtect.log", "info.log"]
 
@@ -74,8 +74,8 @@ class FormData:
             return RELEASE_TYPE_MAP[dest][self.rel_type_name]
 
         if name == 'alb_descr':
-            src_url = tr_data[self.src_tr]['site']
-            dest_url = tr_data[dest]['site']
+            src_url = self.src_tr.site
+            dest_url = dest.site
             return self.alb_descr.replace(src_url, dest_url)
 
         return getattr(self, name)

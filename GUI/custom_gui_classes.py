@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction, QTableView, QComboB
 from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings, QModelIndex
 from lib import ui_text
-from gazelle.tracker_data import tr_data
 
 
 class HistoryBox(QComboBox):
@@ -268,7 +267,7 @@ class JobModel(QAbstractTableModel):
             return Qt.Checked if job.new_dtor else Qt.Unchecked
 
         if role == Qt.DecorationRole and column == 0 and not no_icon:
-            return QIcon(get_file(tr_data[job.src_tr]['favicon']))
+            return QIcon(get_file(job.src_tr.favicon))
 
     def rowCount(self, parent):
         if parent and parent.isValid():

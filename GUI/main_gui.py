@@ -1,10 +1,10 @@
 from gazelle.tracker_data import tr
 from lib import ui_text
 from GUI.files import get_file
-from GUI.custom_gui_classes import TPTextEdit, ContextHeaderView, JobView, JobModel, CyclingTabBar
+from GUI.custom_gui_classes import TPTextEdit, JobView, JobModel, CyclingTabBar
 
 from PyQt5.QtWidgets import QWidget, QTextBrowser, QTextEdit, QPushButton, QToolButton, QRadioButton,\
-    QButtonGroup, QHBoxLayout, QVBoxLayout, QGridLayout, QSplitter, QTableView, QHeaderView, QSizePolicy, QStackedLayout
+    QButtonGroup, QHBoxLayout, QVBoxLayout, QGridLayout, QSplitter, QSizePolicy, QStackedLayout
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 

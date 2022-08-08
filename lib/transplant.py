@@ -9,7 +9,7 @@ from bcoding import bencode, bdecode
 from hashlib import sha1, sha256
 
 from gazelle import upload
-from gazelle.tracker_data import tr, tr_data
+from gazelle.tracker_data import tr
 from gazelle.api_classes import sleeve
 
 from lib import utils, ui_text
@@ -39,8 +39,8 @@ class Job:
             self.display_name = os.path.splitext(os.path.basename(dtor_path))[0]
 
         if src_dom:
-            for t, data in tr_data.items():
-                if src_dom in data['site']:
+            for t in tr:
+                if src_dom in t.site:
                     self.src_tr = t
                     break
 
@@ -62,8 +62,8 @@ class Job:
         announce = self.dtor_dict['announce']
 
         tr_domain = re.search(r"https?://(.+?)/.+", announce).group(1)
-        for t, data in tr_data.items():
-            if tr_domain in data['tracker']:
+        for t in tr:
+            if tr_domain in t.tracker:
                 self.src_tr = t
                 break
 

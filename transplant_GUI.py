@@ -12,7 +12,7 @@ from PyQt5.QtCore import Qt, QObject, QSize, QThread, pyqtSignal
 from lib import ui_text, utils
 from lib.transplant import Transplanter, Job
 from lib.version import __version__
-from gazelle.tracker_data import tr, tr_data
+from gazelle.tracker_data import tr
 from GUI.files import get_file
 from GUI.settings_window import SettingsWindow
 from GUI.main_gui import MainGui
@@ -426,7 +426,7 @@ class MainWindow(QMainWindow):
         if index.column() > 1:
             return
         job = self.main.job_data.jobs[index.row()]
-        domain = tr_data[job.src_tr]['site']
+        domain = job.src_tr.site
         if job.info_hash:
             url = domain + 'torrents.php?searchstr=' + job.info_hash
         elif job.tor_id:

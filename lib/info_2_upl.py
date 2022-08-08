@@ -1,7 +1,7 @@
 import logging
 
 from gazelle.upload import FormData
-from gazelle.tracker_data import tr_data, ARTIST_MAP
+from gazelle.tracker_data import ARTIST_MAP
 from lib import utils, ui_text, ptpimg_uploader
 
 report = logging.getLogger(__name__)
@@ -76,7 +76,7 @@ class TorInfo2UplData(FormData):
     def release_description(self):
         descr_placeholders = {
             '%src_id%': self.tor_info.src_tr.name,
-            '%src_url%': tr_data[self.tor_info.src_tr]['site'],
+            '%src_url%': self.tor_info.src_tr.site,
             '%ori_upl%': self.tor_info.uploader,
             '%upl_id%': str(self.tor_info.uploader_id),
             '%tor_id%': str(self.tor_info.tor_id),

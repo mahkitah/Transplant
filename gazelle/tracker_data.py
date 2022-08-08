@@ -1,11 +1,7 @@
-from enum import Enum
-
-class tr(Enum):
-    RED = 1
-    OPS = 2
+from enum import Enum, auto
 
 tr_data = {
-    tr.RED: {
+    'RED': {
         'site': 'https://redacted.ch/',
         'tracker': 'https://flacsfor.me/{passkey}/announce',
         'favicon': 'pth.ico',
@@ -14,7 +10,7 @@ tr_data = {
         'source_flag': True,
         'req_limit': 10
     },
-    tr.OPS: {
+    'OPS': {
         'site': 'https://orpheus.network/',
         'tracker': 'https://home.opsfet.ch/{passkey}/announce',
         'favicon': 'ops.ico',
@@ -24,6 +20,15 @@ tr_data = {
         'req_limit': 5,
     },
 }
+
+class tr(Enum):
+    RED = 1
+    OPS = 2
+
+    def __init__(self, _):
+        for k, v in tr_data[self.name].items():
+            setattr(self, k, v)
+
 RELEASE_TYPE_MAP = {
     tr.RED: {
         "Album": 1,

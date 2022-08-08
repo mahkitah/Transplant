@@ -13,7 +13,7 @@ except ImportError:
 
 from lib import ui_text
 from gazelle import torrent_info
-from gazelle.tracker_data import tr, tr_data
+from gazelle.tracker_data import tr
 
 
 class RequestFailure(Exception):
@@ -26,9 +26,9 @@ class BaseApi:
     def __init__(self, tracker, **kwargs):
         assert tracker in tr, 'Unknown Tracker'  # TODO uitext
         self.tr = tracker
-        self.url = tr_data[self.tr]['site']
+        self.url = self.tr.site
         self.session = requests.Session()
-        self.last_x_reqs = deque([0], maxlen=tr_data[self.tr]['req_limit'])
+        self.last_x_reqs = deque([0], maxlen=self.tr.req_limit)
         self.authenticate(kwargs)
         self._account_info = None
 
@@ -42,7 +42,7 @@ class BaseApi:
 
     @property
     def announce(self):
-        announce = tr_data[self.tr]['tracker'].format(**self.account_info)
+        announce = self.tr.tracker.format(**self.account_info)
         if self.account_info['username'] == 'bumblyboo':
             announce = announce.replace('https://', 'http://')
         return announce
