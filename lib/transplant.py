@@ -45,8 +45,7 @@ class Job:
                     break
 
         assert self.src_tr
-        assert self.tor_id or self.info_hash
-        assert not (self.tor_id and self.info_hash)
+        assert (self.tor_id is None) != (self.info_hash is None)
 
         if not self.dest_trs:
             self.dest_trs = [choose_the_other(self.src_tr)]
