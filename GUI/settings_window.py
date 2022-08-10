@@ -61,6 +61,7 @@ class SettingsWindow(QDialog):
         self.user_input_elements()
         self.ui_elements()
         self.ui_layout()
+        self.set_element_properties()
 
     def user_input_elements(self):
 
@@ -76,8 +77,15 @@ class SettingsWindow(QDialog):
             obj = getattr(self, el_name)
             obj.setObjectName(el_name)
 
+            if not self.config.contains(el_name):
+                self.config.setValue(el_name, df)
+
+            change_sig, set_value = ACTION_MAP[type(obj)]
+            value = self.config.value(el_name)
+            set_value(obj, value)
+
             # connection to ini
-            ACTION_MAP[type(obj)][0](obj).connect(make_lambda(el_name))
+            change_sig(obj).connect(make_lambda(el_name))
 
             # instantiate Label
             if mk_lbl:
@@ -85,10 +93,6 @@ class SettingsWindow(QDialog):
                 setattr(self, label_name, QLabel(getattr(ui_text, label_name)))
 
     def set_element_properties(self):
-        """
-        This function must be called after (or by) 'load_config'
-        Otherwise spinbox minimum will be set in config.
-        """
         for fsb in self.findChildren(FolderSelectBox):
             fsb.setMaxCount(8)
             fsb.folder_button.setIcon(QIcon(get_file('open-folder.svg')))
@@ -210,18 +214,12 @@ class SettingsWindow(QDialog):
         total_layout.addLayout(bottom_row)
 
     def load_config(self):
-        for name, (df, mk_lbl) in CONFIG_NAMES.items():
+        for name, _ in CONFIG_NAMES.items():
             obj = getattr(self, name)
-
-            if not self.config.contains(name):
-                self.config.setValue(name, df)
-
             actions = ACTION_MAP[type(obj)]
             value = self.config.value(name)
-            actions[1](obj, value)
             actions[0](obj).emit(value)
 
-        self.set_element_properties()
         self.le_key_1.setCursorPosition(0)
         self.le_key_2.setCursorPosition(0)
 
