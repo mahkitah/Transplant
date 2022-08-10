@@ -46,6 +46,7 @@ class FolderSelectBox(HistoryBox):
     def __init__(self):
         super().__init__()
         self.setEditable(True)
+        self.setSizeAdjustPolicy(self.AdjustToMinimumContentsLength)
         self.folder_button = QAction()
         self.lineEdit().addAction(self.folder_button, QLineEdit.TrailingPosition)
         self.folder_button.triggered.connect(self.select_folder)
