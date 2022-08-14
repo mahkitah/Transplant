@@ -222,7 +222,17 @@ class Transplanter:
             files.add_dtor(dtor_bytes)
 
     def get_logs(self, files):
-        if self.tor_info.log_ids:
+
+        def is_riplog(fn):
+            if fn.endswith('.log') and not any(x in fn.lower() for x in ("audiochecker", "aucdtect", "accurip")):
+                return True
+
+        if self.job.new_dtor:
+            for path in utils.file_list_gen(self.torrent_folder_path):
+                fn = os.path.basename(path)
+                if is_riplog(fn):
+                    files.add_log(path, as_path=True)
+        elif not self.file_check and self.tor_info.log_ids:
             for i in self.tor_info.log_ids:
                 r = self.api_map[self.job.src_tr].request("GET", "riplog", id=self.tor_info.tor_id, logid=i)
                 log_bytes = base64.b64decode(r["log"])
@@ -230,10 +240,11 @@ class Transplanter:
                 assert log_checksum == r['log_sha256']
                 files.add_log(log_bytes)
         else:
-            for path in utils.file_list_gen(self.torrent_folder_path):
-                fn = os.path.basename(path)
-                if fn.endswith(".log") and fn.lower() not in upload.LOGS_TO_IGNORE:
-                    files.add_log(path, as_path=True)
+            for fl in self.tor_info.file_list:
+                fn = fl['names'][-1]
+                if is_riplog(fn):
+                    files.add_log(os.path.join(self.torrent_folder_path, *fl['names']), as_path=True)
+
             assert files.logs, ui_text.no_log
 
     def create_new_torrent(self):

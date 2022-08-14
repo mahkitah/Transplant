@@ -1,8 +1,6 @@
 from bcoding import bencode, bdecode
 from gazelle.tracker_data import tr, RELEASE_TYPE_MAP
 
-LOGS_TO_IGNORE = ["audiochecker.log", "aucdtect.log", "info.log"]
-
 class FormData:
     field_mapping = {
         'edition': {
