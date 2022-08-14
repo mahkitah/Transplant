@@ -28,10 +28,11 @@ def choose_the_other(optionlist):
 
 def multi_replace(src_txt, replace_map, *extra_maps):
     txt = src_txt
-    tmp_map = dict(replace_map)
-    for x in extra_maps:
-        tmp_map.update(x)
+    if extra_maps:
+        replace_map = replace_map.copy()
+        for x in extra_maps:
+            replace_map.update(x)
 
-    for k, v in tmp_map.items():
+    for k, v in replace_map.items():
         txt = txt.replace(k, v)
     return txt
