@@ -168,6 +168,9 @@ class OPSTorrentInfo(TorrentInfo):
         if self.medium == 'BD':
             self.medium = 'Blu-Ray'
 
+        if self.rel_type_name == 'Sampler':
+            self.rel_type_name = 'Compilation'
+
 
 tr_map = {
     tr.RED: REDTorrentInfo,
