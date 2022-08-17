@@ -7,7 +7,7 @@ import logging
 from lib.transplant import Transplanter, Job
 from gazelle.tracker_data import tr
 
-from cli_config import cli_config, api_keys
+from cli_config import cli_config
 from lib import ui_text
 
 verb_map = {
@@ -70,7 +70,7 @@ def main():
         'ptpimg_key': cli_config.ptpimg_key,
         'post_compare': cli_config.post_upload_checks,
     }
-    key_dict = {trckr: api_keys.API_KEYS[trckr.name] for trckr in tr}
+    key_dict = {trckr: getattr(cli_config, f'api_key_{trckr.name}') for trckr in tr}
 
     transplanter = Transplanter(key_dict, **trpl_settings)
     for job in parse_input():

@@ -1,5 +1,10 @@
-# Remember to double up the backslashes for windows paths
+# Copy this file and rename to cli_config.py
 
+# API keys:
+api_key_RED = "123456"
+api_key_OPS = "654321"
+
+# for Windows paths, double up the backslashes
 # Music files can be found here:
 data_dir = "D:\\Test"
 # Set to True if torrent folders can be deeper than a direct subfolder of data_dir
