@@ -72,6 +72,8 @@ class IniSettings(QSettings):
             value = f'#int({value})'
         elif type(value) == bool:
             value = f'#bool({value})'
+        elif value == []:
+            value = '#empty list'
 
         super().setValue(key, value)
 
@@ -84,6 +86,8 @@ class IniSettings(QSettings):
             elif value.startswith('#bool('):
                 as_str = re.match(r'#bool\((True|False)\)', value).group(1)
                 value = as_str == 'True'
+            elif value == '#empty list':
+                value = []
 
         return value
 
