@@ -17,29 +17,24 @@ class HistoryBox(QComboBox):
             self.addItems(item_list)
             self.list_changed.emit(item_list)
 
-    def contains(self, txt):
-        if self.findText(txt) < 0:
-            return False
-        else:
-            return True
+    @property
+    def list(self):
+        return [self.itemText(i) for i in range(self.count())]
 
-    def items(self):
-        for i in range(self.count()):
-            yield self.itemText(i)
-
-    def top_insert(self, txt):
-        if not self.contains(txt):
+    def add(self, txt):
+        if (index := self.findText(txt)) > 0:
+            self.setCurrentIndex(index)
+        elif index < 0:
             self.insertItem(0, txt)
             self.setCurrentIndex(0)
-            self.list_changed.emit(list(self.items()))
+            self.list_changed.emit(list(self.list))
 
     def consolidate(self):
-        if not self.contains(self.currentText()):
-            self.top_insert(self.currentText())
+        self.add(self.currentText())
         if self.currentIndex() > 0:
             txt = self.currentText()
             self.removeItem(self.currentIndex())
-            self.top_insert(txt)
+            self.add(txt)
 
 
 class FolderSelectBox(HistoryBox):
@@ -57,7 +52,7 @@ class FolderSelectBox(HistoryBox):
         if not selected:
             return
         selected = os.path.normpath(selected)
-        self.top_insert(selected)
+        self.add(selected)
 
     def setToolTip(self, txt):
         self.folder_button.setToolTip(txt)
