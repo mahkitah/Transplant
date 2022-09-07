@@ -1,5 +1,13 @@
+2.4.2
+- New: GUI crop button
+- New: OPS sampler > compilation transplant
+- Fix: Dest. group regression from 2.3
+- Fix: RED unconfirmed was uploaded as ori release without label catno info
+- Fix: Proper job removal when some uploads of batch fail
+- Always use local riplogs when files are checked
+- Get local riplog paths from api file list (except for 'nt')
 2.4.1
-- Bug fix, last forgotten remnants of switch to bcoding removed
+- Fix: last forgotten remnants of switch to bcoding removed
 2.4
 - Switch bencode module: bencoder.pyx > bcoding
 - GUI files are now stored in .exe, config.ini not in subfolder anymore and renamed to Transplant.ini
