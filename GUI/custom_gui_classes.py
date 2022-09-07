@@ -237,18 +237,18 @@ class JobModel(QAbstractTableModel):
 
     @property
     def headers(self):
-        if self._headers:
-            return self._headers
-        else:
+        if not self._headers:
             headers = []
             index = 0
             while True:
                 try:
                     headers.append(getattr(ui_text, f'header{index}'))
                 except AttributeError:
-                    self._headers = headers
-                    return headers
+                    break
                 index += 1
+
+            self._headers = headers
+        return self._headers
 
     def data(self, index, role):
         column = index.column()
