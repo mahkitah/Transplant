@@ -148,6 +148,7 @@ class REDTorrentInfo(TorrentInfo):
                 self.unknown = True
             else:
                 # unconfirmed
+                self.remastered = True
                 self.rem_year = self.o_year
                 self.rem_label = self.o_label
                 self.rem_cat_nr = self.o_cat_nr
