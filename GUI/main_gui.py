@@ -383,6 +383,12 @@ class MainWindow(QMainWindow):
             sum_ting_wong.append(ui_text.sum_ting_wong_4)
         if add_src_descr and '%src_descr%' not in wb.te_src_descr_templ.toPlainText():
             sum_ting_wong.append(ui_text.sum_ting_wong_5)
+        for set_name in ('le_key_1', 'le_key_2', 'le_ptpimg_key'):
+            value = self.config.value(set_name)
+            stripped = value.strip()
+            if value != stripped:
+                show_name = set_name.split('_', maxsplit=1)[1]
+                sum_ting_wong.append(ui_text.sum_ting_wong_6.format(show_name))
 
         if sum_ting_wong:
             warning = QMessageBox()
@@ -485,4 +491,3 @@ class MainWindow(QMainWindow):
         self.config.setValue('geometry/position', self.pos())
         self.config.setValue('geometry/splitter_pos', wb.splitter.sizes())
         self.config.setValue('geometry/job_view_header', wb.job_view.horizontalHeader().saveState())
-

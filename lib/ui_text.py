@@ -79,6 +79,7 @@ sum_ting_wong_2 = 'Invalid scan folder'
 sum_ting_wong_3 = 'Invalid torrent save folder'
 sum_ting_wong_4 = 'No PTPimg API-key'
 sum_ting_wong_5 = 'Source description text must contain %src_descr%'
+sum_ting_wong_6 = 'Leading and/or trailing space in {}'
 
 # Job
 bad_tor = f'Not a {tracker_1} or {tracker_2} .torrent'
