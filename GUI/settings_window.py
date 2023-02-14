@@ -32,6 +32,7 @@ class SettingsWindow(QDialog):
 
         settings_form = QFormLayout(wb.main_settings)
         settings_form.setLabelAlignment(Qt.AlignRight)
+        settings_form.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
         settings_form.setVerticalSpacing(20)
         settings_form.setHorizontalSpacing(20)
         settings_form.addRow(wb.l_key_1, wb.le_key_1)
