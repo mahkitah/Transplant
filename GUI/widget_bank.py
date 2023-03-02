@@ -39,7 +39,7 @@ CONFIG_NAMES = {
     'te_rel_descr_templ': (ui_text.def_rel_descr, False),
     'te_rel_descr_own_templ': (ui_text.def_rel_descr_own, False),
     'te_src_descr_templ': (ui_text.def_src_descr, False),
-    'chb_add_src_descr': (1, False),
+    'chb_add_src_descr': (2, False),
     'spb_splitter_weight': (0, True),
     'chb_no_icon': (0, True),
     'chb_alt_row_colour': (2, True),
