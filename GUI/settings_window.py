@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QFormLayout, QDialog
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import Qt
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QFormLayout, QDialog
+from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import Qt
 
 from lib import ui_text
 from GUI.files import get_file
@@ -31,8 +31,8 @@ class SettingsWindow(QDialog):
         save_dtor.addWidget(wb.fsb_dtor_save_dir)
 
         settings_form = QFormLayout(wb.main_settings)
-        settings_form.setLabelAlignment(Qt.AlignRight)
-        settings_form.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
+        settings_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
+        settings_form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         settings_form.setVerticalSpacing(20)
         settings_form.setHorizontalSpacing(20)
         settings_form.addRow(wb.l_key_1, wb.le_key_1)
@@ -92,6 +92,3 @@ class SettingsWindow(QDialog):
         total_layout.addWidget(wb.config_tabs)
         total_layout.addSpacing(20)
         total_layout.addLayout(bottom_row)
-
-
-

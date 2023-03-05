@@ -4,9 +4,9 @@ import logging
 import traceback
 import webbrowser
 
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox
-from PyQt5.QtGui import QIcon, QKeyEvent
-from PyQt5.QtCore import Qt, QObject, QSize, QThread, pyqtSignal
+from PyQt6.QtWidgets import QMainWindow, QFileDialog, QMessageBox
+from PyQt6.QtGui import QIcon, QKeyEvent
+from PyQt6.QtCore import Qt, QObject, QSize, QThread, pyqtSignal
 
 from lib import ui_text, utils
 from lib.transplant import Transplanter, Job
@@ -197,23 +197,23 @@ class MainWindow(QMainWindow):
 
     def keyPressEvent(self, event: QKeyEvent):
         if not event.modifiers():
-            if event.key() == Qt.Key_Backspace:
+            if event.key() == Qt.Key.Key_Backspace:
                 self.remove_selected()
-        elif event.modifiers() == Qt.ControlModifier | Qt.ShiftModifier:
-            if event.key() == Qt.Key_Return:
+        elif event.modifiers() == Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier:
+            if event.key() == Qt.Key.Key_Return:
                 wb.tb_go.click()
-        elif event.modifiers() == Qt.ControlModifier:
-            if event.key() == Qt.Key_S:
+        elif event.modifiers() == Qt.KeyboardModifier.ControlModifier:
+            if event.key() == Qt.Key.Key_S:
                 wb.pb_scan.click()
-            if event.key() == Qt.Key_Tab:
+            if event.key() == Qt.Key.Key_Tab:
                 wb.tabs.next()
-            if event.key() == Qt.Key_R:
+            if event.key() == Qt.Key.Key_R:
                 self.crop()
-            if event.key() == Qt.Key_W:
+            if event.key() == Qt.Key.Key_W:
                 for clr_button in (wb.pb_clear_j, wb.pb_clear_r):
                     if clr_button.isVisible():
                         clr_button.click()
-            if event.key() == Qt.Key_O:
+            if event.key() == Qt.Key.Key_O:
                 if wb.pb_open_upl_urls.isVisible():
                     wb.pb_open_upl_urls.click()
             # number keys:
@@ -392,7 +392,7 @@ class MainWindow(QMainWindow):
 
         if sum_ting_wong:
             warning = QMessageBox()
-            warning.setIcon(QMessageBox.Warning)
+            warning.setIcon(QMessageBox.Icon.Warning)
             warning.setText("- " + "\n- ".join(sum_ting_wong))
             warning.exec()
             return

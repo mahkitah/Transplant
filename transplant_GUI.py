@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -8,4 +8,4 @@ if __name__ == "__main__":
 
     window = MainWindow()
     app.aboutToQuit.connect(window.save_state)
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

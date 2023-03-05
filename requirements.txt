@@ -1,3 +1,4 @@
-pyqt5
+pyqt6
 requests
 bcoding
+dottorrent

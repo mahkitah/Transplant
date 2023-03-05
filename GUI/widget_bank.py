@@ -1,7 +1,7 @@
-from PyQt5.QtWidgets import QWidget, QTextBrowser, QTextEdit, QPushButton, QToolButton, QRadioButton, QButtonGroup,\
+from PyQt6.QtWidgets import QWidget, QTextBrowser, QTextEdit, QPushButton, QToolButton, QRadioButton, QButtonGroup,\
     QSplitter, QSizePolicy, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox
-from PyQt5.QtCore import Qt, QObject, pyqtSignal
-from PyQt5.QtGui import QIcon
+from PyQt6.QtCore import Qt, QObject, pyqtSignal
+from PyQt6.QtGui import QIcon
 
 from gazelle.tracker_data import tr
 from lib import ui_text
@@ -18,7 +18,7 @@ TYPE_MAP = {
 ACTION_MAP = {
     QLineEdit: (lambda x: x.textChanged, lambda x, y: x.setText(y)),
     TPTextEdit: (lambda x: x.plain_text_changed, lambda x, y: x.setText(y)),
-    QCheckBox: (lambda x: x.stateChanged, lambda x, y: x.setCheckState(y)),
+    QCheckBox: (lambda x: x.stateChanged, lambda x, y: x.setCheckState(Qt.CheckState(y))),
     QSpinBox: (lambda x: x.valueChanged, lambda x, y: x.setValue(y)),
     FolderSelectBox: (lambda x: x.list_changed, lambda x, y: x.set_list(y))
 }
@@ -68,7 +68,7 @@ class WidgetBank(QObject):
     def main(self):
         self.topwidget = QWidget()
         self.bottomwidget = QWidget()
-        self.splitter = QSplitter(Qt.Vertical)
+        self.splitter = QSplitter(Qt.Orientation.Vertical)
         self.section_add_dtor_btn = QWidget()
 
         self.tb_open_config = QToolButton()
@@ -80,7 +80,7 @@ class WidgetBank(QObject):
 
         self.te_paste_box = TPTextEdit()
         self.te_paste_box.setAcceptDrops(False)
-        self.te_paste_box.setLineWrapMode(QTextEdit.NoWrap)
+        self.te_paste_box.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         self.te_paste_box.setPlaceholderText(ui_text.pb_placeholder)
 
         self.rb_tracker1 = QRadioButton(tr.RED.name)
@@ -129,7 +129,7 @@ class WidgetBank(QObject):
         self.tb_go = QToolButton()
         self.tb_go.setEnabled(False)
         self.tb_go.setIcon(QIcon(get_file('switch.svg')))
-        self.tb_go.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        self.tb_go.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
 
         self.pb_stop = QPushButton(ui_text.pb_stop)
         self.pb_stop.hide()
@@ -152,7 +152,7 @@ class WidgetBank(QObject):
         self.l_own_uploads = QLabel(ui_text.l_own_uploads)
         self.pb_def_descr = QPushButton()
         self.pb_def_descr.setText(ui_text.pb_def_descr)
-        self.l_variables.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.l_variables.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
 
         # looks tab
         self.l_job_list = QLabel(ui_text.l_job_list)
@@ -199,7 +199,7 @@ class WidgetBank(QObject):
                 obj.setMaxCount(8)
                 obj.folder_button.setIcon(QIcon(get_file('open-folder.svg')))
                 obj.dialog_caption = getattr(ui_text, f'tt_{el_name}')
-                obj.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Preferred)
+                obj.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Preferred)
 
         self.le_key_1.setCursorPosition(0)
         self.le_key_2.setCursorPosition(0)

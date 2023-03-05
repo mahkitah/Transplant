@@ -3,9 +3,9 @@ import re
 
 from GUI.files import get_file
 
-from PyQt5.QtWidgets import QTextEdit, QHeaderView, QAction, QTableView, QComboBox, QFileDialog, QLineEdit, QTabBar
-from PyQt5.QtGui import QIcon, QKeyEvent
-from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings, QModelIndex
+from PyQt6.QtWidgets import QTextEdit, QHeaderView, QTableView, QComboBox, QFileDialog, QLineEdit, QTabBar
+from PyQt6.QtGui import QIcon, QKeyEvent, QAction
+from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings, QModelIndex
 from lib import ui_text
 
 
@@ -41,9 +41,9 @@ class FolderSelectBox(HistoryBox):
     def __init__(self):
         super().__init__()
         self.setEditable(True)
-        self.setSizeAdjustPolicy(self.AdjustToMinimumContentsLength)
+        self.setSizeAdjustPolicy(self.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
         self.folder_button = QAction()
-        self.lineEdit().addAction(self.folder_button, QLineEdit.TrailingPosition)
+        self.lineEdit().addAction(self.folder_button, QLineEdit.ActionPosition.TrailingPosition)
         self.folder_button.triggered.connect(self.select_folder)
         self.dialog_caption = None
 
@@ -60,7 +60,7 @@ class FolderSelectBox(HistoryBox):
 
 class IniSettings(QSettings):
     def __init__(self, path):
-        super().__init__(path, QSettings.IniFormat)
+        super().__init__(path, QSettings.Format.IniFormat)
 
     def setValue(self, key, value):
         if type(value) == int:
@@ -114,17 +114,18 @@ class JobView(QTableView):
     def __init__(self, model):
         super().__init__()
         self.setModel(model)
-        self.setEditTriggers(QTableView.SelectedClicked | QTableView.DoubleClicked | QTableView.AnyKeyPressed)
-        self.setHorizontalHeader(ContextHeaderView(Qt.Horizontal, self))
-        self.setSelectionBehavior(QTableView.SelectRows)
+        self.setEditTriggers(QTableView.EditTrigger.SelectedClicked | QTableView.EditTrigger.DoubleClicked |
+                             QTableView.EditTrigger.AnyKeyPressed)
+        self.setHorizontalHeader(ContextHeaderView(Qt.Orientation.Horizontal, self))
+        self.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
         self.verticalHeader().hide()
         self.verticalHeader().setMinimumSectionSize(12)
         self.horizontalHeader().setSectionsMovable(True)
         self.horizontalHeader().setMinimumSectionSize(18)
-        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
-        self.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        self.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        self.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
 
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)
@@ -134,7 +135,7 @@ class JobView(QTableView):
         return list(set((x.row() for x in self.selectedIndexes())))
 
     def keyPressEvent(self, event: QKeyEvent):
-        if event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Tab:
+        if event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.key() == Qt.Key.Key_Tab:
             self.key_override_sig.emit(event)
         else:
             super().keyPressEvent(event)
@@ -149,14 +150,14 @@ class ContextHeaderView(QHeaderView):
         self.section_visibility_changed.connect(self.set_action_icon)
         self.section_visibility_changed.connect(self.disable_actions)
         self.a_model_has_been_set.connect(self.context_actions)
-        self.setContextMenuPolicy(Qt.ActionsContextMenu)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.ActionsContextMenu)
 
     def setModel(self, model):
         super().setModel(model)
         self.a_model_has_been_set.emit()
 
     def text(self, section):
-        return self.model().headerData(section, self.orientation(), Qt.DisplayRole)
+        return self.model().headerData(section, self.orientation(), Qt.ItemDataRole.DisplayRole)
 
     def hideSection(self, index):
         super().hideSection(index)
@@ -255,7 +256,7 @@ class JobModel(QAbstractTableModel):
         job = self.jobs[index.row()]
         no_icon = bool(int(self.config.value('chb_no_icon')))
 
-        if role == Qt.DisplayRole or role == Qt.EditRole:
+        if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
             if column == 0 and no_icon:
                 return job.src_tr.name
             if column == 1:
@@ -263,10 +264,10 @@ class JobModel(QAbstractTableModel):
             if column == 2:
                 return job.dest_group
 
-        if role == Qt.CheckStateRole and column == 3:
-            return Qt.Checked if job.new_dtor else Qt.Unchecked
+        if role == Qt.ItemDataRole.CheckStateRole and column == 3:
+            return Qt.CheckState.Checked if job.new_dtor else Qt.CheckState.Unchecked
 
-        if role == Qt.DecorationRole and column == 0 and not no_icon:
+        if role == Qt.ItemDataRole.DecorationRole and column == 0 and not no_icon:
             return QIcon(get_file(job.src_tr.favicon))
 
     def rowCount(self, parent):
@@ -282,17 +283,17 @@ class JobModel(QAbstractTableModel):
     # noinspection PyTypeChecker
     def flags(self, index):
         if index.column() == 2:
-            return super().flags(index) | Qt.ItemIsEditable
+            return super().flags(index) | Qt.ItemFlag.ItemIsEditable
         if index.column() == 3:
-            return super().flags(index) | Qt.ItemIsUserCheckable
+            return super().flags(index) | Qt.ItemFlag.ItemIsUserCheckable
         else:
             return super().flags(index)
 
     def headerData(self, section, orientation, role):
-        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+        if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
             return self.headers[section]
 
-        if role == Qt.ToolTipRole and orientation == Qt.Horizontal:
+        if role == Qt.ItemDataRole.ToolTipRole and orientation == Qt.Orientation.Horizontal:
             if section == 2:
                 if bool(int(self.config.value('chb_show_tips'))):
                     return ui_text.ttm_header2
@@ -314,7 +315,7 @@ class JobModel(QAbstractTableModel):
                     return False
             job.dest_group = value or None
 
-        if column == 3 and role == Qt.CheckStateRole:
+        if column == 3 and role == Qt.ItemDataRole.CheckStateRole:
             job.new_dtor = True if value == Qt.Checked else False
 
         return True
