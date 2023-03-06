@@ -3,10 +3,25 @@ import re
 
 from GUI.files import get_file
 
-from PyQt6.QtWidgets import QTextEdit, QHeaderView, QTableView, QComboBox, QFileDialog, QLineEdit, QTabBar
+from PyQt6.QtWidgets import QWidget, QTextEdit, QHeaderView, QTableView, QComboBox, QFileDialog, QLineEdit, QTabBar,\
+    QVBoxLayout, QLabel
 from PyQt6.QtGui import QIcon, QKeyEvent, QAction
-from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings, QModelIndex
+from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings, QModelIndex, QTimer
 from lib import ui_text
+
+
+class TempPopUp(QWidget):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.setWindowFlag(Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint)
+        self.message = QLabel()
+        lay = QVBoxLayout(self)
+        lay.addWidget(self.message)
+
+    def pop_up(self, message, time):
+        self.message.setText(message)
+        self.show()
+        QTimer.singleShot(time, self.close)
 
 
 class HistoryBox(QComboBox):
@@ -340,6 +355,7 @@ class JobModel(QAbstractTableModel):
             self.beginInsertRows(QModelIndex(), pos, pos)
             self.jobs.append(item)
             self.endInsertRows()
+            return True
 
     @staticmethod
     def continuous_slices(numbers):

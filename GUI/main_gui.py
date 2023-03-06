@@ -15,7 +15,7 @@ from gazelle.tracker_data import tr
 from GUI.files import get_file
 from GUI.settings_window import SettingsWindow
 from GUI.central_gui import Central
-from GUI.custom_gui_classes import IniSettings
+from GUI.custom_gui_classes import IniSettings, TempPopUp
 from GUI.widget_bank import wb
 
 logging.getLogger('urllib3').setLevel(logging.WARNING)
@@ -73,6 +73,10 @@ class MainWindow(QMainWindow):
         self.config_connections()
         self.set_logging()
         self.load_config()
+
+        self._pop_up = None
+        self._empty_scanned = set()
+
         wb.emit_state()
         wb.pb_scan.setFocus()
         self.show()
@@ -350,18 +354,34 @@ class MainWindow(QMainWindow):
                 except (AssertionError, TypeError, AttributeError):
                     continue
 
-    @staticmethod
-    def scan_dtorrents():
+    @property
+    def pop_up(self):
+        if not self._pop_up:
+            self._pop_up = TempPopUp(self)
+
+        return self._pop_up
+
+    def scan_dtorrents(self):
         path = wb.fsb_scan_dir.currentText()
         wb.tabs.setCurrentIndex(0)
 
+        something_added = False
         for scan in os.scandir(path):
             if scan.is_file() and scan.name.endswith(".torrent"):
                 try:
                     wb.job_data.append(Job(dtor_path=scan.path, scanned=True))
                 except (AssertionError, TypeError, AttributeError):
                     continue
-        wb.job_view.setFocus()
+                something_added = True
+                if path in self._empty_scanned:
+                    self._empty_scanned.remove(path)
+
+        if something_added:
+            wb.job_view.setFocus()
+        else:
+            message_start = 'Still n' if path in self._empty_scanned else 'N'
+            self.pop_up.pop_up(f'{message_start}othing to add in\n{path}', 2000)
+            self._empty_scanned.add(path)
 
     def settings_check(self):
         data_dir = wb.fsb_data_dir.currentText()
