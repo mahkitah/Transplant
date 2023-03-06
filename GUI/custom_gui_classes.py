@@ -27,7 +27,7 @@ class HistoryBox(QComboBox):
         elif index < 0:
             self.insertItem(0, txt)
             self.setCurrentIndex(0)
-            self.list_changed.emit(list(self.list))
+            self.list_changed.emit(self.list)
 
     def consolidate(self):
         self.add(self.currentText())
