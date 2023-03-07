@@ -1,3 +1,8 @@
+2.5
+- GUI Qt5 > Qt6
+- New: Input for api keys is now checked for leading and trailing spaces
+- New: Pop-up for empty scans
+- Fix: non-expanding input boxes on MAC
 2.4.2
 - New: GUI crop button
 - New: OPS sampler > compilation transplant
