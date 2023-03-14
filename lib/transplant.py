@@ -71,7 +71,7 @@ class Job:
         self.info_hash = sha1(bencode(info)).hexdigest()
 
     def __hash__(self):
-        return self.info_hash or hash((self.src_tr, self.tor_id))
+        return int(self.info_hash or f'{hash((self.src_tr, self.tor_id)):x}', 16)
 
     def __eq__(self, other):
         return (self.info_hash or (self.src_tr, self.tor_id)) == (other.info_hash or (other.src_tr, other.tor_id))
