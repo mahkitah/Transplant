@@ -74,7 +74,10 @@ class BaseApi:
             elif r_dict["status"] == "failure":
                 raise RequestFailure(r_dict["error"])
         except JSONDecodeError:
-            return r
+            if 'application/x-bittorrent' in r.headers['content-type']:
+                return r.content
+            else:
+                r.raise_for_status()
 
     def torrent_info(self, **kwargs):
         r = self.request('GET', 'torrent', **kwargs)

@@ -149,7 +149,7 @@ class Transplanter:
             except Exception:
                 saul_goodman = False
                 report.error(f"{ui_text.upl3}")
-                report.error(traceback.format_exc())
+                report.error(traceback.format_exc(chain=False))
                 continue
 
             if self.post_compare:
@@ -218,7 +218,7 @@ class Transplanter:
         elif self.job.dtor_dict:
             files.add_dtor(self.job.dtor_dict, as_dict=True)
         else:
-            dtor_bytes = self.api_map[self.job.src_tr].request("GET", "download", id=self.tor_info.tor_id).content
+            dtor_bytes = self.api_map[self.job.src_tr].request("GET", "download", id=self.tor_info.tor_id)
             files.add_dtor(dtor_bytes)
 
     def get_logs(self, files):
