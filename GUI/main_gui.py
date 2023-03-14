@@ -24,8 +24,7 @@ class Report(QObject, logging.Handler):
     logging_sig = pyqtSignal(str)
 
     def emit(self, record):
-        repl = re.sub(r'(https?://[^\s\n\r]+)', r'<a href="\1">\1</a> ', str(record.msg))
-        self.logging_sig.emit(repl)
+        self.logging_sig.emit(record.msg)
 
 # noinspection PyBroadException
 class TransplantThread(QThread):
@@ -52,7 +51,7 @@ class TransplantThread(QThread):
                 success = transplanter.do_your_job(job)
             except Exception:
                 failed_job_count += 1
-                logging.error(traceback.format_exc())
+                logging.error(traceback.format_exc(chain=False))
                 continue
             if success:
                 self.upl_succes.emit(failed_job_count)
@@ -131,7 +130,7 @@ class MainWindow(QMainWindow):
         self.report = logging.getLogger()
         self.handler = Report()
         self.report.addHandler(self.handler)
-        self.handler.logging_sig.connect(wb.result_view.append)
+        self.handler.logging_sig.connect(wb.result_view.add)
 
     def main_connections(self):
         wb.te_paste_box.plain_text_changed.connect(lambda x: wb.pb_add.setEnabled(bool(x)))

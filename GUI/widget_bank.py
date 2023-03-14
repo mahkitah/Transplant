@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QTextBrowser, QTextEdit, QPushButton, QToolButton, QRadioButton, QButtonGroup,\
+from PyQt6.QtWidgets import QWidget, QTextEdit, QPushButton, QToolButton, QRadioButton, QButtonGroup,\
     QSplitter, QSizePolicy, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox
 from PyQt6.QtCore import Qt, QObject, pyqtSignal
 from PyQt6.QtGui import QIcon
@@ -6,7 +6,7 @@ from PyQt6.QtGui import QIcon
 from gazelle.tracker_data import tr
 from lib import ui_text
 from GUI.files import get_file
-from GUI.custom_gui_classes import TPTextEdit, JobModel, JobView, CyclingTabBar, FolderSelectBox
+from GUI.custom_gui_classes import TPTextEdit, JobModel, JobView, CyclingTabBar, FolderSelectBox, LinkBrowser
 
 TYPE_MAP = {
     'le': QLineEdit,
@@ -97,8 +97,7 @@ class WidgetBank(QObject):
         self.pb_scan = QPushButton(ui_text.pb_scan)
         self.pb_scan.setEnabled(False)
 
-        self.result_view = QTextBrowser()
-        self.result_view.setOpenExternalLinks(True)
+        self.result_view = LinkBrowser()
 
         self.tabs = CyclingTabBar()
         self.tabs.setDrawBase(False)

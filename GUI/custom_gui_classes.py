@@ -4,7 +4,7 @@ import re
 from GUI.files import get_file
 
 from PyQt6.QtWidgets import QWidget, QTextEdit, QHeaderView, QTableView, QComboBox, QFileDialog, QLineEdit, QTabBar,\
-    QVBoxLayout, QLabel
+    QVBoxLayout, QLabel, QTextBrowser
 from PyQt6.QtGui import QIcon, QKeyEvent, QAction
 from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings, QModelIndex, QTimer
 from lib import ui_text
@@ -22,6 +22,21 @@ class TempPopUp(QWidget):
         self.message.setText(message)
         self.show()
         QTimer.singleShot(time, self.close)
+
+
+class LinkBrowser(QTextBrowser):
+    link_regex = re.compile(r'(https?://)([^\s\n\r]+)')
+
+    def __init__(self):
+        super().__init__()
+        self.setOpenExternalLinks(True)
+        self.def_format = self.currentCharFormat()
+
+    def add(self, text: str):
+        self.setCurrentCharFormat(self.def_format)
+        repl = self.link_regex.sub(r'<a href="\1\2">\2</a>', text)
+        for line in repl.splitlines():
+            self.append(line)
 
 
 class HistoryBox(QComboBox):
