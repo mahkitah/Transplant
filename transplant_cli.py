@@ -48,8 +48,12 @@ def parse_input():
     if batchmode:
         for scan in os.scandir(cli_config.scan_dir):
             if scan.is_file() and scan.name.endswith(".torrent"):
-                report.info(f"\n{scan.name}")
-                yield Job(dtor_path=scan.path, scanned=True)
+                try:
+                    report.info(f"\n{scan.name}")
+                    yield Job(dtor_path=scan.path, scanned=True)
+                except (AssertionError, TypeError, AttributeError):
+                    report.error(ui_text.skip)
+                    continue
 
 def main():
     report.info(ui_text.start)

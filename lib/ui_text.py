@@ -105,6 +105,7 @@ merged = 'Probably merged into an existing group'
 
 # GUI
 start = 'Starting'
+skip = 'Skipping'
 thread_finish = '\nFinished\n'
 
 # tooltips
