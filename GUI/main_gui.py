@@ -84,7 +84,7 @@ class MainWindow(QMainWindow):
             with open(get_file('stylesheet.qsst'), 'r') as f:
                 stylesheet = f.read()
         except FileNotFoundError:
-            pass
+            return
 
         stylesheet = stylesheet.replace('##dots##', get_file('dotsdots.png').replace('\\', '/'))
         self.setStyleSheet(stylesheet)

@@ -217,11 +217,11 @@ class WidgetBank(QObject):
         self.spb_row_height.setMaximumWidth(40)
 
     def emit_state(self):
-        for name, _ in CONFIG_NAMES.items():
-            obj = getattr(self, name)
-            actions = ACTION_MAP[type(obj)]
-            value = self.config.value(name)
-            actions[0](obj).emit(value)
+        for el_name in CONFIG_NAMES:
+            obj = getattr(self, el_name)
+            signal_func, _ = ACTION_MAP[type(obj)]
+            value = self.config.value(el_name)
+            signal_func(obj).emit(value)
 
     def fsbs(self):
         for el_name in CONFIG_NAMES:

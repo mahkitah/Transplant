@@ -256,9 +256,6 @@ class JobModel(QAbstractTableModel):
     layout_changed = pyqtSignal()
 
     def __init__(self, parentconfig):
-        """
-        Can keep a job.
-        """
         super().__init__()
         self.jobs = []
         self.config = parentconfig
@@ -284,7 +281,7 @@ class JobModel(QAbstractTableModel):
     def data(self, index, role):
         column = index.column()
         job = self.jobs[index.row()]
-        no_icon = bool(int(self.config.value('chb_no_icon')))
+        no_icon = self.config.value('chb_no_icon') == 2
 
         if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
             if column == 0 and no_icon:

@@ -50,11 +50,6 @@ class Job:
         if not self.dest_trs:
             self.dest_trs = [choose_the_other(self.src_tr)]
 
-    def update(self, settings_dict):
-        for k, v in settings_dict.items():
-            if hasattr(self, k):
-                setattr(self, k, v)
-
     def parse_dtorrent(self, path):
         with open(path, "rb") as f:
             torbytes = f.read()
