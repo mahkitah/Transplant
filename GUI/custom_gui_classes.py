@@ -18,7 +18,7 @@ class TempPopUp(QWidget):
         lay = QVBoxLayout(self)
         lay.addWidget(self.message)
 
-    def pop_up(self, message, time):
+    def pop_up(self, message, time=2000):
         self.message.setText(message)
         self.show()
         QTimer.singleShot(time, self.close)
@@ -364,11 +364,18 @@ class JobModel(QAbstractTableModel):
                     job.new_dtor = False
                     self.dataChanged.emit(index, index, [])
 
-    def append(self, item):
-        if item not in self.jobs:
-            pos = len(self.jobs)
-            self.beginInsertRows(QModelIndex(), pos, pos)
-            self.jobs.append(item)
+    def append_jobs(self, new_jobs: list):
+        if not new_jobs:
+            return
+
+        dupes = set(self.jobs) & set(new_jobs)
+        for d in dupes:
+            new_jobs.remove(d)
+        if new_jobs:
+            first = len(self.jobs)
+            last = first + len(new_jobs) - 1
+            self.beginInsertRows(QModelIndex(), first, last)
+            self.jobs.extend(new_jobs)
             self.endInsertRows()
             return True
 

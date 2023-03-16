@@ -108,6 +108,11 @@ start = 'Starting'
 skip = 'Skipping'
 thread_finish = '\nFinished\n'
 
+# Pop-ups
+pop1 = 'Nothing to add in'
+pop2 = 'Nothing new found in'
+pop3 = 'Nothing useful in pastebox'
+
 # tooltips
 tt_l_key_1 = "Get your API-key from the site's user settings\n" \
           "Please note that these keys are stored in plain text"

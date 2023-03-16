@@ -74,7 +74,6 @@ class MainWindow(QMainWindow):
         self.load_config()
 
         self._pop_up = None
-        self._empty_scanned = set()
 
         wb.emit_state()
         wb.pb_scan.setFocus()
@@ -346,12 +345,14 @@ class MainWindow(QMainWindow):
 
         self.config.setValue('torselect_dir', os.path.normpath(common_path))
 
+        new_jobs = []
         for p in file_paths:
             if os.path.isfile(p) and p.endswith(".torrent"):
                 try:
-                    wb.job_data.append(Job(dtor_path=p))
+                    new_jobs.append(Job(dtor_path=p))
                 except (AssertionError, TypeError, AttributeError):
                     continue
+        wb.job_data.append_jobs(new_jobs)
 
     @property
     def pop_up(self):
@@ -364,23 +365,20 @@ class MainWindow(QMainWindow):
         path = wb.fsb_scan_dir.currentText()
         wb.tabs.setCurrentIndex(0)
 
-        something_added = False
+        new_jobs = []
         for scan in os.scandir(path):
             if scan.is_file() and scan.name.endswith(".torrent"):
                 try:
-                    wb.job_data.append(Job(dtor_path=scan.path, scanned=True))
+                    new_jobs.append(Job(dtor_path=scan.path, scanned=True))
                 except (AssertionError, TypeError, AttributeError):
                     continue
-                something_added = True
-                if path in self._empty_scanned:
-                    self._empty_scanned.remove(path)
 
-        if something_added:
+        if new_jobs:
             wb.job_view.setFocus()
+            if not wb.job_data.append_jobs(new_jobs):
+                self.pop_up.pop_up(f'{ui_text.pop2}\n{path}')
         else:
-            message_start = 'Still n' if path in self._empty_scanned else 'N'
-            self.pop_up.pop_up(f'{message_start}othing to add in\n{path}', 2000)
-            self._empty_scanned.add(path)
+            self.pop_up.pop_up(f'{ui_text.pop1}\n{path}')
 
     def settings_check(self):
         data_dir = wb.fsb_data_dir.currentText()
@@ -434,14 +432,21 @@ class MainWindow(QMainWindow):
         tr_map = {0: tr.RED, 1: tr.OPS}
         src_tr = tr_map.get(self.config.value('bg_source'))
 
+        new_jobs = []
         for line in paste_blob.split():
             match_id = re.fullmatch(r"\d+", line)
             if match_id:
-                wb.job_data.append(Job(src_tr=src_tr, tor_id=line))
+                new_jobs.append(Job(src_tr=src_tr, tor_id=line))
                 continue
             match_url = re.search(r"https?://(.+?)/.+torrentid=(\d+)", line)
             if match_url:
-                wb.job_data.append(Job(src_dom=match_url.group(1), tor_id=match_url.group(2)))
+                try:
+                    new_jobs.append(Job(src_dom=match_url.group(1), tor_id=match_url.group(2)))
+                except AssertionError:
+                    continue
+
+        if not wb.job_data.append_jobs(new_jobs):
+            self.pop_up.pop_up(f'{ui_text.pop3}')
 
         wb.te_paste_box.clear()
 
