@@ -147,7 +147,6 @@ class MainWindow(QMainWindow):
         wb.pb_open_tsavedir.clicked.connect(
             lambda: utils.open_local_folder(wb.fsb_dtor_save_dir.currentText()))
         wb.tb_go.clicked.connect(self.gogogo)
-        # wb.tb_go.clicked.connect(self.blabla)
         wb.pb_open_upl_urls.clicked.connect(self.open_tor_urls)
         wb.job_view.horizontalHeader().sectionDoubleClicked.connect(wb.job_data.header_double_clicked)
         wb.job_view.selection_changed.connect(lambda x: wb.pb_rem_sel.setEnabled(bool(x)))
@@ -250,20 +249,12 @@ class MainWindow(QMainWindow):
 
         self.set_window.resize(self.config.value('geometry/config_window_size', defaultValue=QSize(400, 450)))
 
-    @staticmethod
-    def consolidate_fsbs():
-        for fsb in wb.fsbs():
-            fsb.consolidate()
+    @property
+    def pop_up(self):
+        if not self._pop_up:
+            self._pop_up = TempPopUp(self)
 
-    @staticmethod
-    def tooltips(flag):
-        for t_name, ttip in vars(ui_text).items():
-            if t_name.startswith('tt_'):
-                obj_name = t_name.split('_', maxsplit=1)[1]
-                obj = getattr(wb, obj_name)
-                obj.setToolTip(ttip if flag else '')
-
-        wb.splitter.handle(1).setToolTip(ui_text.ttm_splitter if flag else '')
+        return self._pop_up
 
     def trpl_settings(self):
         user_settings = (
@@ -293,12 +284,6 @@ class MainWindow(QMainWindow):
                                      ptpimg_key=self.config.value('le_ptpimg_key'))
 
         return settings_dict
-
-    def blabla(self, *args):
-        self.report.info('blabla\n')
-        from testzooi.testrun import testrun
-        testrun(self)
-        pass
 
     def gogogo(self):
         if not wb.job_data:
@@ -354,12 +339,33 @@ class MainWindow(QMainWindow):
                     continue
         wb.job_data.append_jobs(new_jobs)
 
-    @property
-    def pop_up(self):
-        if not self._pop_up:
-            self._pop_up = TempPopUp(self)
+    def parse_paste_input(self):
 
-        return self._pop_up
+        paste_blob = wb.te_paste_box.toPlainText()
+        if not paste_blob:
+            return
+
+        wb.tabs.setCurrentIndex(0)
+        tr_map = {0: tr.RED, 1: tr.OPS}
+        src_tr = tr_map.get(self.config.value('bg_source'))
+
+        new_jobs = []
+        for line in paste_blob.split():
+            match_id = re.fullmatch(r"\d+", line)
+            if match_id:
+                new_jobs.append(Job(src_tr=src_tr, tor_id=line))
+                continue
+            match_url = re.search(r"https?://(.+?)/.+torrentid=(\d+)", line)
+            if match_url:
+                try:
+                    new_jobs.append(Job(src_dom=match_url.group(1), tor_id=match_url.group(2)))
+                except AssertionError:
+                    continue
+
+        if not wb.job_data.append_jobs(new_jobs):
+            self.pop_up.pop_up(f'{ui_text.pop3}')
+
+        wb.te_paste_box.clear()
 
     def scan_dtorrents(self):
         path = wb.fsb_scan_dir.currentText()
@@ -417,38 +423,25 @@ class MainWindow(QMainWindow):
             self.set_window.accept()
 
     @staticmethod
+    def tooltips(flag):
+        for t_name, ttip in vars(ui_text).items():
+            if t_name.startswith('tt_'):
+                obj_name = t_name.split('_', maxsplit=1)[1]
+                obj = getattr(wb, obj_name)
+                obj.setToolTip(ttip if flag else '')
+
+        wb.splitter.handle(1).setToolTip(ui_text.ttm_splitter if flag else '')
+
+    @staticmethod
+    def consolidate_fsbs():
+        for fsb in wb.fsbs():
+            fsb.consolidate()
+
+    @staticmethod
     def default_descr():
         wb.te_rel_descr_templ.setText(ui_text.def_rel_descr)
         wb.te_rel_descr_own_templ.setText(ui_text.def_rel_descr_own)
         wb.te_src_descr_templ.setText(ui_text.def_src_descr)
-
-    def parse_paste_input(self):
-
-        paste_blob = wb.te_paste_box.toPlainText()
-        if not paste_blob:
-            return
-
-        wb.tabs.setCurrentIndex(0)
-        tr_map = {0: tr.RED, 1: tr.OPS}
-        src_tr = tr_map.get(self.config.value('bg_source'))
-
-        new_jobs = []
-        for line in paste_blob.split():
-            match_id = re.fullmatch(r"\d+", line)
-            if match_id:
-                new_jobs.append(Job(src_tr=src_tr, tor_id=line))
-                continue
-            match_url = re.search(r"https?://(.+?)/.+torrentid=(\d+)", line)
-            if match_url:
-                try:
-                    new_jobs.append(Job(src_dom=match_url.group(1), tor_id=match_url.group(2)))
-                except AssertionError:
-                    continue
-
-        if not wb.job_data.append_jobs(new_jobs):
-            self.pop_up.pop_up(f'{ui_text.pop3}')
-
-        wb.te_paste_box.clear()
 
     @staticmethod
     def open_tor_urls():
