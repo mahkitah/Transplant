@@ -149,13 +149,12 @@ class MainWindow(QMainWindow):
         wb.tb_go.clicked.connect(self.gogogo)
         wb.pb_open_upl_urls.clicked.connect(self.open_tor_urls)
         wb.job_view.horizontalHeader().sectionDoubleClicked.connect(wb.job_data.header_double_clicked)
-        wb.job_view.selection_changed.connect(lambda x: wb.pb_rem_sel.setEnabled(bool(x)))
-        wb.job_view.selection_changed.connect(
-            lambda x: wb.pb_crop.setEnabled(0 < len(x) < len(wb.job_data.jobs)))
-        wb.job_view.selection_changed.connect(lambda x: wb.pb_del_sel.setEnabled(bool(x)))
+        wb.selection.selectionChanged.connect(lambda: wb.pb_rem_sel.setEnabled(wb.selection.hasSelection()))
+        wb.selection.selectionChanged.connect(
+            lambda: wb.pb_crop.setEnabled(0 < len(wb.selection.selectedRows()) < len(wb.job_data.jobs)))
+        wb.selection.selectionChanged.connect(lambda x: wb.pb_del_sel.setEnabled(wb.selection.hasSelection()))
         wb.job_view.doubleClicked.connect(self.open_torrent_page)
         wb.job_view.key_override_sig.connect(self.keyPressEvent)
-        wb.job_data.layout_changed.connect(wb.job_view.clearSelection)
         wb.job_data.layout_changed.connect(lambda: wb.tb_go.setEnabled(bool(wb.job_data)))
         wb.job_data.layout_changed.connect(lambda: wb.pb_clear_j.setEnabled(bool(wb.job_data)))
         wb.job_data.layout_changed.connect(
@@ -451,35 +450,36 @@ class MainWindow(QMainWindow):
 
     @staticmethod
     def remove_selected():
-        selection = wb.job_view.selected_rows()
-        if not selection:
+        row_list = wb.selection.selectedRows()
+        if not row_list:
             return
 
-        wb.job_data.del_multi(selection)
+        wb.job_data.del_multi(row_list)
 
     @staticmethod
     def crop():
-        selection = wb.job_view.selected_rows()
-        if not selection:
+        row_list = wb.selection.selectedRows()
+        if not row_list:
             return
 
-        reversed_selection = [x for x in range(len(wb.job_data.jobs)) if x not in selection]
+        reversed_selection = [x for x in range(len(wb.job_data.jobs)) if x not in row_list]
         wb.job_data.del_multi(reversed_selection)
+        wb.selection.clearSelection()
 
     @staticmethod
     def delete_selected():
-        selection = wb.job_view.selected_rows()
-        if not selection:
+        row_list = wb.selection.selectedRows()
+        if not row_list:
             return
 
-        for i in selection.copy():
+        for i in row_list.copy():
             job = wb.job_data.jobs[i]
             if job.scanned:
                 os.remove(job.dtor_path)
             else:
-                selection.remove(i)
+                row_list.remove(i)
 
-        wb.job_data.del_multi(selection)
+        wb.job_data.del_multi(row_list)
 
     @staticmethod
     def open_torrent_page(index):

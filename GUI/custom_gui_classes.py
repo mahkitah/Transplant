@@ -6,7 +6,8 @@ from GUI.files import get_file
 from PyQt6.QtWidgets import QWidget, QTextEdit, QHeaderView, QTableView, QComboBox, QFileDialog, QLineEdit, QTabBar,\
     QVBoxLayout, QLabel, QTextBrowser
 from PyQt6.QtGui import QIcon, QKeyEvent, QAction
-from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings, QModelIndex, QTimer
+from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings, QModelIndex, QTimer, QItemSelectionModel
+
 from lib import ui_text
 
 
@@ -136,14 +137,17 @@ class CyclingTabBar(QTabBar):
             else:
                 self.setCurrentIndex(0)
 
+class IntRowItemSelectionModel(QItemSelectionModel):
+    def selectedRows(self, column=0) -> list[int]:
+        return [i.row() for i in super().selectedRows(column)]
 
 class JobView(QTableView):
-    selection_changed = pyqtSignal(list)
     key_override_sig = pyqtSignal(QKeyEvent)
 
     def __init__(self, model):
         super().__init__()
         self.setModel(model)
+        self.setSelectionModel(IntRowItemSelectionModel(self.model()))
         self.setEditTriggers(QTableView.EditTrigger.SelectedClicked | QTableView.EditTrigger.DoubleClicked |
                              QTableView.EditTrigger.AnyKeyPressed)
         self.setHorizontalHeader(ContextHeaderView(Qt.Orientation.Horizontal, self))
@@ -156,13 +160,6 @@ class JobView(QTableView):
         self.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         self.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
-
-    def selectionChanged(self, selected, deselected):
-        super().selectionChanged(selected, deselected)
-        self.selection_changed.emit(self.selected_rows())
-
-    def selected_rows(self):
-        return list(set((x.row() for x in self.selectedIndexes())))
 
     def keyPressEvent(self, event: QKeyEvent):
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.key() == Qt.Key.Key_Tab:

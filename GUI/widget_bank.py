@@ -163,6 +163,7 @@ class WidgetBank(QObject):
     def config_needed(self):
         self.job_data = JobModel(self.config)
         self.job_view = JobView(self.job_data)
+        self.selection = self.job_view.selectionModel()
 
     def user_input_elements(self):
 
