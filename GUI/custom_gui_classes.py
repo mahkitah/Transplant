@@ -207,21 +207,19 @@ class ContextHeaderView(QHeaderView):
             self.section_visibility_changed.emit(x, self.isSectionHidden(x))
 
     def context_actions(self):
-        self.ac_restore_all = QAction(ui_text.header_restore)
-        self.addAction(self.ac_restore_all)
-        self.ac_restore_all.triggered.connect(self.set_all_sections_visible)
+
+        def make_lambda(index):
+            return lambda: self.setSectionHidden(index, not self.isSectionHidden(index))
+
+        ac_restore_all = QAction(ui_text.header_restore, self)
+        self.addAction(ac_restore_all)
+        ac_restore_all.triggered.connect(self.set_all_sections_visible)
+        ac_restore_all.setObjectName('restore_all')
 
         for i in range(self.model().columnCount(None)):
-            action_name = f'ac_header{i}'
-            setattr(self, action_name, QAction())
-            action = getattr(self, action_name)
+            action = QAction(self)
             action.setText(self.text(i))
             self.addAction(action)
-            self.set_action_icon(i, self.isSectionHidden(i))
-
-            def make_lambda(index):
-                return lambda: self.setSectionHidden(index, not self.isSectionHidden(index))
-
             action.triggered.connect(make_lambda(i))
 
     def set_all_sections_visible(self):
@@ -229,12 +227,14 @@ class ContextHeaderView(QHeaderView):
             self.showSection(x)
 
     def disable_actions(self):
+        # all visible
         if not self.hiddenSectionCount():
-            self.ac_restore_all.setEnabled(False)
+            self.findChild(QAction, 'restore_all', Qt.FindChildOption.FindDirectChildrenOnly).setEnabled(False)
 
-        # Disable action for last visible section
-        # so it's impossible to hide all sections
+        # 1 visible
         elif self.hiddenSectionCount() == self.count() - 1:
+            # Disable action for last visible section,
+            # so it's impossible to hide all sections
             section = 0
             while self.isSectionHidden(section):
                 section += 1
@@ -246,10 +246,8 @@ class ContextHeaderView(QHeaderView):
                 action.setEnabled(True)
 
     def set_action_icon(self, index, hidden):
-        if hidden:
-            self.actions()[index + 1].setIcon(QIcon(get_file('blank-check-box.svg')))
-        else:
-            self.actions()[index + 1].setIcon(QIcon(get_file('check-box.svg')))
+        icon_name = 'blank-check-box.svg' if hidden else 'check-box.svg'
+        self.actions()[index + 1].setIcon(QIcon(get_file(icon_name)))
 
 
 class JobModel(QAbstractTableModel):
