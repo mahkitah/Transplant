@@ -63,7 +63,6 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle(ui_text.main_window_title.format(__version__))
         self.setWindowIcon(QIcon(get_file('switch.svg')))
-        self.set_stylesheet()
         self.set_config()
         wb.add_config(self.config)
         self.setCentralWidget(Central())
@@ -78,16 +77,6 @@ class MainWindow(QMainWindow):
         wb.emit_state()
         wb.pb_scan.setFocus()
         self.show()
-
-    def set_stylesheet(self):
-        try:
-            with open(get_file('stylesheet.qsst'), 'r') as f:
-                stylesheet = f.read()
-        except FileNotFoundError:
-            return
-
-        stylesheet = stylesheet.replace('##dots##', get_file('dotsdots.png').replace('\\', '/'))
-        self.setStyleSheet(stylesheet)
 
     def set_config(self):
         self.config = IniSettings("Transplant.ini")
