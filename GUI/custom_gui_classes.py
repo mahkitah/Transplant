@@ -19,7 +19,7 @@ class TempPopUp(QWidget):
         lay = QVBoxLayout(self)
         lay.addWidget(self.message)
 
-    def pop_up(self, message, time=2000):
+    def pop_up(self, message, time: int = 2000):
         self.message.setText(message)
         self.show()
         QTimer.singleShot(time, self.close)
@@ -103,7 +103,7 @@ class IniSettings(QSettings):
 
         super().setValue(key, value)
 
-    def value(self, key, defaultValue=None):
+    def value(self, key, defaultValue=None, type_: type = None):
         value = super().value(key, defaultValue=defaultValue)
         if isinstance(value, str):
             if value.startswith('#int('):
@@ -273,7 +273,7 @@ class JobModel(QAbstractTableModel):
             self._headers = headers
         return self._headers
 
-    def data(self, index, role):
+    def data(self, index: QModelIndex, role: int = 1):
         column = index.column()
         job = self.jobs[index.row()]
         no_icon = self.config.value('chb_no_icon') == 2
@@ -292,18 +292,13 @@ class JobModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.DecorationRole and column == 0 and not no_icon:
             return QIcon(get_file(job.src_tr.favicon))
 
-    def rowCount(self, parent):
-        if parent and parent.isValid():
-            return 0
+    def rowCount(self, parent: QModelIndex = None) -> int:
         return len(self.jobs)
 
-    def columnCount(self, parent):
-        if parent and parent.isValid():
-            return 0
+    def columnCount(self, parent: QModelIndex = None) -> int:
         return len(self.headers)
 
-    # noinspection PyTypeChecker
-    def flags(self, index):
+    def flags(self, index: QModelIndex) -> Qt.ItemFlag:
         if index.column() == 2:
             return super().flags(index) | Qt.ItemFlag.ItemIsEditable
         if index.column() == 3:
@@ -311,7 +306,7 @@ class JobModel(QAbstractTableModel):
         else:
             return super().flags(index)
 
-    def headerData(self, section, orientation, role):
+    def headerData(self, section: int, orientation: Qt.Orientation, role: int = 0):
         if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
             return self.headers[section]
 
@@ -325,7 +320,7 @@ class JobModel(QAbstractTableModel):
         else:
             return super().headerData(section, orientation, role)
 
-    def setData(self, index, value, role):
+    def setData(self, index: QModelIndex, value, role: int = 0) -> bool:
         job = self.jobs[index.row()]
         column = index.column()
 
