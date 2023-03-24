@@ -5,8 +5,8 @@ from PyQt6.QtGui import QIcon
 
 from gazelle.tracker_data import tr
 from lib import ui_text
-from GUI.files import get_file
 from GUI.custom_gui_classes import TPTextEdit, JobModel, JobView, CyclingTabBar, FolderSelectBox, LinkBrowser
+from GUI import resources
 
 TYPE_MAP = {
     'le': QLineEdit,
@@ -71,10 +71,10 @@ class WidgetBank(QObject):
         self.section_add_dtor_btn = QWidget()
 
         self.tb_open_config = QToolButton()
-        self.tb_open_config.setIcon(QIcon(get_file('gear.svg')))
+        self.tb_open_config.setIcon(QIcon(':/gear.svg'))
         self.tb_open_config.setAutoRaise(True)
         self.tb_open_config2 = QToolButton()
-        self.tb_open_config2.setIcon(QIcon(get_file('gear.svg')))
+        self.tb_open_config2.setIcon(QIcon(':/gear.svg'))
         self.tb_open_config2.setAutoRaise(True)
 
         self.te_paste_box = TPTextEdit()
@@ -126,7 +126,7 @@ class WidgetBank(QObject):
         self.pb_open_upl_urls.setEnabled(False)
         self.tb_go = QToolButton()
         self.tb_go.setEnabled(False)
-        self.tb_go.setIcon(QIcon(get_file('switch.svg')))
+        self.tb_go.setIcon(QIcon(':/switch.svg'))
         self.tb_go.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
 
         self.pb_stop = QPushButton(ui_text.pb_stop)
@@ -195,10 +195,7 @@ class WidgetBank(QObject):
                 setattr(self, label_name, QLabel(getattr(ui_text, label_name)))
 
             if obj_type == FolderSelectBox:
-                obj.setMaxCount(8)
-                obj.folder_button.setIcon(QIcon(get_file('open-folder.svg')))
                 obj.dialog_caption = getattr(ui_text, f'tt_{el_name}')
-                obj.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Preferred)
 
         self.le_key_1.setCursorPosition(0)
         self.le_key_2.setCursorPosition(0)

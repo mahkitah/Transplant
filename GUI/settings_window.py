@@ -3,7 +3,6 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
 
 from lib import ui_text
-from GUI.files import get_file
 from GUI.widget_bank import wb
 
 
@@ -11,7 +10,7 @@ class SettingsWindow(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
         self.setWindowTitle(ui_text.settings_window_title)
-        self.setWindowIcon(QIcon(get_file('gear.svg')))
+        self.setWindowIcon(QIcon(':/gear'))
         self.layout()
 
     def layout(self):

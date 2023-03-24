@@ -1,15 +1,13 @@
 import os
 import re
 
-from GUI.files import get_file
-
 from PyQt6.QtWidgets import QWidget, QTextEdit, QHeaderView, QTableView, QComboBox, QFileDialog, QLineEdit, QTabBar,\
-    QVBoxLayout, QLabel, QTextBrowser
+    QVBoxLayout, QLabel, QTextBrowser, QSizePolicy
 from PyQt6.QtGui import QIcon, QKeyEvent, QAction
 from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings, QModelIndex, QTimer, QItemSelectionModel
 
 from lib import ui_text
-
+from GUI import resources
 
 class TempPopUp(QWidget):
     def __init__(self, parent):
@@ -72,10 +70,13 @@ class FolderSelectBox(HistoryBox):
     def __init__(self):
         super().__init__()
         self.setEditable(True)
+        self.setMaxCount(8)
+        self.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Preferred)
         self.setSizeAdjustPolicy(self.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
         self.folder_button = QAction()
-        self.lineEdit().addAction(self.folder_button, QLineEdit.ActionPosition.TrailingPosition)
+        self.folder_button.setIcon(QIcon(':/open-folder'))
         self.folder_button.triggered.connect(self.select_folder)
+        self.lineEdit().addAction(self.folder_button, QLineEdit.ActionPosition.TrailingPosition)
         self.dialog_caption = None
 
     def select_folder(self):
@@ -243,8 +244,8 @@ class ContextHeaderView(QHeaderView):
                 action.setEnabled(True)
 
     def set_action_icon(self, index, hidden):
-        icon_name = 'blank-check-box.svg' if hidden else 'check-box.svg'
-        self.actions()[index + 1].setIcon(QIcon(get_file(icon_name)))
+        icon = ':/blank-check-box.svg' if hidden else ':/check-box.svg'
+        self.actions()[index + 1].setIcon(QIcon(icon))
 
 
 class JobModel(QAbstractTableModel):
@@ -290,7 +291,7 @@ class JobModel(QAbstractTableModel):
             return Qt.CheckState.Checked if job.new_dtor else Qt.CheckState.Unchecked
 
         if role == Qt.ItemDataRole.DecorationRole and column == 0 and not no_icon:
-            return QIcon(get_file(job.src_tr.favicon))
+            return QIcon(f':/{job.src_tr.favicon}')
 
     def rowCount(self, parent: QModelIndex = None) -> int:
         return len(self.jobs)

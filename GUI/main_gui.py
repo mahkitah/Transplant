@@ -12,11 +12,11 @@ from lib import ui_text, utils
 from lib.transplant import Transplanter, Job
 from lib.version import __version__
 from gazelle.tracker_data import tr
-from GUI.files import get_file
 from GUI.settings_window import SettingsWindow
 from GUI.central_gui import Central
 from GUI.custom_gui_classes import IniSettings, TempPopUp
 from GUI.widget_bank import wb
+from GUI import resources
 
 logging.getLogger('urllib3').setLevel(logging.WARNING)
 
@@ -62,7 +62,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(ui_text.main_window_title.format(__version__))
-        self.setWindowIcon(QIcon(get_file('switch.svg')))
+        self.setWindowIcon(QIcon(':/switch.svg'))
         self.set_config()
         wb.add_config(self.config)
         self.setCentralWidget(Central())
