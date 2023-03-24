@@ -113,6 +113,8 @@ class MainWindow(QMainWindow):
                 value = self.config.value(key)
                 if not type(value) == int:
                     self.config.setValue(key, int(value))
+            if key == 'spb_splitter_weight':
+                self.config.remove(key)
 
     def set_logging(self):
         self.report = logging.getLogger()
@@ -178,7 +180,6 @@ class MainWindow(QMainWindow):
         wb.chb_show_rem_tr1.stateChanged.connect(lambda x: wb.pb_rem_tr1.setVisible(x)),
         wb.chb_show_rem_tr2.stateChanged.connect(lambda x: wb.pb_rem_tr2.setVisible(x)),
         wb.chb_no_icon.stateChanged.connect(wb.job_data.layoutChanged.emit)
-        wb.spb_splitter_weight.valueChanged.connect(wb.splitter.setHandleWidth)
         wb.chb_alt_row_colour.stateChanged.connect(wb.job_view.setAlternatingRowColors)
         wb.chb_show_grid.stateChanged.connect(wb.job_view.setShowGrid)
         wb.chb_show_grid.stateChanged.connect(wb.job_data.layoutChanged.emit)

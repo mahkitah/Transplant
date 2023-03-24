@@ -71,7 +71,6 @@ class SettingsWindow(QDialog):
         main = QFormLayout()
         job_list = QFormLayout()
         main.addRow(wb.l_show_add_dtors, wb.chb_show_add_dtors)
-        main.addRow(wb.l_splitter_weight, wb.spb_splitter_weight)
         main.addRow(wb.l_show_rem_tr1, wb.chb_show_rem_tr1)
         main.addRow(wb.l_show_rem_tr2, wb.chb_show_rem_tr2)
         job_list.addRow(wb.l_no_icon, wb.chb_no_icon)
