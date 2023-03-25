@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QWidget, QTextEdit, QPushButton, QToolButton, QRadioButton, QButtonGroup,\
-    QSplitter, QSizePolicy, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox
+    QSplitter, QSizePolicy, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox, QStackedLayout
 from PyQt6.QtCore import Qt, QObject, pyqtSignal
 from PyQt6.QtGui import QIcon
 
@@ -97,6 +97,10 @@ class WidgetBank(QObject):
         self.pb_scan.setEnabled(False)
 
         self.result_view = LinkBrowser()
+
+        self.tab_button_stack = QStackedLayout()
+        self.go_stop_stack = QStackedLayout()
+        self.view_stack = QStackedLayout()
 
         self.tabs = CyclingTabBar()
         self.tabs.setDrawBase(False)

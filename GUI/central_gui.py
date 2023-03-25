@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QStackedLayout
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout
 
 from GUI.widget_bank import wb
 
@@ -61,11 +61,9 @@ class Central(QWidget):
         buttons_result.addWidget(wb.pb_open_upl_urls)
         buttons_result.addStretch()
 
-        wb.tab_button_stack = QStackedLayout()
         wb.tab_button_stack.addWidget(wb.job_buttons)
         wb.tab_button_stack.addWidget(wb.result_buttons)
 
-        wb.go_stop_stack = QStackedLayout()
         wb.go_stop_stack.addWidget(wb.tb_go)
         wb.go_stop_stack.addWidget(wb.pb_stop)
 
@@ -76,7 +74,6 @@ class Central(QWidget):
         control_buttons.addStretch(1)
         control_buttons.addLayout(wb.go_stop_stack)
 
-        wb.view_stack = QStackedLayout()
         wb.view_stack.addWidget(wb.job_view)
         wb.view_stack.addWidget(wb.result_view)
 
