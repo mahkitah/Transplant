@@ -161,7 +161,7 @@ class MainWindow(QMainWindow):
         wb.splitter.splitterMoved.connect(lambda x, y: wb.tb_open_config2.setHidden(bool(x)))
         wb.tabs.currentChanged.connect(wb.view_stack.setCurrentIndex)
         wb.view_stack.currentChanged.connect(wb.tabs.setCurrentIndex)
-        wb.view_stack.currentChanged.connect(wb.tab_button_stack.setCurrentIndex)
+        wb.view_stack.currentChanged.connect(wb.button_stack.setCurrentIndex)
 
     def config_connections(self):
         wb.pb_def_descr.clicked.connect(self.default_descr)
@@ -176,7 +176,7 @@ class MainWindow(QMainWindow):
             lambda: wb.pb_open_tsavedir.setEnabled(bool(wb.fsb_dtor_save_dir.currentText())))
         wb.chb_show_tips.stateChanged.connect(self.tooltips)
         wb.spb_verbosity.valueChanged.connect(self.set_verbosity)
-        wb.chb_show_add_dtors.stateChanged.connect(lambda x: wb.section_add_dtor_btn.setVisible(x)),
+        wb.chb_show_add_dtors.stateChanged.connect(lambda x: wb.pb_open_dtors.setVisible(x)),
         wb.chb_show_rem_tr1.stateChanged.connect(lambda x: wb.pb_rem_tr1.setVisible(x)),
         wb.chb_show_rem_tr2.stateChanged.connect(lambda x: wb.pb_rem_tr2.setVisible(x)),
         wb.chb_no_icon.stateChanged.connect(wb.job_data.layoutChanged.emit)

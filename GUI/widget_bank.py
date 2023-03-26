@@ -68,7 +68,6 @@ class WidgetBank(QObject):
         self.topwidget = QWidget()
         self.bottomwidget = QWidget()
         self.splitter = QSplitter(Qt.Orientation.Vertical)
-        self.section_add_dtor_btn = QWidget()
 
         self.tb_open_config = QToolButton()
         self.tb_open_config.setIcon(QIcon(':/gear.svg'))
@@ -98,7 +97,7 @@ class WidgetBank(QObject):
 
         self.result_view = LinkBrowser()
 
-        self.tab_button_stack = QStackedLayout()
+        self.button_stack = QStackedLayout()
         self.go_stop_stack = QStackedLayout()
         self.view_stack = QStackedLayout()
 
