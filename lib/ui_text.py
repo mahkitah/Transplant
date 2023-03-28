@@ -23,8 +23,8 @@ pb_stop = 'Stop'
 header_restore = 'Restore all'
 header0 = 'src'
 header1 = 'torrent'
-header2 = 'dest. group'
-header3 = 'nt'
+header2 = ' dest. group '
+header3 = ' nt '
 
 # Settings
 settings_window_title = "Settings"
