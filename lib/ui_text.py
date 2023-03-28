@@ -82,7 +82,7 @@ sum_ting_wong_5 = 'Source description text must contain %src_descr%'
 sum_ting_wong_6 = 'Leading and/or trailing space in {}'
 
 # Transplanter
-missing = "Can't locate:"
+missing = "Can't find:"
 multiple = "found multiple times"
 no_log = "No logs found"
 f_checked = 'Files checked'

@@ -121,8 +121,8 @@ class Transplanter:
         self.job.display_name = self.job.display_name or self.tor_info.folder_name
         report.info(self.job.display_name)
 
-        if self.file_check:
-            self.check_files()
+        if self.file_check and not self.check_files():
+            return False
 
         upl_data = TorInfo2UplData(self.tor_info, self.img_rehost, self.whitelist, self.ptpimg_key,
                                    self.rel_descr_templ, self.rel_descr_own_templ, self.add_src_descr,
@@ -254,9 +254,13 @@ class Transplanter:
     def check_files(self):
         for fl in self.tor_info.file_list:
             file_path = os.path.join(self.torrent_folder_path, *fl['names'])
-            if not os.path.isfile(file_path):
-                raise FileNotFoundError(f"{ui_text.missing} {file_path}")
+
+            if not os.path.exists(file_path):
+                report.error(f"{ui_text.missing} {file_path}")
+                return False
+
         report.info(ui_text.f_checked)
+        return True
 
     def save_dtorrent(self, files, comment=None):
         dtor = files.dtors[0].as_dict
