@@ -1,7 +1,7 @@
 import os
 import re
 
-from PyQt6.QtWidgets import QWidget, QTextEdit, QHeaderView, QTableView, QComboBox, QFileDialog, QLineEdit, QTabBar,\
+from PyQt6.QtWidgets import QFrame, QTextEdit, QHeaderView, QTableView, QComboBox, QFileDialog, QLineEdit, QTabBar,\
     QVBoxLayout, QLabel, QTextBrowser, QSizePolicy
 from PyQt6.QtGui import QIcon, QKeyEvent, QAction
 from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings, QModelIndex, QTimer, QItemSelectionModel
@@ -9,10 +9,11 @@ from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings, QModelI
 from lib import ui_text
 from GUI import resources
 
-class TempPopUp(QWidget):
+class TempPopUp(QFrame):
     def __init__(self, parent):
         super().__init__(parent)
         self.setWindowFlag(Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint)
+        self.setFrameShape(QFrame.Shape.Box)
         self.message = QLabel()
         lay = QVBoxLayout(self)
         lay.addWidget(self.message)
