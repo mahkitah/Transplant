@@ -456,18 +456,22 @@ class MainWindow(QMainWindow):
         wb.job_data.del_multi(reversed_selection)
         wb.selection.clearSelection()
 
-    @staticmethod
-    def delete_selected():
+    def delete_selected(self):
         row_list = wb.selection.selectedRows()
         if not row_list:
             return
 
+        non_scanned = 0
         for i in row_list.copy():
             job = wb.job_data.jobs[i]
             if job.scanned:
                 os.remove(job.dtor_path)
             else:
                 row_list.remove(i)
+                non_scanned += 1
+
+        if non_scanned:
+            self.pop_up.pop_up(ui_text.pop4.format(non_scanned, 's' if non_scanned > 1 else ''))
 
         wb.job_data.del_multi(row_list)
 

@@ -109,6 +109,7 @@ thread_finish = '\nFinished\n'
 pop1 = 'Nothing to add in'
 pop2 = 'Nothing new found in'
 pop3 = 'Nothing useful in pastebox'
+pop4 = '{} torrent{} not deleted.\nOnly scanned torrents can be deleted'
 
 # tooltips
 tt_l_key_1 = "Get your API-key from the site's user settings\n" \
