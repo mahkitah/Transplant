@@ -301,30 +301,6 @@ class MainWindow(QMainWindow):
         self.tr_thread.finished.connect(self.tr_thread.deleteLater)
         self.tr_thread.start()
 
-    def select_dtors(self):
-        file_paths = QFileDialog.getOpenFileNames(self, ui_text.sel_dtors_window_title,
-                                                  self.config.value('torselect_dir'),
-                                                  "torrents (*.torrent);;All Files (*)")[0]
-        if not file_paths:
-            return
-
-        wb.tabs.setCurrentIndex(0)
-        if len(file_paths) > 1:
-            common_path = os.path.commonpath(file_paths)
-        else:
-            common_path = os.path.dirname(file_paths[0])
-
-        self.config.setValue('torselect_dir', os.path.normpath(common_path))
-
-        new_jobs = []
-        for p in file_paths:
-            if os.path.isfile(p) and p.endswith(".torrent"):
-                try:
-                    new_jobs.append(Job(dtor_path=p))
-                except (AssertionError, TypeError, AttributeError):
-                    continue
-        wb.job_data.append_jobs(new_jobs)
-
     def parse_paste_input(self):
 
         paste_blob = wb.te_paste_box.toPlainText()
@@ -352,6 +328,30 @@ class MainWindow(QMainWindow):
             self.pop_up.pop_up(f'{ui_text.pop3}')
 
         wb.te_paste_box.clear()
+
+    def select_dtors(self):
+        file_paths = QFileDialog.getOpenFileNames(self, ui_text.sel_dtors_window_title,
+                                                  self.config.value('torselect_dir'),
+                                                  "torrents (*.torrent);;All Files (*)")[0]
+        if not file_paths:
+            return
+
+        wb.tabs.setCurrentIndex(0)
+        if len(file_paths) > 1:
+            common_path = os.path.commonpath(file_paths)
+        else:
+            common_path = os.path.dirname(file_paths[0])
+
+        self.config.setValue('torselect_dir', os.path.normpath(common_path))
+
+        new_jobs = []
+        for p in file_paths:
+            if os.path.isfile(p) and p.endswith(".torrent"):
+                try:
+                    new_jobs.append(Job(dtor_path=p))
+                except (AssertionError, TypeError, AttributeError):
+                    continue
+        wb.job_data.append_jobs(new_jobs)
 
     def scan_dtorrents(self):
         path = wb.fsb_scan_dir.currentText()
