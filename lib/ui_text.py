@@ -103,6 +103,7 @@ merged = 'Probably merged into an existing group'
 # GUI
 start = 'Starting'
 skip = 'Skipping'
+removed = 'Removed from job list:'
 thread_finish = '\nFinished\n'
 
 # Pop-ups

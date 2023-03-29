@@ -26,13 +26,9 @@ class Report(QObject, logging.Handler):
     def emit(self, record):
         self.logging_sig.emit(record.msg)
 
-# noinspection PyBroadException
 class TransplantThread(QThread):
-    upl_succes = pyqtSignal(int)
-
-    def __init__(self, job_list, key_dict, trpl_settings):
+    def __init__(self, key_dict, trpl_settings):
         super().__init__()
-        self.job_list = job_list
         self.key_dict = key_dict
         self.trpl_settings = trpl_settings
         self.stop_run = False
@@ -40,23 +36,23 @@ class TransplantThread(QThread):
     def stop(self):
         self.stop_run = True
 
-    # noinspection PyUnresolvedReferences
     def run(self):
         transplanter = Transplanter(self.key_dict, **self.trpl_settings)
-        failed_job_count = 0
-        for job in self.job_list:
+
+        for job in wb.job_data.jobs.copy():
             if self.stop_run:
                 break
+            if job not in wb.job_data.jobs:  # It's possible to remove jobs from joblist during transplanting
+                logging.warning(f'{ui_text.removed} {job.display_name}\n')
+                continue
             try:
                 success = transplanter.do_your_job(job)
             except Exception:
-                failed_job_count += 1
                 logging.error(traceback.format_exc(chain=False))
                 continue
             if success:
-                self.upl_succes.emit(failed_job_count)
-            else:
-                failed_job_count += 1
+                wb.job_data.remove_this_job(job)
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -294,14 +290,15 @@ class MainWindow(QMainWindow):
             wb.tabs.addTab(ui_text.tab_results)
         wb.tabs.setCurrentIndex(1)
 
-        self.tr_thread = TransplantThread(wb.job_data.jobs.copy(), key_dict, settings)
+        self.tr_thread = TransplantThread(key_dict, settings)
 
         wb.pb_stop.clicked.connect(self.tr_thread.stop)
         self.tr_thread.started.connect(lambda: self.report.info(ui_text.start))
         self.tr_thread.started.connect(lambda: wb.go_stop_stack.setCurrentIndex(1))
         self.tr_thread.finished.connect(lambda: self.report.info(ui_text.thread_finish))
         self.tr_thread.finished.connect(lambda: wb.go_stop_stack.setCurrentIndex(0))
-        self.tr_thread.upl_succes.connect(lambda x: wb.job_data.remove_jobs(x, x))
+        self.tr_thread.finished.connect(lambda: wb.pb_stop.clicked.disconnect(self.tr_thread.stop))
+        self.tr_thread.finished.connect(self.tr_thread.deleteLater)
         self.tr_thread.start()
 
     def select_dtors(self):
