@@ -329,6 +329,19 @@ class MainWindow(QMainWindow):
 
         wb.te_paste_box.clear()
 
+    @staticmethod
+    def add_jobs_from_torpaths(torpaths, **kwargs):
+        new_jobs = []
+        for path in torpaths:
+            try:
+                new_jobs.append(Job(dtor_path=path, **kwargs))
+            except (AssertionError, TypeError, AttributeError):
+                continue
+
+        if wb.job_data.append_jobs(new_jobs):
+            wb.job_view.setFocus()
+            return True
+
     def select_dtors(self):
         file_paths = QFileDialog.getOpenFileNames(self, ui_text.sel_dtors_window_title,
                                                   self.config.value('torselect_dir'),
@@ -344,30 +357,15 @@ class MainWindow(QMainWindow):
 
         self.config.setValue('torselect_dir', os.path.normpath(common_path))
 
-        new_jobs = []
-        for p in file_paths:
-            if os.path.isfile(p) and p.endswith(".torrent"):
-                try:
-                    new_jobs.append(Job(dtor_path=p))
-                except (AssertionError, TypeError, AttributeError):
-                    continue
-        wb.job_data.append_jobs(new_jobs)
+        self.add_jobs_from_torpaths(file_paths)
 
     def scan_dtorrents(self):
         path = wb.fsb_scan_dir.currentText()
         wb.tabs.setCurrentIndex(0)
 
-        new_jobs = []
-        for scan in os.scandir(path):
-            if scan.is_file() and scan.name.endswith(".torrent"):
-                try:
-                    new_jobs.append(Job(dtor_path=scan.path, scanned=True))
-                except (AssertionError, TypeError, AttributeError):
-                    continue
-
-        if new_jobs:
-            wb.job_view.setFocus()
-            if not wb.job_data.append_jobs(new_jobs):
+        torpaths = [scan.path for scan in os.scandir(path)if scan.is_file() and scan.name.endswith(".torrent")]
+        if torpaths:
+            if self.add_jobs_from_torpaths(torpaths, scanned=True) is None:
                 self.pop_up.pop_up(f'{ui_text.pop2}\n{path}')
         else:
             self.pop_up.pop_up(f'{ui_text.pop1}\n{path}')
