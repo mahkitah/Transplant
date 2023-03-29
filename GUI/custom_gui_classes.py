@@ -388,6 +388,10 @@ class JobModel(QAbstractTableModel):
         del self.jobs[first: last + 1]
         self.endRemoveRows()
 
+    def remove_this_job(self, job):
+        i = self.jobs.index(job)
+        self.remove_jobs(i, i)
+
     def del_multi(self, indices):
         for first, last in self.continuous_slices(indices):
             self.remove_jobs(first, last)
