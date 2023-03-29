@@ -24,9 +24,7 @@ class TempPopUp(QFrame):
         QTimer.singleShot(time, self.close)
 
 
-class LinkBrowser(QTextBrowser):
-    link_regex = re.compile(r'(https?://)([^\s\n\r]+)')
-
+class ResultBrowser(QTextBrowser):
     def __init__(self):
         super().__init__()
         self.setOpenExternalLinks(True)
@@ -34,8 +32,7 @@ class LinkBrowser(QTextBrowser):
 
     def add(self, text: str):
         self.setCurrentCharFormat(self.def_format)
-        repl = self.link_regex.sub(r'<a href="\1\2">\2</a>', text)
-        for line in repl.splitlines():
+        for line in text.splitlines():
             self.append(line)
 
 

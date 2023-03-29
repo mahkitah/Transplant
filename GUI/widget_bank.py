@@ -5,7 +5,7 @@ from PyQt6.QtGui import QIcon
 
 from gazelle.tracker_data import tr
 from lib import ui_text
-from GUI.custom_gui_classes import TPTextEdit, JobModel, JobView, CyclingTabBar, FolderSelectBox, LinkBrowser
+from GUI.custom_gui_classes import TPTextEdit, JobModel, JobView, CyclingTabBar, FolderSelectBox, ResultBrowser
 from GUI import resources
 
 TYPE_MAP = {
@@ -95,7 +95,7 @@ class WidgetBank(QObject):
         self.pb_scan = QPushButton(ui_text.pb_scan)
         self.pb_scan.setEnabled(False)
 
-        self.result_view = LinkBrowser()
+        self.result_view = ResultBrowser()
 
         self.button_stack = QStackedLayout()
         self.go_stop_stack = QStackedLayout()

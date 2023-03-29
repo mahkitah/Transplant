@@ -20,11 +20,11 @@ from GUI import resources
 
 logging.getLogger('urllib3').setLevel(logging.WARNING)
 
-class Report(QObject, logging.Handler):
-    logging_sig = pyqtSignal(str)
+class LogForward(QObject, logging.Handler):
+    log_forward = pyqtSignal(logging.LogRecord)
 
     def emit(self, record):
-        self.logging_sig.emit(record.msg)
+        self.log_forward.emit(record)
 
 class TransplantThread(QThread):
     def __init__(self, key_dict, trpl_settings):
@@ -114,9 +114,9 @@ class MainWindow(QMainWindow):
 
     def set_logging(self):
         self.report = logging.getLogger()
-        self.handler = Report()
+        self.handler = LogForward()
         self.report.addHandler(self.handler)
-        self.handler.logging_sig.connect(wb.result_view.add)
+        self.handler.log_forward.connect(self.print_logs)
 
     def main_connections(self):
         wb.te_paste_box.plain_text_changed.connect(lambda x: wb.pb_add.setEnabled(bool(x)))
@@ -240,6 +240,16 @@ class MainWindow(QMainWindow):
             self._pop_up = TempPopUp(self)
 
         return self._pop_up
+
+    @staticmethod
+    def print_logs(record: logging.LogRecord):
+        if record.funcName == 'uncaught_exceptions':
+            if wb.tabs.count() == 1:
+                wb.tabs.addTab(ui_text.tab_results)
+            wb.tabs.setCurrentIndex(1)
+
+        msg = re.sub(r'(https?://)([^\s\n\r]+)', r'<a href="\1\2">\2</a>', record.msg)
+        wb.result_view.add(msg)
 
     def trpl_settings(self):
         user_settings = (
