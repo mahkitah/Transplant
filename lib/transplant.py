@@ -128,9 +128,11 @@ class Transplanter:
                                    self.rel_descr_templ, self.rel_descr_own_templ, self.add_src_descr,
                                    self.src_descr_templ, src_api.account_info['id'])
         upl_files = upload.Files()
+
         self.get_dtor(upl_files)
-        if self.tor_info.haslog:
-            self.get_logs(upl_files)
+
+        if self.tor_info.haslog and not self.get_logs(upl_files):
+            return False
 
         saul_goodman = True
         for dest_tr in self.job.dest_trs:
@@ -216,7 +218,7 @@ class Transplanter:
             dtor_bytes = self.api_map[self.job.src_tr].request("GET", "download", id=self.tor_info.tor_id)
             files.add_dtor(dtor_bytes)
 
-    def get_logs(self, files):
+    def get_logs(self, files: upload.Files) -> bool:
 
         def is_riplog(fn):
             if fn.endswith('.log') and not any(x in fn.lower() for x in ("audiochecker", "aucdtect", "accurip")):
@@ -227,6 +229,9 @@ class Transplanter:
                 fn = os.path.basename(path)
                 if is_riplog(fn):
                     files.add_log(path, as_path=True)
+
+            return True  # new torrent may have no log while original had one
+
         elif not self.file_check and self.tor_info.log_ids:
             for i in self.tor_info.log_ids:
                 r = self.api_map[self.job.src_tr].request("GET", "riplog", id=self.tor_info.tor_id, logid=i)
@@ -237,10 +242,21 @@ class Transplanter:
         else:
             for fl in self.tor_info.file_list:
                 fn = fl['names'][-1]
-                if is_riplog(fn):
-                    files.add_log(os.path.join(self.torrent_folder_path, *fl['names']), as_path=True)
 
-            assert files.logs, ui_text.no_log
+                if is_riplog(fn):
+                    full_path = os.path.join(self.torrent_folder_path, *fl['names'])
+
+                    if not os.path.exists(full_path):
+                        report.error(f"{ui_text.missing} {full_path}")
+                        return False
+
+                    files.add_log(full_path, as_path=True)
+
+        if not files.logs:
+            report.error(ui_text.no_log)
+            return False
+
+        return True
 
     def create_new_torrent(self):
         from dottorrent import Torrent
