@@ -200,13 +200,13 @@ class Transplanter:
             score_1 = self.tor_info.log_score
             score_2 = new_tor_info.log_score
             if not score_1 == score_2:
-                report.info(ui_text.log_score_dif.format(score_1, score_2))
+                report.warning(ui_text.log_score_dif.format(score_1, score_2))
 
         src_descr = self.tor_info.alb_descr.replace(src_api.url, '')
         dest_descr = new_tor_info.alb_descr.replace(dest_api.url, '')
 
         if src_descr != dest_descr or self.tor_info.title != new_tor_info.title:
-            report.info(ui_text.merged)
+            report.warning(ui_text.merged)
 
     def get_dtor(self, files):
         if self.job.new_dtor:
