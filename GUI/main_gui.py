@@ -42,16 +42,20 @@ class TransplantThread(QThread):
         for job in wb.job_data.jobs.copy():
             if self.stop_run:
                 break
-            if job not in wb.job_data.jobs:  # It's possible to remove jobs from joblist during transplanting
-                logging.warning(f'{ui_text.removed} {job.display_name}\n')
-                continue
             try:
-                success = transplanter.do_your_job(job)
-            except Exception:
-                logging.error(traceback.format_exc(chain=False))
-                continue
-            if success:
-                wb.job_data.remove_this_job(job)
+                if job not in wb.job_data.jobs:  # It's possible to remove jobs from joblist during transplanting
+                    logging.warning(f'{ui_text.removed} {job.display_name}\n')
+                    continue
+                try:
+                    success = transplanter.do_your_job(job)
+                except Exception:
+                    logging.error(traceback.format_exc(chain=False))
+                    continue
+                if success:
+                    wb.job_data.remove_this_job(job)
+
+            finally:
+                logging.info('')
 
 
 class MainWindow(QMainWindow):

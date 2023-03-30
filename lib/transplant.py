@@ -106,7 +106,7 @@ class Transplanter:
         self.tor_info = None
         self._torrent_folder_path = None
         self.job = job
-        report.info(f"\n{self.job.src_tr.name} {self.job.display_name or self.job.tor_id}")
+        report.info(f"{self.job.src_tr.name} {self.job.display_name or self.job.tor_id}")
 
         src_api = self.api_map[self.job.src_tr]
 

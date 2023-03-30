@@ -101,10 +101,10 @@ log_score_dif = 'Log scores different: {} - {}'
 merged = 'Probably merged into an existing group'
 
 # GUI
-start = 'Starting'
+start = 'Starting\n'
 skip = 'Skipping'
-removed = 'Removed from job list:'
-thread_finish = '\nFinished\n'
+removed = 'No longer on job list:'
+thread_finish = 'Finished\n'
 
 # Pop-ups
 pop1 = 'Nothing to add in'

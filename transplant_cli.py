@@ -78,7 +78,6 @@ def main():
 
     transplanter = Transplanter(key_dict, **trpl_settings)
     for job in parse_input():
-        # noinspection PyBroadException
         try:
             transplanter.do_your_job(job)
         except Exception:
