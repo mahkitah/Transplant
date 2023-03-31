@@ -102,7 +102,7 @@ merged = 'Probably merged into an existing group'
 
 # GUI
 start = 'Starting\n'
-skip = 'Skipping'
+skip = 'Skipping\n'
 removed = 'No longer on job list:'
 thread_finish = 'Finished\n'
 

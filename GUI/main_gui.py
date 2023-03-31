@@ -18,13 +18,16 @@ from GUI.custom_gui_classes import IniSettings, TempPopUp
 from GUI.widget_bank import wb
 from GUI import resources
 
-logging.getLogger('urllib3').setLevel(logging.WARNING)
-
 class LogForward(QObject, logging.Handler):
     log_forward = pyqtSignal(logging.LogRecord)
 
     def emit(self, record):
         self.log_forward.emit(record)
+
+logger = logging.getLogger('tr')
+logger.setLevel(logging.INFO)
+handler = LogForward()
+logger.addHandler(handler)
 
 class TransplantThread(QThread):
     def __init__(self, key_dict, trpl_settings):
@@ -44,18 +47,18 @@ class TransplantThread(QThread):
                 break
             try:
                 if job not in wb.job_data.jobs:  # It's possible to remove jobs from joblist during transplanting
-                    logging.warning(f'{ui_text.removed} {job.display_name}\n')
+                    logger.warning(f'{ui_text.removed} {job.display_name}')
                     continue
                 try:
                     success = transplanter.do_your_job(job)
                 except Exception:
-                    logging.error(traceback.format_exc(chain=False))
+                    logger.exception('')
                     continue
                 if success:
                     wb.job_data.remove_this_job(job)
 
             finally:
-                logging.info('')
+                logger.info('')
 
 
 class MainWindow(QMainWindow):
@@ -69,7 +72,7 @@ class MainWindow(QMainWindow):
         self.set_window = SettingsWindow(self)
         self.main_connections()
         self.config_connections()
-        self.set_logging()
+        handler.log_forward.connect(self.print_logs)
         self.load_config()
 
         self._pop_up = None
@@ -115,12 +118,6 @@ class MainWindow(QMainWindow):
                     self.config.setValue(key, int(value))
             if key == 'spb_splitter_weight':
                 self.config.remove(key)
-
-    def set_logging(self):
-        self.report = logging.getLogger()
-        self.handler = LogForward()
-        self.report.addHandler(self.handler)
-        self.handler.log_forward.connect(self.print_logs)
 
     def main_connections(self):
         wb.te_paste_box.plain_text_changed.connect(lambda x: wb.pb_add.setEnabled(bool(x)))
@@ -247,13 +244,19 @@ class MainWindow(QMainWindow):
 
     @staticmethod
     def print_logs(record: logging.LogRecord):
-        if record.funcName == 'uncaught_exceptions':
-            if wb.tabs.count() == 1:
-                wb.tabs.addTab(ui_text.tab_results)
+        if record.name == 'tr.GUI' and wb.tabs.count() == 1:
+            wb.tabs.addTab(ui_text.tab_results)
             wb.tabs.setCurrentIndex(1)
 
-        msg = re.sub(r'(https?://)([^\s\n\r]+)', r'<a href="\1\2">\2</a>', record.msg)
-        wb.result_view.add(msg)
+        if not (record.exc_info and not record.msg):
+            msg = re.sub(r'(https?://)([^\s\n\r]+)', r'<a href="\1\2">\2</a>', record.msg)
+            wb.result_view.add(msg)
+
+        if record.exc_info:
+            cls, ex, tb = record.exc_info
+            tb_str = ''.join(traceback.format_tb(tb)).strip('\n')
+            wb.result_view.add(tb_str)
+            wb.result_view.add(f'{cls.__name__}: {ex}')
 
     def trpl_settings(self):
         user_settings = (
@@ -307,9 +310,9 @@ class MainWindow(QMainWindow):
         self.tr_thread = TransplantThread(key_dict, settings)
 
         wb.pb_stop.clicked.connect(self.tr_thread.stop)
-        self.tr_thread.started.connect(lambda: self.report.info(ui_text.start))
+        self.tr_thread.started.connect(lambda: logger.info(ui_text.start))
         self.tr_thread.started.connect(lambda: wb.go_stop_stack.setCurrentIndex(1))
-        self.tr_thread.finished.connect(lambda: self.report.info(ui_text.thread_finish))
+        self.tr_thread.finished.connect(lambda: logger.info(ui_text.thread_finish))
         self.tr_thread.finished.connect(lambda: wb.go_stop_stack.setCurrentIndex(0))
         self.tr_thread.finished.connect(lambda: wb.pb_stop.clicked.disconnect(self.tr_thread.stop))
         self.tr_thread.finished.connect(self.tr_thread.deleteLater)
@@ -498,13 +501,14 @@ class MainWindow(QMainWindow):
             return
         webbrowser.open(url)
 
-    def set_verbosity(self, lvl):
+    @staticmethod
+    def set_verbosity(lvl):
         verb_map = {
             0: logging.CRITICAL,
             1: logging.ERROR,
             2: logging.INFO,
             3: logging.DEBUG}
-        self.report.setLevel(verb_map[lvl])
+        logger.setLevel(verb_map[lvl])
 
     def save_state(self):
         self.config.setValue('geometry/size', self.size())

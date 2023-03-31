@@ -32,10 +32,14 @@ class ResultBrowser(QTextBrowser):
 
     def add(self, text: str):
         self.setCurrentCharFormat(self.def_format)
-        for line in text.splitlines():
-            self.append(line)
-        if text.endswith('\n') or text == '':
-            self.append('')
+        split = text.splitlines()
+        if split:
+            for line in split:
+                self.append(line)
+            if text.endswith('\n'):
+                self.append('')
+        else:
+            self.append(text)
 
 
 class HistoryBox(QComboBox):

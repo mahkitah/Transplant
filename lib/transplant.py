@@ -2,7 +2,6 @@ import os
 import re
 import logging
 import base64
-import traceback
 from collections import defaultdict
 
 from bcoding import bencode, bdecode
@@ -16,7 +15,7 @@ from lib import utils, ui_text
 from lib.info_2_upl import TorInfo2UplData
 
 choose_the_other = utils.choose_the_other([tr.RED, tr.OPS])
-report = logging.getLogger(__name__)
+report = logging.getLogger('tr.core')
 
 class Job:
     def __init__(self, src_tr=None, tor_id=None, src_dom=None, dtor_path=None, scanned=False, dest_group=None,
@@ -146,8 +145,7 @@ class Transplanter:
                 report.info(f"{ui_text.upl2} {new_url}")
             except Exception:
                 saul_goodman = False
-                report.error(f"{ui_text.upl3}")
-                report.error(traceback.format_exc(chain=False))
+                report.exception(f"{ui_text.upl3}")
                 continue
 
             if self.post_compare:

@@ -1,7 +1,6 @@
 import sys
 import os
 import re
-import traceback
 import logging
 
 from lib.transplant import Transplanter, Job
@@ -17,9 +16,9 @@ verb_map = {
     3: logging.DEBUG
 }
 
-logging.getLogger('urllib3').setLevel(logging.WARNING)
-logging.basicConfig(stream=sys.stdout, level=verb_map[cli_config.verbosity], format="%(message)s",)
-report = logging.getLogger(__name__)
+report = logging.getLogger('tr')
+report.setLevel(verb_map[cli_config.verbosity])
+report.addHandler(logging.StreamHandler(stream=sys.stdout))
 
 def get_tr_by_id(id):
     for t in tr:
@@ -49,10 +48,10 @@ def parse_input():
         for scan in os.scandir(cli_config.scan_dir):
             if scan.is_file() and scan.name.endswith(".torrent"):
                 try:
-                    report.info(f"\n{scan.name}")
+                    report.info(f"{scan.name}")
                     yield Job(dtor_path=scan.path, scanned=True)
-                except (AssertionError, TypeError, AttributeError):
-                    report.error(ui_text.skip)
+                except (AssertionError, TypeError, AttributeError, KeyError):
+                    report.warning(ui_text.skip)
                     continue
 
 def main():
@@ -81,8 +80,10 @@ def main():
         try:
             transplanter.do_your_job(job)
         except Exception:
-            report.error(traceback.format_exc())
+            report.exception('')
             continue
+        finally:
+            report.info('')
 
 if __name__ == "__main__":
     main()
