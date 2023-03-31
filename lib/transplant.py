@@ -118,8 +118,9 @@ class Transplanter:
         else:
             return False
 
-        self.job.display_name = self.job.display_name or self.tor_info.folder_name
-        report.info(self.job.display_name)
+        if not self.job.display_name:
+            self.job.display_name = self.tor_info.folder_name
+            report.info(self.job.display_name)
 
         if self.file_check and not self.check_files():
             return False
