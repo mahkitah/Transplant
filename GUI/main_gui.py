@@ -118,6 +118,9 @@ class MainWindow(QMainWindow):
                     self.config.setValue(key, int(value))
             if key == 'spb_splitter_weight':
                 self.config.remove(key)
+            if key == 'bg_source' and self.config.value(key) == 0:
+                self.config.setValue(key, 1)
+
 
     def main_connections(self):
         wb.te_paste_box.plain_text_changed.connect(lambda x: wb.pb_add.setEnabled(bool(x)))
@@ -216,8 +219,8 @@ class MainWindow(QMainWindow):
             super().keyPressEvent(event)
 
     def load_config(self):
-        source_id = int(self.config.value('bg_source', defaultValue=0))
-        wb.bg_source.buttons()[source_id].click()
+        source_id = int(self.config.value('bg_source', defaultValue=1))
+        wb.bg_source.button(source_id).click()
         self.resize(self.config.value('geometry/size', defaultValue=QSize(550, 500)))
 
         try:
@@ -325,8 +328,7 @@ class MainWindow(QMainWindow):
             return
 
         wb.tabs.setCurrentIndex(0)
-        tr_map = {0: tr.RED, 1: tr.OPS}
-        src_tr = tr_map.get(self.config.value('bg_source'))
+        src_tr = tr(self.config.value('bg_source'))
 
         new_jobs = []
         for line in paste_blob.split():

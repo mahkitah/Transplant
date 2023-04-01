@@ -84,8 +84,8 @@ class WidgetBank(QObject):
         self.rb_tracker1 = QRadioButton(tr.RED.name)
         self.rb_tracker2 = QRadioButton(tr.OPS.name)
         self.bg_source = QButtonGroup()
-        self.bg_source.addButton(self.rb_tracker1, 0)
-        self.bg_source.addButton(self.rb_tracker2, 1)
+        self.bg_source.addButton(self.rb_tracker1, 1)
+        self.bg_source.addButton(self.rb_tracker2, 2)
 
         self.pb_add = QPushButton(ui_text.pb_add)
         self.pb_add.setEnabled(False)

@@ -20,10 +20,6 @@ report = logging.getLogger('tr')
 report.setLevel(verb_map[cli_config.verbosity])
 report.addHandler(logging.StreamHandler(stream=sys.stdout))
 
-def get_tr_by_id(id):
-    for t in tr:
-        if t.name == id:
-            return t
 
 def parse_input():
     args = sys.argv[1:]
@@ -35,14 +31,11 @@ def parse_input():
 
         match_url = re.search(r"https://(.+?)/.+torrentid=(\d+)", arg)
         if match_url:
-            report.info(arg)
             yield Job(src_dom=match_url.group(1), tor_id=match_url.group(2))
 
         match_id = re.fullmatch(r"(RED|OPS)(\d+)", arg)
         if match_id:
-            report.info(arg)
-            tracker = get_tr_by_id(match_id.group(1))
-            yield Job(src_tr=tracker, tor_id=match_id.group(2))
+            yield Job(src_tr=tr[match_id.group(1)], tor_id=match_id.group(2))
 
     if batchmode:
         for scan in os.scandir(cli_config.scan_dir):

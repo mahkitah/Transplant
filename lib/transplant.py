@@ -14,7 +14,6 @@ from gazelle.api_classes import sleeve
 from lib import utils, ui_text
 from lib.info_2_upl import TorInfo2UplData
 
-choose_the_other = utils.choose_the_other([tr.RED, tr.OPS])
 report = logging.getLogger('tr.core')
 
 class Job:
@@ -47,7 +46,7 @@ class Job:
         assert (self.tor_id is None) != (self.info_hash is None)
 
         if not self.dest_trs:
-            self.dest_trs = [choose_the_other(self.src_tr)]
+            self.dest_trs = [~self.src_tr]
 
     def parse_dtorrent(self, path):
         with open(path, "rb") as f:

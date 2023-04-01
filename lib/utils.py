@@ -16,16 +16,6 @@ def open_local_folder(path):
     else:
         subprocess.Popen(["xdf-open", path])
 
-def choose_the_other(optionlist):
-    assert len(optionlist) == 2
-
-    def specified(inp):
-        index_map = {0: 1, 1: 0}
-        index_in = optionlist.index(inp)
-        index_out = index_map[index_in]
-        return optionlist[index_out]
-    return specified
-
 def multi_replace(src_txt, replace_map, *extra_maps):
     txt = src_txt
     if extra_maps:

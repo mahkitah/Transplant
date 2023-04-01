@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Flag
 
 tr_data = {
     'RED': {
@@ -21,13 +21,17 @@ tr_data = {
     },
 }
 
-class tr(Enum):
-    RED = 1
-    OPS = 2
+class Tr(Flag):
+    def __new__(cls, *args):
+        obj = object.__new__(cls)
+        obj._value_ = 2 ** len(cls.__members__)
+        return obj
 
-    def __init__(self, _):
-        for k, v in tr_data[self.name].items():
+    def __init__(self, attr: dict):
+        for k, v in attr.items():
             setattr(self, k, v)
+
+tr = Tr('Tr', [(name, attr) for name, attr in tr_data.items()])
 
 RELEASE_TYPE_MAP = {
     tr.RED: {
