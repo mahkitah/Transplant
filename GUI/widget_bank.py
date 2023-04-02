@@ -1,12 +1,12 @@
 from PyQt6.QtWidgets import QWidget, QTextEdit, QPushButton, QToolButton, QRadioButton, QButtonGroup,\
     QSplitter, QSizePolicy, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox, QStackedLayout
-from PyQt6.QtCore import Qt, QObject, pyqtSignal
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 
 from gazelle.tracker_data import tr
 from lib import ui_text
-from GUI.custom_gui_classes import TPTextEdit, JobModel, JobView, CyclingTabBar, FolderSelectBox, ResultBrowser
-from GUI import resources
+from GUI.custom_gui_classes import TPTextEdit, JobModel, JobView, CyclingTabBar, FolderSelectBox, ResultBrowser,\
+    IniSettings, TempPopUp
 
 TYPE_MAP = {
     'le': QLineEdit,
@@ -53,18 +53,26 @@ CONFIG_NAMES = {
 }
 
 
-class WidgetBank(QObject):
-    config_added = pyqtSignal()
-
+class WidgetBank:
     def __init__(self):
         super().__init__()
-        self.config = None
-        self.main()
-        self.settings_window()
-        self.config_added.connect(self.user_input_elements)
-        self.config_added.connect(self.config_needed)
+        self.config = IniSettings("Transplant.ini")
+        self.user_input_elements()
+        self.main_window = None
+        self.settings_window = None
+        self.main_widgets()
+        self.settings_window_widgets()
 
-    def main(self):
+        self._pop_up = None
+
+    @property
+    def pop_up(self):
+        if not self._pop_up:
+            self._pop_up = TempPopUp(self.main_window)
+
+        return self._pop_up
+
+    def main_widgets(self):
         self.topwidget = QWidget()
         self.bottomwidget = QWidget()
         self.splitter = QSplitter(Qt.Orientation.Vertical)
@@ -95,6 +103,9 @@ class WidgetBank(QObject):
         self.pb_scan = QPushButton(ui_text.pb_scan)
         self.pb_scan.setEnabled(False)
 
+        self.job_data = JobModel(self.config)
+        self.job_view = JobView(self.job_data)
+        self.selection = self.job_view.selectionModel()
         self.result_view = ResultBrowser()
 
         self.button_stack = QStackedLayout()
@@ -135,7 +146,7 @@ class WidgetBank(QObject):
         self.pb_stop = QPushButton(ui_text.pb_stop)
         self.pb_stop.hide()
 
-    def settings_window(self):
+    def settings_window_widgets(self):
         self.config_tabs = QTabWidget()
         self.config_tabs.setDocumentMode(True)
         self.main_settings = QWidget()
@@ -157,15 +168,6 @@ class WidgetBank(QObject):
 
         # looks tab
         self.l_job_list = QLabel(ui_text.l_job_list)
-
-    def add_config(self, config):
-        self.config = config
-        self.config_added.emit()
-
-    def config_needed(self):
-        self.job_data = JobModel(self.config)
-        self.job_view = JobView(self.job_data)
-        self.selection = self.job_view.selectionModel()
 
     def user_input_elements(self):
 
