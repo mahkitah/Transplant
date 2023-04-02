@@ -166,6 +166,7 @@ class Transplanter:
     def subdir_index(self):
         if not self._subdir_index:
             subdirs = defaultdict(list)
+            report.info(ui_text.indexing)
             for root, dirs, files in os.walk(self.data_dir):
                 for d in dirs:
                     subdirs[d].append(root)

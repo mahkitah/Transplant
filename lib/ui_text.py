@@ -83,6 +83,7 @@ sum_ting_wong_6 = 'Leading and/or trailing space in {}'
 
 # Transplanter
 missing = "Can't find:"
+indexing = 'Indexing data folder for deep search'
 multiple = "found multiple times"
 no_log = "No logs found"
 f_checked = 'Files checked'
