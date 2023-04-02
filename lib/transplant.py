@@ -223,10 +223,9 @@ class Transplanter:
                 return True
 
         if self.job.new_dtor:
-            for path in utils.file_list_gen(self.torrent_folder_path):
-                fn = os.path.basename(path)
-                if is_riplog(fn):
-                    files.add_log(path, as_path=True)
+            for scan in utils.scantree(self.torrent_folder_path):
+                if is_riplog(scan.name):
+                    files.add_log(scan.path, as_path=True)
 
             return True  # new torrent may have no log while original had one
 

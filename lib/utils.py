@@ -3,10 +3,12 @@ import platform
 import subprocess
 
 
-def file_list_gen(path):
-    for root, dirs, files in os.walk(path):
-        for x in files:
-            yield os.path.join(root, x)
+def scantree(path):
+    for scan in os.scandir(path):
+        if scan.is_dir(follow_symlinks=False) and not scan.name.startswith('.'):
+            yield from scantree(scan.path)
+        else:
+            yield scan
 
 def open_local_folder(path):
     if platform.system() == 'Windows':
