@@ -52,16 +52,25 @@ class Job:
         with open(path, "rb") as f:
             torbytes = f.read()
         self.dtor_dict = bdecode(torbytes)
-        announce = self.dtor_dict['announce']
 
-        tr_domain = re.search(r"https?://(.+?)/.+", announce).group(1)
-        for t in tr:
-            if tr_domain in t.tracker:
-                self.src_tr = t
-                break
-
+        announce = self.dtor_dict.get('announce')
         info = self.dtor_dict['info']
+        source = info.get('source', '').replace('PTH', 'RED')
         self.info_hash = sha1(bencode(info)).hexdigest()
+
+        if source:
+            try:
+                self.src_tr = tr[source]
+                return
+            except KeyError:
+                pass
+
+        if announce:
+            tr_domain = re.search(r"https?://(.+?)/.+", announce).group(1)
+            for t in tr:
+                if tr_domain in t.tracker:
+                    self.src_tr = t
+                    break
 
     def __hash__(self):
         return int(self.info_hash or f'{hash((self.src_tr, self.tor_id)):x}', 16)
@@ -130,7 +139,7 @@ class Transplanter:
 
         self.get_dtor(upl_files)
 
-        if self.tor_info.haslog and not self.get_logs(upl_files):
+        if (self.tor_info.haslog or self.job.new_dtor) and not self.get_logs(upl_files):
             return False
 
         saul_goodman = True
