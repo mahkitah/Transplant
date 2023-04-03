@@ -8,7 +8,7 @@ from GUI.widget_bank import wb
 
 
 class MainWindow(QWidget):
-    key_press = pyqtSignal(QKeyEvent)
+    key_pressed = pyqtSignal(QKeyEvent)
 
     def __init__(self):
         super().__init__()
@@ -17,7 +17,7 @@ class MainWindow(QWidget):
         self.layout()
 
     def keyPressEvent(self, event: QKeyEvent):
-        self.key_press.emit(event)
+        self.key_pressed.emit(event)
         super().keyPressEvent(event)
 
     def layout(self):
