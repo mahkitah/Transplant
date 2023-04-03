@@ -239,13 +239,14 @@ def key_press(event: QKeyEvent):
                 pb_rem_tr.click()
 
 
+LINK_REGEX = re.compile(r'(https?://)([^\s\n\r]+)')
 def print_logs(record: logging.LogRecord):
-    if record.name == 'tr.GUI' and wb.tabs.count() == 1:
+    if wb.tabs.count() == 1:
         wb.tabs.addTab(ui_text.tab_results)
         wb.tabs.setCurrentIndex(1)
 
     if not (record.exc_info and not record.msg):
-        msg = re.sub(r'(https?://)([^\s\n\r]+)', r'<a href="\1\2">\2</a>', record.msg)
+        msg = LINK_REGEX.sub(r'<a href="\1\2">\2</a>', record.msg)
         wb.result_view.add(msg)
 
     if record.exc_info:

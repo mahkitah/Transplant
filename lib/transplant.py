@@ -17,6 +17,8 @@ from lib.info_2_upl import TorInfo2UplData
 report = logging.getLogger('tr.core')
 
 class Job:
+    domain_regex = re.compile(r"https?://(.+?)/.+")
+
     def __init__(self, src_tr=None, tor_id=None, src_dom=None, dtor_path=None, scanned=False, dest_group=None,
                  new_dtor=False, dest_trs=None):
 
@@ -66,11 +68,12 @@ class Job:
                 pass
 
         if announce:
-            tr_domain = re.search(r"https?://(.+?)/.+", announce).group(1)
-            for t in tr:
-                if tr_domain in t.tracker:
-                    self.src_tr = t
-                    break
+            tr_domain = self.domain_regex.search(announce).group(1)
+            if tr_domain:
+                for t in tr:
+                    if tr_domain in t.tracker:
+                        self.src_tr = t
+                        break
 
     def __hash__(self):
         return int(self.info_hash or f'{hash((self.src_tr, self.tor_id)):x}', 16)
