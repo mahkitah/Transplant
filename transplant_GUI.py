@@ -1,6 +1,6 @@
 import sys
 import logging
-
+from GUI import resources
 from PyQt6.QtWidgets import QApplication
 
 

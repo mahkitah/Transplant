@@ -7,7 +7,6 @@ from PyQt6.QtGui import QIcon, QKeyEvent, QAction
 from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings, QModelIndex, QTimer, QItemSelectionModel
 
 from lib import ui_text
-from GUI import resources
 
 class TempPopUp(QFrame):
     def __init__(self, parent):
