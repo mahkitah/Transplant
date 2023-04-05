@@ -72,6 +72,15 @@ l_no_icon = 'Text instead of icon'
 l_alt_row_colour = 'Alternating row colours'
 l_show_grid = 'Show grid'
 l_row_height = 'Row height'
+l_colors = 'Set colours for text in the results pane.<br>' \
+           'Use colour names, hex values: #xxxxxx, or rgb values: rgb(xx,xx,xx)<br>' \
+           'See <a href="https://en.wikipedia.org/wiki/Web_colors">wikipedia.org/wiki/Web_colors</a>,<br>' \
+           'or one of the thousand online html colour pickers<br>' \
+           'Leave empty for default text colour.'
+l_warning_color = 'Warning'
+l_error_color = 'Error'
+l_success_color = 'Sucess'
+l_link_color = 'link'
 
 default_whitelist = "ptpimg.me, thesungod.xyz"
 sum_ting_wong_1 = 'Invalid data folder'

@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QFormLayout, QDialog
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QGridLayout
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
 
@@ -32,8 +32,8 @@ class SettingsWindow(QDialog):
         settings_form = QFormLayout(wb.main_settings)
         settings_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
         settings_form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
-        settings_form.setVerticalSpacing(20)
-        settings_form.setHorizontalSpacing(20)
+        settings_form.setVerticalSpacing(15)
+        settings_form.setHorizontalSpacing(15)
         settings_form.addRow(wb.l_key_1, wb.le_key_1)
         settings_form.addRow(wb.l_key_2, wb.le_key_2)
         settings_form.addRow(wb.l_data_dir, data_dir)
@@ -69,19 +69,37 @@ class SettingsWindow(QDialog):
         # Looks
         main = QFormLayout()
         job_list = QFormLayout()
+
         main.addRow(wb.l_show_add_dtors, wb.chb_show_add_dtors)
         main.addRow(wb.l_show_rem_tr1, wb.chb_show_rem_tr1)
         main.addRow(wb.l_show_rem_tr2, wb.chb_show_rem_tr2)
+
         job_list.addRow(wb.l_no_icon, wb.chb_no_icon)
         job_list.addRow(wb.l_alt_row_colour, wb.chb_alt_row_colour)
         job_list.addRow(wb.l_show_grid, wb.chb_show_grid)
         job_list.addRow(wb.l_row_height, wb.spb_row_height)
 
+        color_form = QFormLayout()
+        color_form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
+
+        color_form.addRow(wb.l_warning_color, wb.ple_warning_color)
+        color_form.addRow(wb.l_error_color, wb.ple_error_color)
+        color_form.addRow(wb.l_success_color, wb.ple_success_color)
+        color_form.addRow(wb.l_link_color, wb.ple_link_color)
+
+        colors = QHBoxLayout()
+        colors.addLayout(color_form, stretch=0)
+        colors.addWidget(wb.color_examples, stretch=2)
+
         looks = QVBoxLayout(wb.looks)
         looks.addLayout(main)
-        looks.addSpacing(16)
+        looks.addSpacing(looks.spacing() * 3)
         looks.addWidget(wb.l_job_list)
         looks.addLayout(job_list)
+        looks.addSpacing(looks.spacing() * 3)
+        looks.addWidget(wb.l_colors)
+        looks.addSpacing(looks.spacing())
+        looks.addLayout(colors)
         looks.addStretch()
 
         # Total

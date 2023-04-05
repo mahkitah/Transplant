@@ -8,6 +8,33 @@ from gazelle.tracker_data import tr
 
 from cli_config import cli_config
 from lib import ui_text
+from lib.utils import tb_line_gen
+
+class ColorStreamHandler(logging.StreamHandler):
+    LEVEL_COLORS = {
+        40: "\x1b[0;31m",  # Error
+        30: "\x1b[0;33m",  # Warning
+        25: "\x1b[0;32m",  # Success
+    }
+
+    @staticmethod
+    def colored(text: str, color):
+        return color + text + "\x1b[0m"
+
+    def emit(self, record: logging.LogRecord) -> None:
+        msg = record.msg
+        color = self.LEVEL_COLORS.get(record.levelno)
+        if color:
+            msg = self.colored(msg, color)
+        self.stream.write(msg + self.terminator)
+
+        if record.exc_info:
+            cls, ex, tb = record.exc_info
+            for line in tb_line_gen(tb):
+                self.stream.write(line + self.terminator)
+
+            self.stream.write(self.colored(f'{cls.__name__}: {ex}', color) + self.terminator)
+
 
 verb_map = {
     0: logging.CRITICAL,
@@ -18,7 +45,11 @@ verb_map = {
 
 report = logging.getLogger('tr')
 report.setLevel(verb_map[cli_config.verbosity])
-report.addHandler(logging.StreamHandler(stream=sys.stdout))
+if cli_config.coloured_output:
+    handler = ColorStreamHandler(stream=sys.stdout)
+else:
+    handler = logging.StreamHandler(stream=sys.stdout)
+report.addHandler(handler)
 
 
 def parse_input():

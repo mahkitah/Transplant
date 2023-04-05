@@ -6,10 +6,11 @@ from PyQt6.QtGui import QIcon
 from gazelle.tracker_data import tr
 from lib import ui_text
 from GUI.custom_gui_classes import TPTextEdit, JobModel, JobView, CyclingTabBar, FolderSelectBox, ResultBrowser,\
-    IniSettings, TempPopUp
+    IniSettings, TempPopUp, ColorExample, PatientLineEdit
 
 TYPE_MAP = {
     'le': QLineEdit,
+    'ple': PatientLineEdit,
     'te': TPTextEdit,
     'chb': QCheckBox,
     'spb': QSpinBox,
@@ -17,6 +18,7 @@ TYPE_MAP = {
 }
 ACTION_MAP = {
     QLineEdit: (lambda x: x.textChanged, lambda x, y: x.setText(y)),
+    PatientLineEdit: (lambda x: x.text_changed, lambda x, y: x.setText(y)),
     TPTextEdit: (lambda x: x.plain_text_changed, lambda x, y: x.setText(y)),
     QCheckBox: (lambda x: x.stateChanged, lambda x, y: x.setCheckState(Qt.CheckState(y))),
     QSpinBox: (lambda x: x.valueChanged, lambda x, y: x.setValue(y)),
@@ -50,6 +52,10 @@ CONFIG_NAMES = {
     'chb_rehost': (0, True),
     'le_whitelist': (ui_text.default_whitelist, True),
     'le_ptpimg_key': (None, True),
+    'ple_warning_color': ('orange', True),
+    'ple_error_color': ('crimson', True),
+    'ple_success_color': ('forestgreen', True),
+    'ple_link_color': ('dodgerblue', True),
 }
 
 
@@ -168,6 +174,12 @@ class WidgetBank:
 
         # looks tab
         self.l_job_list = QLabel(ui_text.l_job_list)
+        self.l_colors = QLabel(ui_text.l_colors)
+        self.l_colors.setTextFormat(Qt.TextFormat.RichText)
+        self.l_colors.setOpenExternalLinks(True)
+        self.color_examples = ColorExample()
+        self.color_examples.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+        self.color_examples.setSizeAdjustPolicy(QTextEdit.SizeAdjustPolicy.AdjustToContents)
 
     def user_input_elements(self):
 

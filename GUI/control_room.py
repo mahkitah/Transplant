@@ -2,7 +2,6 @@ import os
 import re
 import logging
 import webbrowser
-import traceback
 
 from lib import utils, ui_text
 from lib.transplant import Job, Transplanter
@@ -184,7 +183,10 @@ def config_connections():
     wb.chb_show_grid.stateChanged.connect(wb.job_view.setShowGrid)
     wb.chb_show_grid.stateChanged.connect(wb.job_data.layoutChanged.emit)
     wb.spb_row_height.valueChanged.connect(wb.job_view.verticalHeader().setDefaultSectionSize)
-
+    wb.ple_warning_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 1))
+    wb.ple_error_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 2))
+    wb.ple_success_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 3))
+    wb.ple_link_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 4))
 
 def load_config():
     source_id = int(wb.config.value('bg_source', defaultValue=1))
@@ -239,22 +241,55 @@ def key_press(event: QKeyEvent):
                 pb_rem_tr.click()
 
 
+def splitlines(txt: str):
+    if txt in ('', '\n'):
+        return [txt]
+    if txt.endswith('\n'):
+        txt += '\n'
+    return txt.splitlines()
+
+
 LINK_REGEX = re.compile(r'(https?://)([^\s\n\r]+)')
+STUPID_3_11_TB = re.compile(r'[\s\^~]+')
+LINK_STYLE = ' style="color: {}"'
+REPL_PATTERN = r'<a href="\1\2"{}>\2</a>'
+LEVEL_SETTING_NAME_MAP = {
+    40: 'ple_error_color',
+    30: 'ple_warning_color',
+    25: 'ple_success_color',
+}
 def print_logs(record: logging.LogRecord):
     if wb.tabs.count() == 1:
         wb.tabs.addTab(ui_text.tab_results)
-        wb.tabs.setCurrentIndex(1)
 
-    if not (record.exc_info and not record.msg):
-        msg = LINK_REGEX.sub(r'<a href="\1\2">\2</a>', record.msg)
-        wb.result_view.add(msg)
+    color = wb.config.value(LEVEL_SETTING_NAME_MAP.get(record.levelno))
+    link_color = wb.config.value('ple_link_color')
+    link_style = LINK_STYLE.format(link_color) if link_color else ''
+    repl_pattern = REPL_PATTERN.format(link_style)
+
+    if not (not record.msg and record.exc_info):
+        for line in splitlines(record.msg):
+            print_log_line(line, repl_pattern, color=color)
 
     if record.exc_info:
         cls, ex, tb = record.exc_info
-        tb_str = ''.join(traceback.format_tb(tb)).strip('\n')
-        wb.result_view.add(tb_str)
-        wb.result_view.add(f'{cls.__name__}: {ex}')
+        for line in utils.tb_line_gen(tb):
+            print_log_line(line, repl_pattern)
 
+        print_log_line(f'{cls.__name__}: {ex}', repl_pattern, color=color)
+
+
+def print_log_line(line: str, repl_pattern: str, color: str = None):
+    line = LINK_REGEX.sub(repl_pattern, line)
+
+    if color:
+        line = f'<span style="color: {color}">{line}</span>'
+
+    wb.result_view.append(line)
+
+
+def default_colours():
+    ...
 
 def trpl_settings():
     user_settings = (

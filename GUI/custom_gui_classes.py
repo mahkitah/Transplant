@@ -13,6 +13,9 @@ class TempPopUp(QFrame):
         super().__init__(parent)
         self.setWindowFlag(Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint)
         self.setFrameShape(QFrame.Shape.Box)
+        self.timer = QTimer()
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(self.close)
         self.message = QLabel()
         lay = QVBoxLayout(self)
         lay.addWidget(self.message)
@@ -20,8 +23,59 @@ class TempPopUp(QFrame):
     def pop_up(self, message, time: int = 2000):
         self.message.setText(message)
         self.show()
-        QTimer.singleShot(time, self.close)
+        self.timer.start(time)
 
+
+class PatientLineEdit(QLineEdit):
+    text_changed = pyqtSignal(str)
+
+    def __init__(self):
+        super().__init__()
+        self.last_text = None
+        self.timer = QTimer()
+        self.timer.setSingleShot(True)
+        self.timer.setInterval(1500)
+        self.textChanged.connect(self.timer.start)
+        self.timer.timeout.connect(self.emit_change)
+
+    def emit_change(self):
+        if self.text() == self.last_text:
+            return
+        self.last_text = self.text()
+        self.text_changed.emit(self.text())
+
+class ColorExample(QTextBrowser):
+    texts = (
+        'This is normal text',
+        'This may require your attention',
+        'Oops, something went bad',
+        'That went well',
+        'http://example.com/'
+    )
+
+    def __init__(self):
+        super().__init__()
+        self.lines = list(self.texts)
+        link = self.lines[4]
+        self.lines[4] = f'<a href="{link}">{link}</a>'
+        self.current_colors = {i: '_' for i in range(1, 5)}
+
+    def update_colors(self, color: str, index):
+        color = ''.join(color.split())
+        if color == self.current_colors[index]:
+            return
+        self.current_colors[index] = color
+
+        style = f' style="color: {color}"' # if color else ''
+
+        line = self.texts[index]
+        if index == 4:
+            line = f'<a href="{line}"{style}>{line}</a>'
+        else:
+            line = f'<span{style}>{line}</span>'
+        self.lines[index] = line
+        self.clear()
+        self.append('<br>'.join(self.lines))
 
 class ResultBrowser(QTextBrowser):
     def __init__(self):
@@ -29,16 +83,9 @@ class ResultBrowser(QTextBrowser):
         self.setOpenExternalLinks(True)
         self.def_format = self.currentCharFormat()
 
-    def add(self, text: str):
+    def append(self, text: str) -> None:
         self.setCurrentCharFormat(self.def_format)
-        split = text.splitlines()
-        if split:
-            for line in split:
-                self.append(line)
-            if text.endswith('\n'):
-                self.append('')
-        else:
-            self.append(text)
+        super().append(text)
 
 
 class HistoryBox(QComboBox):

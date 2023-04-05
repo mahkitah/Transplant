@@ -1,7 +1,8 @@
 import os
+import re
 import platform
 import subprocess
-
+import traceback
 
 def scantree(path):
     for scan in os.scandir(path):
@@ -28,3 +29,11 @@ def multi_replace(src_txt, replace_map, *extra_maps):
     for k, v in replace_map.items():
         txt = txt.replace(k, v)
     return txt
+
+STUPID_3_11_TB = re.compile(r'[\s\^~]+')
+def tb_line_gen(tb):
+    for line in traceback.format_tb(tb):
+        for sub_line in line.splitlines():
+            if STUPID_3_11_TB.fullmatch(sub_line):
+                continue
+            yield sub_line

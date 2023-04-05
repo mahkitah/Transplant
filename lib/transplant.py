@@ -153,7 +153,7 @@ class Transplanter:
             report.info(f"{ui_text.upl1} {dest_api.tr.name}")
             try:
                 new_id, new_group, new_url = dest_api.upload(upl_data, upl_files, dest_group=self.job.dest_group)
-                report.info(f"{ui_text.upl2} {new_url}")
+                report.log(25, f"{ui_text.upl2} {new_url}")
             except Exception:
                 saul_goodman = False
                 report.exception(f"{ui_text.upl3}")

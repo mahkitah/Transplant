@@ -54,3 +54,6 @@ add_src_descr = True
 
 # Must contain %src_descr%
 src_descr = '[hide=source description:]%src_descr%[/hide]'
+
+# give output colours based on status: error > red, warning > yellow, success > green
+coloured_output = False
