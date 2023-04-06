@@ -189,7 +189,7 @@ def config_connections():
     wb.ple_link_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 4))
 
 def load_config():
-    source_id = int(wb.config.value('bg_source', defaultValue=1))
+    source_id = wb.config.value('bg_source', defaultValue=1)
     wb.bg_source.button(source_id).click()
     wb.main_window.resize(wb.config.value('geometry/size', defaultValue=QSize(550, 500)))
 
@@ -198,7 +198,7 @@ def load_config():
     except TypeError:
         pass
 
-    splittersizes = [int(x) for x in wb.config.value('geometry/splitter_pos', defaultValue=[150, 345])]
+    splittersizes = wb.config.value('geometry/splitter_pos', defaultValue=[150, 345], type=int)
     wb.splitter.setSizes(splittersizes)
     wb.splitter.splitterMoved.emit(splittersizes[0], 1)
     try:
@@ -537,3 +537,4 @@ def save_state():
     wb.config.setValue('geometry/position', wb.main_window.pos())
     wb.config.setValue('geometry/splitter_pos', wb.splitter.sizes())
     wb.config.setValue('geometry/job_view_header', wb.job_view.horizontalHeader().saveState())
+    wb.config.sync()

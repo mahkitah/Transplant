@@ -141,28 +141,29 @@ class FolderSelectBox(HistoryBox):
 
 
 class IniSettings(QSettings):
+    int_regex = re.compile(r'#int\((\d+)\)')
+    # bool_regex = re.compile(r'#bool\((True|False)\)')
+
     def __init__(self, path):
         super().__init__(path, QSettings.Format.IniFormat)
 
     def setValue(self, key, value):
         if type(value) == int:
             value = f'#int({value})'
-        elif type(value) == bool:
-            value = f'#bool({value})'
+        # elif type(value) == bool:
+        #     value = f'#bool({value})'
         elif value == []:
             value = '#empty list'
 
         super().setValue(key, value)
 
-    def value(self, key, defaultValue=None, type_: type = None):
-        value = super().value(key, defaultValue=defaultValue)
+    def value(self, key, **kwargs):
+        value = super().value(key, **kwargs)
         if isinstance(value, str):
-            if value.startswith('#int('):
-                as_str = re.match(r'#int\((\d+)\)', value).group(1)
-                value = int(as_str)
-            elif value.startswith('#bool('):
-                as_str = re.match(r'#bool\((True|False)\)', value).group(1)
-                value = as_str == 'True'
+            if int_match := self.int_regex.match(value):
+                value = int(int_match.group(1))
+            # elif bool_match := self.bool_regex.match(value):
+            #     value = bool_match.group(1) == 'True'
             elif value == '#empty list':
                 value = []
 
