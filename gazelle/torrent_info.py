@@ -93,7 +93,7 @@ class TorrentInfo:
 
     def set_fields(self, fields, api_r):
         for k, (sub, name) in fields.items():
-            value = self.value_action(api_r[sub][name])
+            value = self.value_action(api_r[sub][name], k)
             setattr(self, k, value)
 
     def set_rel_type_name(self):
@@ -110,7 +110,7 @@ class TorrentInfo:
                           'size': match.group(2)})
         self.file_list = files
 
-    def value_action(self, value):
+    def value_action(self, value, key):
         return value
 
     def unknown_etc(self):
@@ -135,7 +135,7 @@ class TradTorrentInfo(TorrentInfo):
 
 class REDTorrentInfo(TorrentInfo):
 
-    def value_action(self, value):
+    def value_action(self, value, _):
         try:
             value = html.unescape(value)
         except TypeError:
@@ -154,12 +154,22 @@ class REDTorrentInfo(TorrentInfo):
                 self.rem_cat_nr = self.o_cat_nr
 
 class OPSTorrentInfo(TorrentInfo):
+    artist_strip_regex = re.compile(r'(.+)\s\(\d+\)$')
+
+    def strip_artists(self):
+        for a_type, artists in self.artist_data.items():
+            for a in artists:
+                if match := self.artist_strip_regex.match(a['name']):
+                    stripped = match.group(1)
+                    a['name'] = stripped
 
     def unknown_etc(self):
         if self.remastered and not self.rem_year:
             self.unknown = True
 
     def further_actions(self, **kwargs):
+        self.strip_artists()
+
         # get rid of original release
         if not self.remastered:
             self.rem_year = self.o_year
