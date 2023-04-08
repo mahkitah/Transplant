@@ -13,6 +13,7 @@ from gazelle.api_classes import sleeve
 
 from lib import utils, ui_text
 from lib.info_2_upl import TorInfo2UplData
+from lib.lean_torrent import Torrent
 
 report = logging.getLogger('tr.core')
 
@@ -269,11 +270,8 @@ class Transplanter:
         return True
 
     def create_new_torrent(self):
-        from dottorrent import Torrent
-
         report.info(ui_text.new_tor)
-        t = Torrent(self.torrent_folder_path, private=True)
-        t.generate()
+        t = Torrent(self.torrent_folder_path)
 
         return t.data
 
