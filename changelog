@@ -1,3 +1,13 @@
+2.5.1
+- New: Fusion style by default
+- New: coloured output (GUI and CLI)
+- New: OPS artist disambiguation numbers are stripped
+- Fix: Crash when checking nt checkbox (pyqt5 > pyqt6 leftover)
+- Fix: CLI will continue scanning when unknown .torrent is found
+- Icons are now packed in a resource file. No more subdir with icon files
+- Dottorrent is no longer a requirement
+- More usefull error message when server doesn't return json (status 500)
+- File not found during file check will not print full traceback anymore, just simple message
 2.5
 - GUI Qt5 > Qt6
 - New: Input for api keys is now checked for leading and trailing spaces
