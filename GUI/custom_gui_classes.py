@@ -8,6 +8,7 @@ from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QSettings, QModelI
 
 from lib import ui_text
 
+
 class TempPopUp(QFrame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -44,6 +45,7 @@ class PatientLineEdit(QLineEdit):
         self.last_text = self.text()
         self.text_changed.emit(self.text())
 
+
 class ColorExample(QTextBrowser):
     texts = (
         'This is normal text',
@@ -76,6 +78,7 @@ class ColorExample(QTextBrowser):
         self.lines[index] = line
         self.clear()
         self.append('<br>'.join(self.lines))
+
 
 class ResultBrowser(QTextBrowser):
     def __init__(self):
@@ -189,9 +192,11 @@ class CyclingTabBar(QTabBar):
             else:
                 self.setCurrentIndex(0)
 
+
 class IntRowItemSelectionModel(QItemSelectionModel):
     def selectedRows(self, column=0) -> list[int]:
         return [i.row() for i in super().selectedRows(column)]
+
 
 class JobView(QTableView):
     key_override_sig = pyqtSignal(QKeyEvent)
