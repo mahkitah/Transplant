@@ -22,7 +22,12 @@ class SettingsWindow(QDialog):
         # main
         data_dir = QVBoxLayout()
         data_dir.addWidget(wb.fsb_data_dir)
-        data_dir.addWidget(wb.chb_deep_search)
+        deep_search = QHBoxLayout()
+        deep_search.setSpacing(0)
+        deep_search.addWidget(wb.chb_deep_search)
+        deep_search.addWidget(wb.spb_deep_search_level)
+        deep_search.addStretch()
+        data_dir.addLayout(deep_search)
         data_dir.setSpacing(5)
 
         save_dtor = QHBoxLayout()

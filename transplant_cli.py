@@ -84,6 +84,7 @@ def main():
     trpl_settings = {
         'data_dir': cli_config.data_dir,
         'deep_search': cli_config.deep_search,
+        'deep_search_level': cli_config.deep_search_level,
         'dtor_save_dir': cli_config.torrent_save_dir,
         'save_dtors': bool(cli_config.torrent_save_dir),
         'del_dtors': cli_config.del_dtors,

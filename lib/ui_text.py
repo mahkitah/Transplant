@@ -37,7 +37,7 @@ pb_ok = "OK"
 l_key_1 = f"API-key {tracker_1}"
 l_key_2 = f"API-key {tracker_2}"
 l_data_dir = 'Data folder'
-chb_deep_search = 'Deep search'
+chb_deep_search = 'Deep search to level:'
 l_scan_dir = 'Scan folder'
 l_dtor_save_dir = 'Save new .torrrents'
 l_del_dtors = 'Delete scanned .torrents'
@@ -92,7 +92,6 @@ sum_ting_wong_6 = 'Leading and/or trailing space in {}'
 
 # Transplanter
 missing = "Can't find:"
-indexing = 'Indexing data folder for deep search'
 multiple = "found multiple times"
 no_log = "No logs found"
 f_checked = 'Files checked'
@@ -127,7 +126,8 @@ tt_l_key_1 = "Get your API-key from the site's user settings\n" \
           "Please note that these keys are stored in plain text"
 tt_l_key_2 = tt_l_key_1
 tt_l_data_dir = "This should be the top level folder where the album folders can be found"
-tt_chb_deep_search = "Check if torrent folders can be deeper than direct subfolder of data folder"
+tt_chb_deep_search = "When checked, the data folder will be searched for torrent folders up til 'level' deep,\n" \
+                     "level 1 is direct subfolder of data dir, subfolder of that is level 2 etc."
 tt_l_scan_dir = "This folder will be scanned for .torrents when the 'Scan' button is pressed\n" \
                     "You can download the .torrents from the source tracker here"
 tt_l_dtor_save_dir = "Newly created .torrents from the destination tracker can be saved here\n" \

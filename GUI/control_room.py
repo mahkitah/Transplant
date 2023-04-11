@@ -173,6 +173,7 @@ def config_connections():
         lambda: wb.pb_scan.setEnabled(bool(wb.fsb_scan_dir.currentText())))
     wb.fsb_dtor_save_dir.list_changed.connect(
         lambda: wb.pb_open_tsavedir.setEnabled(bool(wb.fsb_dtor_save_dir.currentText())))
+    wb.chb_deep_search.stateChanged.connect(lambda x: wb.spb_deep_search_level.setEnabled(bool(x)))
     wb.chb_show_tips.stateChanged.connect(tooltips)
     wb.spb_verbosity.valueChanged.connect(set_verbosity)
     wb.chb_show_add_dtors.stateChanged.connect(lambda x: wb.pb_open_dtors.setVisible(x)),
@@ -294,6 +295,7 @@ def default_colours():
 def trpl_settings():
     user_settings = (
         'chb_deep_search',
+        'spb_deep_search_level',
         'chb_save_dtors',
         'chb_del_dtors',
         'chb_file_check',

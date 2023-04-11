@@ -30,6 +30,7 @@ CONFIG_NAMES = {
     'le_key_2': (None, True),
     'fsb_data_dir': ([], True),
     'chb_deep_search': (0, False),
+    'spb_deep_search_level': (2, False),
     'fsb_scan_dir': ([], True),
     'fsb_dtor_save_dir': ([], True),
     'chb_save_dtors': (0, False),
@@ -218,6 +219,7 @@ class WidgetBank:
         self.le_key_2.setCursorPosition(0)
 
         self.chb_deep_search.setText(ui_text.chb_deep_search)
+        self.spb_deep_search_level.setMinimum(2)
         self.spb_verbosity.setMaximum(3)
         self.spb_verbosity.setMaximumWidth(40)
 

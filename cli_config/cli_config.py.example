@@ -7,8 +7,10 @@ api_key_OPS = "654321"
 # for Windows paths, double up the backslashes
 # Music files can be found here:
 data_dir = "D:\\Test"
-# Set to True if torrent folders can be deeper than a direct subfolder of data_dir
+# Set to True if torrent folders can be deeper than a direct subfolder(=level 1) of data_dir
+# Level determines how deep the torrent folder can be found
 deep_search = False
+deep_search_level = 2
 
 # .torrent is saved here
 # Put 'None' (without quotes) if you don't want the .torrent to be saved to disc:

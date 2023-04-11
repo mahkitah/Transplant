@@ -84,13 +84,14 @@ class Job:
 
 
 class Transplanter:
-    def __init__(self, key_dict, data_dir=None, deep_search=False, dtor_save_dir=None, save_dtors=False, del_dtors=False,
+    def __init__(self, key_dict, data_dir=None, deep_search=False, deep_search_level=None, dtor_save_dir=None, save_dtors=False, del_dtors=False,
                  file_check=True, rel_descr_templ=None, rel_descr_own_templ=None, add_src_descr=True, src_descr_templ=None,
                  img_rehost=False, whitelist=None, ptpimg_key=None, post_compare=False):
 
         self.api_map = {trckr: sleeve(trckr, key=key_dict[trckr]) for trckr in tr}
         self.data_dir = data_dir
         self.deep_search = deep_search
+        self.deep_search_level = deep_search_level
         self.dtor_save_dir = dtor_save_dir
         self.save_dtors = save_dtors
         self.del_dtors = del_dtors
@@ -110,8 +111,10 @@ class Transplanter:
 
         self.job = None
         self.tor_info = None
-        self._subdir_index = None
-        self._torrent_folder_path = None
+
+        if self.deep_search:
+            self.subdir_store = {}
+            self.subdir_gen = utils.subdirs_gen(self.data_dir, maxlevel=self.deep_search_level)
 
     def do_your_job(self, job):
         self.tor_info = None
@@ -176,32 +179,21 @@ class Transplanter:
         return True
 
     @property
-    def subdir_index(self):
-        if not self._subdir_index:
-            subdirs = defaultdict(list)
-            report.info(ui_text.indexing)
-            for root, dirs, files in os.walk(self.data_dir):
-                for d in dirs:
-                    subdirs[d].append(root)
-            self._subdir_index = dict(subdirs)
-
-        return self._subdir_index
-
-    @property
     def torrent_folder_path(self):
         if not self._torrent_folder_path:
+            tor_folder_name = self.tor_info.folder_name
             if self.deep_search:
-                try:
-                    rootpath_list = self.subdir_index[self.tor_info.folder_name]
-                except KeyError:
-                    raise FileNotFoundError(f"{ui_text.missing} {self.tor_info.folder_name}")
-
-                if len(rootpath_list) > 1:
-                    raise Exception(f'"{self.tor_info.folder_name}" {ui_text.multiple}')
-
-                self._torrent_folder_path = os.path.join(rootpath_list[0], self.tor_info.folder_name)
+                if tor_folder_name in self.subdir_store:
+                    self._torrent_folder_path = os.path.join(self.subdir_store[tor_folder_name], tor_folder_name)
+                else:
+                    for root, subdir in self.subdir_gen:
+                        if subdir == tor_folder_name:
+                            self._torrent_folder_path = os.path.join(root, subdir)
+                            break
+                        else:
+                            self.subdir_store[subdir] = root
             else:
-                self._torrent_folder_path = os.path.join(self.data_dir, self.tor_info.folder_name)
+                self._torrent_folder_path = os.path.join(self.data_dir, tor_folder_name)
 
         return self._torrent_folder_path
 

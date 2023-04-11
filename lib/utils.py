@@ -11,6 +11,13 @@ def scantree(path):
         else:
             yield scan
 
+def subdirs_gen(path, maxlevel=1, level=1):
+    for entry in os.scandir(path):
+        if entry.is_dir():
+            yield os.path.split(entry.path)
+            if level < maxlevel:
+                yield from subdirs_gen(entry.path, maxlevel=maxlevel, level=level + 1)
+
 def open_local_folder(path):
     if platform.system() == 'Windows':
         os.startfile(path)
