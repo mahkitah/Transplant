@@ -1,5 +1,6 @@
 import os
 import re
+from functools import partial
 
 from PyQt6.QtWidgets import QFrame, QTextEdit, QHeaderView, QTableView, QComboBox, QFileDialog, QLineEdit, QTabBar,\
     QVBoxLayout, QLabel, QTextBrowser, QSizePolicy
@@ -261,10 +262,6 @@ class ContextHeaderView(QHeaderView):
             self.section_visibility_changed.emit(x, self.isSectionHidden(x))
 
     def context_actions(self):
-
-        def make_lambda(index):
-            return lambda: self.setSectionHidden(index, not self.isSectionHidden(index))
-
         ac_restore_all = QAction(ui_text.header_restore, self)
         self.addAction(ac_restore_all)
         ac_restore_all.triggered.connect(self.set_all_sections_visible)
@@ -274,7 +271,7 @@ class ContextHeaderView(QHeaderView):
             action = QAction(self)
             action.setText(self.text(i))
             self.addAction(action)
-            action.triggered.connect(make_lambda(i))
+            action.triggered.connect(partial(lambda x: self.setSectionHidden(x, not self.isSectionHidden(x)), i))
 
     def set_all_sections_visible(self):
         for x in range(self.count()):
