@@ -2,8 +2,10 @@ import os
 import re
 import logging
 import webbrowser
+from urllib.parse import urlparse, parse_qs
 
 from lib import utils, ui_text
+from lib.img_rehost import ih
 from lib.transplant import Job, Transplanter
 from lib.version import __version__
 from gazelle.tracker_data import tr
@@ -116,6 +118,13 @@ def config_update():
             wb.config.remove(key)
         if key == 'bg_source' and wb.config.value(key) == 0:
             wb.config.setValue(key, 1)
+        if key == 'le_ptpimg_key':
+            value = wb.config.value(key)
+            if value:
+                ih.PTPimg.key = value
+                if wb.config.value('chb_rehost'):
+                    ih.PTPimg.enabled = True
+            wb.config.remove(key)
 
 
 def main_connections():
@@ -163,12 +172,9 @@ def main_connections():
 
 
 def config_connections():
-    wb.pb_def_descr.clicked.connect(default_descr)
     wb.pb_ok.clicked.connect(settings_check)
     wb.pb_cancel.clicked.connect(wb.settings_window.reject)
-    wb.settings_window.accepted.connect(
-        lambda: wb.config.setValue('geometry/config_window_size', wb.settings_window.size()))
-    wb.settings_window.accepted.connect(consolidate_fsbs)
+    wb.settings_window.accepted.connect(settings_accepted)
     wb.fsb_scan_dir.list_changed.connect(
         lambda: wb.pb_scan.setEnabled(bool(wb.fsb_scan_dir.currentText())))
     wb.fsb_dtor_save_dir.list_changed.connect(
@@ -176,18 +182,23 @@ def config_connections():
     wb.chb_deep_search.stateChanged.connect(lambda x: wb.spb_deep_search_level.setEnabled(bool(x)))
     wb.chb_show_tips.stateChanged.connect(tooltips)
     wb.spb_verbosity.valueChanged.connect(set_verbosity)
+    wb.pb_def_descr.clicked.connect(default_descr)
+    wb.sty_style_selecter.currentTextChanged.connect(wb.app.setStyle)
+    wb.chb_rehost.stateChanged.connect(wb.rh_on_off_container.setEnabled)
+    wb.pb_def_descr.clicked.connect(default_descr)
+    wb.sty_style_selecter.currentTextChanged.connect(wb.app.setStyle)
     wb.chb_show_add_dtors.stateChanged.connect(lambda x: wb.pb_open_dtors.setVisible(x)),
     wb.chb_show_rem_tr1.stateChanged.connect(lambda x: wb.pb_rem_tr1.setVisible(x)),
     wb.chb_show_rem_tr2.stateChanged.connect(lambda x: wb.pb_rem_tr2.setVisible(x)),
     wb.chb_no_icon.stateChanged.connect(wb.job_data.layoutChanged.emit)
     wb.chb_alt_row_colour.stateChanged.connect(wb.job_view.setAlternatingRowColors)
     wb.chb_show_grid.stateChanged.connect(wb.job_view.setShowGrid)
-    wb.chb_show_grid.stateChanged.connect(wb.job_data.layoutChanged.emit)
     wb.spb_row_height.valueChanged.connect(wb.job_view.verticalHeader().setDefaultSectionSize)
     wb.ple_warning_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 1))
     wb.ple_error_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 2))
     wb.ple_success_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 3))
     wb.ple_link_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 4))
+
 
 def load_config():
     source_id = wb.config.value('bg_source', defaultValue=1)
@@ -208,6 +219,17 @@ def load_config():
         wb.job_view.horizontalHeader().set_all_sections_visible()
 
     wb.settings_window.resize(wb.config.value('geometry/config_window_size', defaultValue=QSize(400, 450)))
+
+    hostdata = wb.config.value('rehost_data')
+    if hostdata:
+        ih.set_attrs(hostdata)
+    wb.rehost_table.move_to_priority()
+
+
+def settings_accepted():
+    wb.config.setValue('geometry/config_window_size', wb.settings_window.size())
+    consolidate_fsbs()
+    wb.config.setValue('rehost_data', ih.get_attrs())
 
 
 def key_press(event: QKeyEvent):
@@ -251,7 +273,7 @@ def splitlines(txt: str):
 
 
 LINK_REGEX = re.compile(r'(https?://)([^\s\n\r]+)')
-STUPID_3_11_TB = re.compile(r'[\s\^~]+')
+STUPID_3_11_TB = re.compile(r'[\s^~]+')
 LINK_STYLE = ' style="color: {}"'
 REPL_PATTERN = r'<a href="\1\2"{}>\2</a>'
 LEVEL_SETTING_NAME_MAP = {
@@ -315,10 +337,11 @@ def trpl_settings():
 
     if wb.config.value('chb_rehost'):
         white_str_nospace = ''.join(wb.config.value('le_whitelist').split())
-        if white_str_nospace:
-            whitelist = white_str_nospace.split(',')
-            settings_dict.update(img_rehost=True, whitelist=whitelist,
-                                 ptpimg_key=wb.config.value('le_ptpimg_key'))
+
+        whitelist = white_str_nospace.split(',')
+        if '' in whitelist:
+            whitelist.remove('')
+        settings_dict.update(img_rehost=True, whitelist=whitelist)
 
     return settings_dict
 
@@ -353,10 +376,13 @@ def parse_paste_input():
         if match_id:
             new_jobs.append(Job(src_tr=src_tr, tor_id=line))
             continue
-        match_url = re.search(r"https?://(.+?)/.+torrentid=(\d+)", line)
-        if match_url:
+
+        parsed = urlparse(line)
+        hostname = parsed.hostname
+        id_list = parse_qs(parsed.query).get('torrentid')
+        if id_list and hostname:
             try:
-                new_jobs.append(Job(src_dom=match_url.group(1), tor_id=match_url.group(2)))
+                new_jobs.append(Job(src_dom=hostname, tor_id=id_list.pop()))
             except AssertionError:
                 continue
 
@@ -415,7 +441,6 @@ def settings_check():
     dtor_save_dir = wb.fsb_dtor_save_dir.currentText()
     save_dtors = wb.config.value('chb_save_dtors')
     rehost = wb.config.value('chb_rehost')
-    ptpimg_key = wb.config.value('le_ptpimg_key')
     add_src_descr = wb.config.value('chb_add_src_descr')
 
     sum_ting_wong = []
@@ -425,11 +450,11 @@ def settings_check():
         sum_ting_wong.append(ui_text.sum_ting_wong_2)
     if save_dtors and not os.path.isdir(dtor_save_dir):
         sum_ting_wong.append(ui_text.sum_ting_wong_3)
-    if rehost and not ptpimg_key:
+    if rehost and not any(h.enabled for h in ih):
         sum_ting_wong.append(ui_text.sum_ting_wong_4)
     if add_src_descr and '%src_descr%' not in wb.te_src_descr_templ.toPlainText():
         sum_ting_wong.append(ui_text.sum_ting_wong_5)
-    for set_name in ('le_key_1', 'le_key_2', 'le_ptpimg_key'):
+    for set_name in ('le_key_1', 'le_key_2'):
         value = wb.config.value(set_name)
         stripped = value.strip()
         if value != stripped:
@@ -438,6 +463,7 @@ def settings_check():
 
     if sum_ting_wong:
         warning = QMessageBox()
+        warning.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         warning.setIcon(QMessageBox.Icon.Warning)
         warning.setText("- " + "\n- ".join(sum_ting_wong))
         warning.exec()
@@ -535,6 +561,7 @@ def set_verbosity(lvl):
 
 
 def save_state():
+    wb.config.setValue('rehost_data', ih.get_attrs())
     wb.config.setValue('geometry/size', wb.main_window.size())
     wb.config.setValue('geometry/position', wb.main_window.pos())
     wb.config.setValue('geometry/splitter_pos', wb.splitter.sizes())

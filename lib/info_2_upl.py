@@ -53,8 +53,8 @@ class TorInfo2UplData(FormData):
 
     def bitrate(self):
         inp_encoding = self.tor_info.encoding
-        if inp_encoding in ['192', 'APS (VBR)', 'V2 (VBR)', 'V1 (VBR)', '256', 'APX (VBR)',
-                            'V0 (VBR)', 'Lossless', '24bit Lossless']:
+        if inp_encoding in ('192', 'APS (VBR)', 'V2 (VBR)', 'V1 (VBR)', '256', 'APX (VBR)',
+                            'V0 (VBR)', 'Lossless', '24bit Lossless'):
             self.encoding = inp_encoding
         else:
             self.encoding = 'Other'

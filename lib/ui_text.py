@@ -126,7 +126,7 @@ tt_l_key_1 = "Get your API-key from the site's user settings\n" \
 tt_l_key_2 = tt_l_key_1
 tt_l_data_dir = "This should be the top level folder where the album folders can be found"
 tt_chb_deep_search = "When checked, the data folder will be searched for torrent folders up til 'level' deep,\n" \
-                     "level 1 is direct subfolder of data dir, subfolder of that is level 2 etc."
+                     "level 1 is direct subfolder of data dir. Subfolder of that is level 2 etc."
 tt_l_scan_dir = "This folder will be scanned for .torrents when the 'Scan' button is pressed\n" \
                     "You can download the .torrents from the source tracker here"
 tt_l_dtor_save_dir = "Newly created .torrents from the destination tracker can be saved here\n" \

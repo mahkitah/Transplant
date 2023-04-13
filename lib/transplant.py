@@ -144,9 +144,9 @@ class Transplanter:
                                    self.src_descr_templ, src_api.account_info['id'])
         upl_files = upload.Files()
 
-        self.get_dtor(upl_files)
+        self.get_dtor(upl_files, src_api)
 
-        if (self.tor_info.haslog or self.job.new_dtor) and not self.get_logs(upl_files):
+        if (self.tor_info.haslog or self.job.new_dtor) and not self.get_logs(upl_files, src_api):
             return False
 
         saul_goodman = True
@@ -212,7 +212,7 @@ class Transplanter:
         if src_descr != dest_descr or self.tor_info.title != new_tor_info.title:
             report.warning(ui_text.merged)
 
-    def get_dtor(self, files):
+    def get_dtor(self, files, src_api):
         if self.job.new_dtor:
             files.add_dtor(self.create_new_torrent(), as_dict=True)
 
@@ -222,7 +222,7 @@ class Transplanter:
             dtor_bytes = self.api_map[self.job.src_tr].request("GET", "download", id=self.tor_info.tor_id)
             files.add_dtor(dtor_bytes)
 
-    def get_logs(self, files: upload.Files) -> bool:
+    def get_logs(self, files: upload.Files, src_api) -> bool:
 
         def is_riplog(fn):
             if fn.endswith('.log') and not any(x in fn.lower() for x in ("audiochecker", "aucdtect", "accurip")):

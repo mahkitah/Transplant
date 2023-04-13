@@ -31,7 +31,7 @@ class Tr(Flag):
         for k, v in attr.items():
             setattr(self, k, v)
 
-tr = Tr('Tr', [(name, attr) for name, attr in tr_data.items()])
+tr = Tr('Tr', tr_data.items())
 
 RELEASE_TYPE_MAP = {
     tr.RED: {

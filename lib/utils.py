@@ -37,7 +37,7 @@ def multi_replace(src_txt, replace_map, *extra_maps):
         txt = txt.replace(k, v)
     return txt
 
-STUPID_3_11_TB = re.compile(r'[\s\^~]+')
+STUPID_3_11_TB = re.compile(r'[\s^~]+')
 def tb_line_gen(tb):
     for line in traceback.format_tb(tb):
         for sub_line in line.splitlines():

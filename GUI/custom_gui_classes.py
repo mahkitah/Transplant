@@ -270,6 +270,8 @@ class ContextHeaderView(QHeaderView):
             action = QAction(self)
             action.setText(self.text(i))
             self.addAction(action)
+            # 'i' must be evaluated at loop time. isSectionHidden() must be evaluateed at run time.
+            # Hence, the lambda in a partial.
             action.triggered.connect(partial(lambda x: self.setSectionHidden(x, not self.isSectionHidden(x)), i))
 
     def set_all_sections_visible(self):
