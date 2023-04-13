@@ -214,10 +214,9 @@ class JobView(QTableView):
         self.verticalHeader().setMinimumSectionSize(12)
         self.horizontalHeader().setSectionsMovable(True)
         self.horizontalHeader().setMinimumSectionSize(18)
-        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         self.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        self.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
 
     def keyPressEvent(self, event: QKeyEvent):
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.key() == Qt.Key.Key_Tab:
@@ -333,14 +332,15 @@ class JobModel(QAbstractTableModel):
         no_icon = self.config.value('chb_no_icon') == 2
 
         if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
-            if column == 0 and no_icon:
-                return job.src_tr.name
+            if column == 0:
+                show_name = job.display_name or job.tor_id
+                if no_icon:
+                    show_name = f'{job.src_tr.name} - {show_name}'
+                return show_name
             if column == 1:
-                return job.display_name or job.tor_id
-            if column == 2:
                 return job.dest_group
 
-        if role == Qt.ItemDataRole.CheckStateRole and column == 3:
+        if role == Qt.ItemDataRole.CheckStateRole and column == 2:
             return Qt.CheckState.Checked if job.new_dtor else Qt.CheckState.Unchecked
 
         if role == Qt.ItemDataRole.DecorationRole and column == 0 and not no_icon:
@@ -353,9 +353,9 @@ class JobModel(QAbstractTableModel):
         return len(self.headers)
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlag:
-        if index.column() == 2:
+        if index.column() == 1:
             return super().flags(index) | Qt.ItemFlag.ItemIsEditable
-        if index.column() == 3:
+        if index.column() == 2:
             return super().flags(index) | Qt.ItemFlag.ItemIsUserCheckable
         else:
             return super().flags(index)
@@ -365,12 +365,12 @@ class JobModel(QAbstractTableModel):
             return self.headers[section]
 
         if role == Qt.ItemDataRole.ToolTipRole and orientation == Qt.Orientation.Horizontal:
+            if section == 1:
+                if bool(int(self.config.value('chb_show_tips'))):
+                    return ui_text.ttm_header1
             if section == 2:
                 if bool(int(self.config.value('chb_show_tips'))):
                     return ui_text.ttm_header2
-            if section == 3:
-                if bool(int(self.config.value('chb_show_tips'))):
-                    return ui_text.ttm_header3
         else:
             return super().headerData(section, orientation, role)
 
@@ -378,7 +378,7 @@ class JobModel(QAbstractTableModel):
         job = self.jobs[index.row()]
         column = index.column()
 
-        if column == 2:
+        if column == 1:
             if value:
                 try:
                     value = str(int(value))
@@ -386,13 +386,13 @@ class JobModel(QAbstractTableModel):
                     return False
             job.dest_group = value or None
 
-        if column == 3 and role == Qt.ItemDataRole.CheckStateRole:
+        if column == 2 and role == Qt.ItemDataRole.CheckStateRole:
             job.new_dtor = True if Qt.CheckState(value) == Qt.CheckState.Checked else False
 
         return True
 
     def header_double_clicked(self, column: int):
-        if column == 3:
+        if column == 2:
             allchecked = all(j.new_dtor for j in self.jobs)
 
             for i, job in enumerate(self.jobs):

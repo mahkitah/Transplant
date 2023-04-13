@@ -512,7 +512,7 @@ def delete_selected():
 
 
 def open_torrent_page(index):
-    if index.column() > 1:
+    if index.column() > 0:
         return
     job = wb.job_data.jobs[index.row()]
     domain = job.src_tr.site
