@@ -2,6 +2,7 @@ import sys
 import os
 import re
 import logging
+from urllib.parse import urlparse, parse_qs
 
 from lib.transplant import Transplanter, Job
 from gazelle.tracker_data import tr
@@ -60,13 +61,16 @@ def parse_input():
         if arg.lower() == "batch":
             batchmode = True
 
-        match_url = re.search(r"https://(.+?)/.+torrentid=(\d+)", arg)
-        if match_url:
-            yield Job(src_dom=match_url.group(1), tor_id=match_url.group(2))
-
         match_id = re.fullmatch(r"(RED|OPS)(\d+)", arg)
         if match_id:
             yield Job(src_tr=tr[match_id.group(1)], tor_id=match_id.group(2))
+            continue
+
+        parsed = urlparse(arg)
+        hostname = parsed.hostname
+        tor_id = parse_qs(parsed.query).get('torrentid').pop()
+        if tor_id and hostname:
+            yield Job(src_dom=hostname, tor_id=tor_id)
 
     if batchmode:
         for scan in os.scandir(cli_config.scan_dir):

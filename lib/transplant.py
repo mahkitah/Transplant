@@ -1,11 +1,11 @@
 import os
-import re
 import logging
 import base64
-from collections import defaultdict
+
+from hashlib import sha1, sha256
+from urllib.parse import urlparse
 
 from bcoding import bencode, bdecode
-from hashlib import sha1, sha256
 
 from gazelle import upload
 from gazelle.tracker_data import tr
@@ -18,8 +18,6 @@ from lib.lean_torrent import Torrent
 report = logging.getLogger('tr.core')
 
 class Job:
-    domain_regex = re.compile(r"https?://(.+?)/.+")
-
     def __init__(self, src_tr=None, tor_id=None, src_dom=None, dtor_path=None, scanned=False, dest_group=None,
                  new_dtor=False, dest_trs=None):
 
@@ -68,13 +66,14 @@ class Job:
             except KeyError:
                 pass
 
-        if announce:
-            tr_domain = self.domain_regex.search(announce).group(1)
-            if tr_domain:
-                for t in tr:
-                    if tr_domain in t.tracker:
-                        self.src_tr = t
-                        break
+        if not announce:
+            return
+        parsed = urlparse(announce)
+        if parsed.hostname:
+            for t in tr:
+                if parsed.hostname in t.tracker.lower():
+                    self.src_tr = t
+                    break
 
     def __hash__(self):
         return int(self.info_hash or f'{hash((self.src_tr, self.tor_id)):x}', 16)
