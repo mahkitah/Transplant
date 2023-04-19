@@ -1,6 +1,8 @@
-import math
 import os
+import math
+from multiprocessing import pool
 from hashlib import sha1
+
 from lib.utils import scantree
 
 
@@ -11,6 +13,7 @@ class Torrent:
         self._total_size = 0
         self._piece_size = None
         self.data = None
+        self._pool = pool.ThreadPool()
         self.generate_data()
 
     def scan_files(self):
@@ -52,36 +55,41 @@ class Torrent:
             with open(path, 'rb') as f:
                 yield f
 
-    def continuous_file_chunks(self):
+    def file_chunks(self):
         ps = self.piece_size
-        leftover = None
         read_size = ps
+        chunks = []
+        chunks_size = 0
         for f in self.file_objects():
             for chunk in iter(lambda: f.read(read_size), b''):
-                if leftover:
-                    chunk = leftover + chunk
-                if len(chunk) == ps:
-                    yield chunk
-                    if leftover:
-                        leftover = None
-                        read_size = ps
+                chunks_size += len(chunk)
+                chunks.append(chunk)
+                if chunks_size == ps:
+                    yield chunks
+                    chunks_size = 0
+                    read_size = ps
+                    chunks = []
                 else:
-                    leftover = chunk
-                    read_size = ps - len(chunk)
-        if leftover:
-            yield leftover
+                    read_size = ps - chunks_size
+        if chunks_size:
+            yield chunks
+
+    @staticmethod
+    def list_hasher(chunks: list[bytes]):
+        h = sha1()
+        for chunk in chunks:
+            h.update(chunk)
+        return h.digest()
 
     def file_hashes(self):
-        file_hashes = bytes()
-        for chunk in self.continuous_file_chunks():
-            file_hashes += sha1(chunk).digest()
-        return file_hashes
+        for chsum in self._pool.imap(self.list_hasher, self.file_chunks(), 10):
+            yield chsum
 
     def generate_data(self):
         info = {
             'files': [],
             'name': os.path.basename(self.path),
-            'pieces': self.file_hashes(),
+            'pieces': b''.join(self.file_hashes()),
             'piece length': self.piece_size,
             'private': 1
         }
