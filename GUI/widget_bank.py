@@ -5,8 +5,9 @@ from PyQt6.QtGui import QIcon
 
 from gazelle.tracker_data import tr
 from lib import ui_text
-from GUI.custom_gui_classes import TPTextEdit, JobModel, JobView, CyclingTabBar, FolderSelectBox, ResultBrowser,\
-    IniSettings, TempPopUp, ColorExample, PatientLineEdit
+from GUI.misc_classes import TPTextEdit, CyclingTabBar, FolderSelectBox, ResultBrowser, IniSettings, TempPopUp,\
+    ColorExample, PatientLineEdit
+from GUI.mv_classes import JobModel, JobView
 
 TYPE_MAP = {
     'le': QLineEdit,
