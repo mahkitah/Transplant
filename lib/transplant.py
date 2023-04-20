@@ -106,7 +106,6 @@ class Transplanter:
 
         if img_rehost:
             assert isinstance(whitelist, list)
-            assert isinstance(ptpimg_key, str)
 
         self.job = None
         self.tor_info = None
@@ -135,7 +134,7 @@ class Transplanter:
             self.job.display_name = self.tor_info.folder_name
             report.info(self.job.display_name)
 
-        if self.file_check and not self.check_files():
+        if (self.file_check or self.job.new_dtor) and not self.check_files():
             return False
 
         upl_data = TorInfo2UplData(self.tor_info, self.img_rehost, self.whitelist, self.ptpimg_key,
@@ -267,12 +266,17 @@ class Transplanter:
         return t.data
 
     def check_files(self):
-        for fl in self.tor_info.file_list:
-            file_path = os.path.join(self.torrent_folder_path, *fl['names'])
-
-            if not os.path.exists(file_path):
-                report.error(f"{ui_text.missing} {file_path}")
+        if self.job.new_dtor:
+            if not os.path.exists(self.torrent_folder_path):
+                report.error(f"{ui_text.missing} {self.torrent_folder_path}")
                 return False
+        else:
+            for fl in self.tor_info.file_list:
+                file_path = os.path.join(self.torrent_folder_path, *fl['names'])
+
+                if not os.path.exists(file_path):
+                    report.error(f"{ui_text.missing} {file_path}")
+                    return False
 
         report.info(ui_text.f_checked)
         return True
