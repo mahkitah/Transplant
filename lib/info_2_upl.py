@@ -2,7 +2,7 @@ import logging
 
 from gazelle.upload import FormData
 from gazelle.tracker_data import ARTIST_MAP
-from lib import utils, ui_text, ptpimg_uploader
+from lib import utils, ui_text, img_rehost
 
 report = logging.getLogger(__name__)
 
@@ -10,14 +10,13 @@ class TorInfo2UplData(FormData):
     one_on_one = ('medium', 'format', 'rem_year', 'rem_title', 'rem_label', 'rem_cat_nr', 'src_tr', 'unknown',
                   'rel_type_name', 'title', 'o_year', 'vanity', 'scene', 'remastered', 'alb_descr')
 
-    def __init__(self, tor_info, img_rehost, whitelist, ptpimg_key, rel_descr_templ, rel_descr_own_templ, add_src_descr,
+    def __init__(self, tor_info, img_rehost, whitelist, rel_descr_templ, rel_descr_own_templ, add_src_descr,
                  src_descr_templ, user_id):
         super().__init__()
         self.tor_info = tor_info
 
         self.img_rehost = img_rehost
         self.whitelist = whitelist
-        self.ptpimg_key = ptpimg_key
         self.rel_descr_templ = rel_descr_templ
         self.rel_descr_own_templ = rel_descr_own_templ
         self.add_src_descr = add_src_descr
@@ -100,12 +99,12 @@ class TorInfo2UplData(FormData):
 
         if not self.img_rehost or not src_img_url or any(w in src_img_url for w in self.whitelist):
             self.upl_img_url = src_img_url
+            return
 
+        rehosted = img_rehost.rehost(src_img_url)
+        if rehosted:
+            self.upl_img_url = rehosted
+            report.info(f"{ui_text.img_rehosted} {self.upl_img_url}")
         else:
-            try:
-                self.upl_img_url = ptpimg_uploader.upload(self.ptpimg_key, [src_img_url])[0]
-                report.info(f"{ui_text.img_rehosted} {self.upl_img_url}")
-
-            except (ptpimg_uploader.UploadFailed, ValueError):
-                report.info(ui_text.rehost_failed)
-                self.upl_img_url = src_img_url
+            report.info(ui_text.rehost_failed)
+            self.upl_img_url = src_img_url

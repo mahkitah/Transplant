@@ -44,9 +44,11 @@ l_file_check = 'Check files'
 l_post_compare = 'Post upload checks'
 l_show_tips = "Show tooltips"
 l_verbosity = 'Verbosity'
-l_rehost = 'Rehost img to ptpimg'
+rehost_columns = ('Host', 'API key')
+l_rehost = 'Rehost cover art'
 l_whitelist = 'Image host whitelist'
-l_ptpimg_key = 'PTPimg API-key'
+l_rehost_table = 'Enable image hosts with the checkbox.\nChange priority by dragging rows up or down.\n' \
+                 'Enabled host will be tried from the top down.\nIf the first one fails the next will be tried and so forth.'
 l_placeholders = "Set a custom release description.\n\n" \
               "You can use these placeholders:\n" \
               "%src_id% :   Source id (OPS/RED)\n" \
@@ -63,8 +65,8 @@ def_rel_descr_own = "Transplant of my own upload on [url=%src_url%torrents.php?i
 def_src_descr = "[quote=source description:]%src_descr%[/quote]"
 
 l_job_list = 'Job list:'
+l_style_selecter = 'GUI Style'
 l_show_add_dtors = "Show 'Add torrent files' button"
-l_splitter_weight = 'Splitter weight'
 l_show_rem_tr1 = f"Show '{pb_del_tr1}' button"
 l_show_rem_tr2 = f"Show '{pb_del_tr2}' button"
 l_no_icon = 'Text instead of icon'
@@ -82,10 +84,11 @@ l_success_color = 'Sucess'
 l_link_color = 'link'
 
 default_whitelist = "ptpimg.me, thesungod.xyz"
+
 sum_ting_wong_1 = 'Invalid data folder'
 sum_ting_wong_2 = 'Invalid scan folder'
 sum_ting_wong_3 = 'Invalid torrent save folder'
-sum_ting_wong_4 = 'No PTPimg API-key'
+sum_ting_wong_4 = 'No image hosts enabled'
 sum_ting_wong_5 = 'Source description text must contain %src_descr%'
 sum_ting_wong_6 = 'Leading and/or trailing space in {}'
 
@@ -146,7 +149,7 @@ tt_l_verbosity = "Level of feedback.\n" \
                "1: only errors\n" \
                "2: normal\n" \
                "3: debugging"
-tt_l_rehost = 'Rehost non-whitelisted cover images to ptpimg'
+tt_l_rehost = 'Rehost non-whitelisted cover images'
 tt_l_whitelist = "Images hosted on these sites will not be rehosted\n" \
                "Comma separated"
 tt_pb_def_descr = 'Restore default descriptions'

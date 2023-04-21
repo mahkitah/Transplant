@@ -5,6 +5,7 @@ from PyQt6.QtGui import QIcon, QKeyEvent, QAction
 from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex, QItemSelectionModel
 
 from lib import ui_text
+from lib.img_rehost import ih
 
 
 class IntRowItemSelectionModel(QItemSelectionModel):
@@ -273,3 +274,92 @@ class JobModel(QAbstractTableModel):
     def __iter__(self):
         for j in self.jobs:
             yield j
+
+
+class RehostModel(QAbstractTableModel):
+    def __init__(self):
+        super().__init__()
+        self.column_names = ui_text.rehost_columns
+
+    def rowCount(self, parent: QModelIndex = None) -> int:
+        return len(ih)
+
+    def columnCount(self, parent: QModelIndex = None) -> int:
+        return len(self.column_names)
+
+    def data(self, index: QModelIndex, role: int = 0):
+        column = index.column()
+        host = ih[index.row()]
+
+        if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
+            if column == 0:
+                return f' {host.name} '
+            if column == 1:
+                return host.key
+
+        if role == Qt.ItemDataRole.CheckStateRole and column == 0:
+            return Qt.CheckState.Checked if host.enabled else Qt.CheckState.Unchecked
+
+    def flags(self, index: QModelIndex) -> Qt.ItemFlag:
+        if index.column() == 0:
+            return super().flags(index) | Qt.ItemFlag.ItemIsUserCheckable
+        if index.column() == 1 and ih[index.row()] != ih.Imgur:
+            return super().flags(index) | Qt.ItemFlag.ItemIsEditable
+        else:
+            return super().flags(index)
+
+    def headerData(self, section: int, orientation: Qt.Orientation, role: int = 0):
+        if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
+            return self.column_names[section]
+        if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Vertical:
+            return ih[section].prio + 1
+        else:
+            return super().headerData(section, orientation, role)
+
+    def setData(self, index: QModelIndex, value, role: int = 0) -> bool:
+        host = ih[index.row()]
+        column = index.column()
+
+        if column == 1:
+            if value == host.key:
+                return False
+            host.key = value
+        if column == 0 and role == Qt.ItemDataRole.CheckStateRole:
+            host.enabled = True if value == Qt.CheckState.Checked.value else False
+        self.dataChanged.emit(index, index, [role])
+        return True
+
+
+class RehostTable(QTableView):
+    def __init__(self, model: RehostModel):
+        super().__init__()
+        self.setModel(model)
+        self.setSelectionMode(QTableView.SelectionMode.NoSelection)
+        self.verticalHeader().setSectionsMovable(True)
+        self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
+        self.verticalHeader().setDefaultSectionSize(30)
+        self.verticalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.verticalHeader().setFixedWidth(22)
+        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+
+    def move_to_priority(self):
+        for h in ih.prioritised():
+            v_index = self.verticalHeader().visualIndex(h.value)
+            if h.prio != v_index:
+                self.verticalHeader().moveSection(v_index, h.prio)
+        self.verticalHeader().sectionMoved.connect(self.update_priorities)
+
+    def update_priorities(self):
+        for host in ih:
+            host.prio = self.verticalHeader().visualIndex(host.value)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        height = self.horizontalHeader().height()
+        row_count = self.verticalHeader().count()
+        for i in range(row_count):
+            height += self.verticalHeader().sectionSize(i)
+
+        self.setMaximumHeight(height + 2)
+

@@ -49,9 +49,27 @@ class SettingsWindow(QDialog):
         settings_form.addRow(wb.l_post_compare, wb.chb_post_compare)
         settings_form.addRow(wb.l_show_tips, wb.chb_show_tips)
         settings_form.addRow(wb.l_verbosity, wb.spb_verbosity)
-        settings_form.addRow(wb.l_rehost, wb.chb_rehost)
-        settings_form.addRow(wb.l_whitelist, wb.le_whitelist)
-        settings_form.addRow(wb.l_ptpimg_key, wb.le_ptpimg_key)
+
+        # rehost
+        toprow = QFormLayout()
+        toprow.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
+        toprow.addRow(wb.l_rehost, wb.chb_rehost)
+
+        white_l_row = QFormLayout()
+        white_l_row.addRow(wb.l_whitelist, wb.le_whitelist)
+
+        on_off = QVBoxLayout(wb.rh_on_off_container)
+        on_off.setContentsMargins(0, 0, 0, 0)
+        on_off.addLayout(white_l_row)
+        on_off.addSpacing(15 - on_off.spacing())
+        on_off.addWidget(wb.l_rehost_table)
+        on_off.addWidget(wb.rehost_table)
+
+        rh_layout = QVBoxLayout(wb.rehost)
+        rh_layout.setSpacing(15)
+        rh_layout.addLayout(toprow)
+        rh_layout.addWidget(wb.rh_on_off_container)
+        rh_layout.addStretch()
 
         # descr
         top_left_descr = QVBoxLayout()

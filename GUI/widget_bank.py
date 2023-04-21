@@ -7,7 +7,7 @@ from gazelle.tracker_data import tr
 from lib import ui_text
 from GUI.misc_classes import TPTextEdit, CyclingTabBar, FolderSelectBox, ResultBrowser, IniSettings, TempPopUp,\
     ColorExample, PatientLineEdit
-from GUI.mv_classes import JobModel, JobView
+from GUI.mv_classes import JobModel, JobView, RehostModel, RehostTable
 
 TYPE_MAP = {
     'le': QLineEdit,
@@ -53,7 +53,6 @@ CONFIG_NAMES = {
     'chb_show_rem_tr2': (0, True),
     'chb_rehost': (0, True),
     'le_whitelist': (ui_text.default_whitelist, True),
-    'le_ptpimg_key': (None, True),
     'ple_warning_color': ('orange', True),
     'ple_error_color': ('crimson', True),
     'ple_success_color': ('forestgreen', True),
@@ -158,14 +157,22 @@ class WidgetBank:
         self.config_tabs = QTabWidget()
         self.config_tabs.setDocumentMode(True)
         self.main_settings = QWidget()
+        self.rehost = QWidget()
         self.cust_descr = QWidget()
         self.looks = QWidget()
         self.config_tabs.addTab(self.main_settings, ui_text.main_tab)
+        self.config_tabs.addTab(self.rehost, ui_text.rehost_tab)
         self.config_tabs.addTab(self.cust_descr, ui_text.desc_tab)
         self.config_tabs.addTab(self.looks, ui_text.looks_tab)
 
         self.pb_cancel = QPushButton(ui_text.pb_cancel)
         self.pb_ok = QPushButton(ui_text.pb_ok)
+
+        # rehost tab
+        self.rh_on_off_container = QWidget()
+        self.rehost_model = RehostModel()
+        self.rehost_table = RehostTable(self.rehost_model)
+        self.l_rehost_table = QLabel(ui_text.l_rehost_table)
 
         # descr tab
         self.l_variables = QLabel(ui_text.l_placeholders)

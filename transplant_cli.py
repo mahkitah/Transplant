@@ -10,6 +10,7 @@ from gazelle.tracker_data import tr
 from cli_config import cli_config
 from lib import ui_text
 from lib.utils import tb_line_gen
+from lib.img_rehost import ih
 
 class ColorStreamHandler(logging.StreamHandler):
     LEVEL_COLORS = {
@@ -82,6 +83,7 @@ def parse_input():
                     report.warning(ui_text.skip)
                     continue
 
+
 def main():
     report.info(ui_text.start)
 
@@ -99,9 +101,11 @@ def main():
         'src_descr_templ': cli_config.src_descr,
         'img_rehost': cli_config.img_rehost,
         'whitelist': cli_config.whitelist,
-        'ptpimg_key': cli_config.ptpimg_key,
         'post_compare': cli_config.post_upload_checks,
     }
+    if cli_config.img_rehost:
+        ih.set_attrs(cli_config.image_hosts)
+
     key_dict = {trckr: getattr(cli_config, f'api_key_{trckr.name}') for trckr in tr}
 
     transplanter = Transplanter(key_dict, **trpl_settings)

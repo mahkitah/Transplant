@@ -85,7 +85,7 @@ class Job:
 class Transplanter:
     def __init__(self, key_dict, data_dir=None, deep_search=False, deep_search_level=None, dtor_save_dir=None, save_dtors=False, del_dtors=False,
                  file_check=True, rel_descr_templ=None, rel_descr_own_templ=None, add_src_descr=True, src_descr_templ=None,
-                 img_rehost=False, whitelist=None, ptpimg_key=None, post_compare=False):
+                 img_rehost=False, whitelist=None, post_compare=False):
 
         self.api_map = {trckr: sleeve(trckr, key=key_dict[trckr]) for trckr in tr}
         self.data_dir = data_dir
@@ -97,7 +97,6 @@ class Transplanter:
         self.file_check = file_check
         self.img_rehost = img_rehost
         self.whitelist = whitelist
-        self.ptpimg_key = ptpimg_key
         self.rel_descr_templ = rel_descr_templ
         self.rel_descr_own_templ = rel_descr_own_templ
         self.add_src_descr = add_src_descr
@@ -137,7 +136,7 @@ class Transplanter:
         if (self.file_check or self.job.new_dtor) and not self.check_files():
             return False
 
-        upl_data = TorInfo2UplData(self.tor_info, self.img_rehost, self.whitelist, self.ptpimg_key,
+        upl_data = TorInfo2UplData(self.tor_info, self.img_rehost, self.whitelist,
                                    self.rel_descr_templ, self.rel_descr_own_templ, self.add_src_descr,
                                    self.src_descr_templ, src_api.account_info['id'])
         upl_files = upload.Files()
