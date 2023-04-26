@@ -6,6 +6,7 @@ from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex, QItem
 
 from lib import ui_text
 from lib.img_rehost import ih
+from GUI.misc_classes import ThemeIcon
 
 
 class IntRowItemSelectionModel(QItemSelectionModel):
@@ -112,8 +113,8 @@ class ContextHeaderView(QHeaderView):
                 action.setEnabled(True)
 
     def set_action_icon(self, index, hidden):
-        icon = ':/blank-check-box.svg' if hidden else ':/check-box.svg'
-        self.actions()[index + 1].setIcon(QIcon(icon))
+        icon = 'blank-check-box.svg' if hidden else 'check-box.svg'
+        self.actions()[index + 1].setIcon(ThemeIcon(icon))
 
 
 class JobModel(QAbstractTableModel):

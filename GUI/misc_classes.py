@@ -2,9 +2,61 @@ import os
 import re
 
 from PyQt6.QtWidgets import QFrame, QTextEdit, QComboBox, QFileDialog, QLineEdit, QTabBar, QVBoxLayout, QLabel,\
-    QTextBrowser, QSizePolicy
-from PyQt6.QtGui import QIcon, QAction
+    QTextBrowser, QSizePolicy, QApplication
+from PyQt6.QtGui import QIcon, QAction, QIconEngine
 from PyQt6.QtCore import Qt, pyqtSignal, QSettings, QTimer
+
+
+class Application(QApplication):
+    scheme_changed = pyqtSignal()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.scheme = None
+        self.scheme_eval()
+        self.styleHints().colorSchemeChanged.connect(self.scheme_eval)
+
+    def setStyle(self, style):
+        super().setStyle(style)
+        self.scheme_eval()
+
+    def scheme_eval(self):
+        style = self.style().name()
+        cur_scheme = self.styleHints().colorScheme()
+        if not cur_scheme == Qt.ColorScheme.Dark or style == 'windowsvista':
+            scheme = Qt.ColorScheme.Light
+        else:
+            scheme = Qt.ColorScheme.Dark
+        if scheme != self.scheme:
+            self.scheme_changed.emit()
+            self.scheme = scheme
+
+
+class ThemeEngine(QIconEngine):
+    app = None
+    offload = {}
+
+    def __init__(self, file_name, f1, f2):
+        super().__init__()
+        if not self.app:
+            self.__class__.app = QApplication.instance()
+        self.file_name = file_name
+        if self.file_name not in self.offload:
+            self.offload[self.file_name] = {
+                Qt.ColorScheme.Light: QIcon(f1),
+                Qt.ColorScheme.Dark: QIcon(f2),
+            }
+
+    def pixmap(self, size, mode, state):
+        return self.offload[self.file_name][self.app.scheme].pixmap(size, mode, state)
+
+
+class ThemeIcon(QIcon):
+    def __init__(self, file_name):
+        f1 = f':/light/{file_name}'
+        f2 = f':/dark/{file_name}'
+        engine = ThemeEngine(file_name, f1, f2)
+        super().__init__(engine)
 
 
 class TempPopUp(QFrame):
@@ -125,7 +177,7 @@ class FolderSelectBox(HistoryBox):
         self.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Preferred)
         self.setSizeAdjustPolicy(self.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
         self.folder_button = QAction()
-        self.folder_button.setIcon(QIcon(':/open-folder'))
+        self.folder_button.setIcon(ThemeIcon('open-folder'))
         self.folder_button.triggered.connect(self.select_folder)
         self.lineEdit().addAction(self.folder_button, QLineEdit.ActionPosition.TrailingPosition)
         self.dialog_caption = None

@@ -10,7 +10,7 @@ class SettingsWindow(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
         self.setWindowTitle(ui_text.settings_window_title)
-        self.setWindowIcon(QIcon(':/gear'))
+        self.setWindowIcon(QIcon(':/gear.svg'))
         self.layout()
 
     def layout(self):

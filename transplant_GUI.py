@@ -1,7 +1,7 @@
 import sys
 import logging
 from GUI import resources
-from PyQt6.QtWidgets import QApplication
+from GUI.misc_classes import Application
 
 
 if __name__ == "__main__":
@@ -19,9 +19,8 @@ if __name__ == "__main__":
     else:
         logger.addHandler(logging.StreamHandler(stream=sys.stdout))
 
-    QApplication.setStyle('fusion')
-    app = QApplication(sys.argv)
-
+    Application.setStyle('fusion')
+    app = Application(sys.argv)
     from GUI.control_room import start_up, save_state
 
     start_up()
