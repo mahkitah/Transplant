@@ -42,7 +42,6 @@ image_hosts = {
     'Ra': (False, '123345', 1),
     'PTPimg': (False, '12345', 2),
     'ImgBB': (False, '12345', 3),
-    'Imgur': (False, None, 4)
 }
 
 # "Set a custom release description.

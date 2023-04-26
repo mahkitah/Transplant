@@ -304,7 +304,7 @@ class RehostModel(QAbstractTableModel):
     def flags(self, index: QModelIndex) -> Qt.ItemFlag:
         if index.column() == 0:
             return super().flags(index) | Qt.ItemFlag.ItemIsUserCheckable
-        if index.column() == 1 and ih[index.row()] != ih.Imgur:
+        if index.column() == 1:
             return super().flags(index) | Qt.ItemFlag.ItemIsEditable
         else:
             return super().flags(index)

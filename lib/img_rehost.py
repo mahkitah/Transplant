@@ -25,12 +25,6 @@ def imgbb(img_link, key):
     r = requests.post(url, data=data)
     return r.json()['data']['url']
 
-def imgur(img_link):
-    url = 'https://api.imgur.com/3/image'
-    headers = {'Authorization': 'Client-ID ' + '2b8986ab0193370'}
-    data = {'image': img_link}
-    r = requests.post(url, headers=headers, data=data)
-    return r.json()['data']['link']
 
 class IHMeta(EnumMeta):
     extra = ('enabled', 'key', 'prio')
@@ -65,7 +59,6 @@ class ih(Enum, metaclass=IHMeta):
     Ra = 0
     PTPimg = 1
     ImgBB = 2
-    Imgur = 3
 
     def __init__(self, value):
         self.key = ''
