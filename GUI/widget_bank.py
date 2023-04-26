@@ -6,7 +6,7 @@ from PyQt6.QtGui import QIcon
 from gazelle.tracker_data import tr
 from lib import ui_text
 from GUI.misc_classes import TPTextEdit, CyclingTabBar, FolderSelectBox, ResultBrowser, IniSettings, TempPopUp,\
-    ColorExample, PatientLineEdit, ThemeIcon
+    ColorExample, PatientLineEdit, ThemeIcon, StyleSelecter
 from GUI.mv_classes import JobModel, JobView, RehostModel, RehostTable
 
 TYPE_MAP = {
@@ -15,7 +15,8 @@ TYPE_MAP = {
     'te': TPTextEdit,
     'chb': QCheckBox,
     'spb': QSpinBox,
-    'fsb': FolderSelectBox
+    'fsb': FolderSelectBox,
+    'sty': StyleSelecter
 }
 ACTION_MAP = {
     QLineEdit: (lambda x: x.textChanged, lambda x, y: x.setText(y)),
@@ -23,7 +24,8 @@ ACTION_MAP = {
     TPTextEdit: (lambda x: x.plain_text_changed, lambda x, y: x.setText(y)),
     QCheckBox: (lambda x: x.stateChanged, lambda x, y: x.setCheckState(Qt.CheckState(y))),
     QSpinBox: (lambda x: x.valueChanged, lambda x, y: x.setValue(y)),
-    FolderSelectBox: (lambda x: x.list_changed, lambda x, y: x.set_list(y))
+    FolderSelectBox: (lambda x: x.list_changed, lambda x, y: x.set_list(y)),
+    StyleSelecter: (lambda x: x.currentTextChanged, lambda x, y: x.setCurrentText(y)),
 }
 # name: (default value, make label)
 CONFIG_NAMES = {
@@ -44,6 +46,7 @@ CONFIG_NAMES = {
     'te_rel_descr_own_templ': (ui_text.def_rel_descr_own, False),
     'te_src_descr_templ': (ui_text.def_src_descr, False),
     'chb_add_src_descr': (2, False),
+    'sty_style_selecter': ('Fusion', True),
     'chb_no_icon': (0, True),
     'chb_alt_row_colour': (2, True),
     'chb_show_grid': (0, True),

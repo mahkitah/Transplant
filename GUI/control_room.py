@@ -182,6 +182,7 @@ def config_connections():
     wb.chb_deep_search.stateChanged.connect(lambda x: wb.spb_deep_search_level.setEnabled(bool(x)))
     wb.chb_show_tips.stateChanged.connect(tooltips)
     wb.spb_verbosity.valueChanged.connect(set_verbosity)
+    wb.sty_style_selecter.currentTextChanged.connect(wb.app.setStyle)
     wb.chb_rehost.stateChanged.connect(wb.rh_on_off_container.setEnabled)
     wb.pb_def_descr.clicked.connect(default_descr)
     wb.sty_style_selecter.currentTextChanged.connect(wb.app.setStyle)

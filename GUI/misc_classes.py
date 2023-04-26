@@ -2,7 +2,7 @@ import os
 import re
 
 from PyQt6.QtWidgets import QFrame, QTextEdit, QComboBox, QFileDialog, QLineEdit, QTabBar, QVBoxLayout, QLabel,\
-    QTextBrowser, QSizePolicy, QApplication
+    QTextBrowser, QSizePolicy, QApplication, QStyleFactory
 from PyQt6.QtGui import QIcon, QAction, QIconEngine
 from PyQt6.QtCore import Qt, pyqtSignal, QSettings, QTimer
 
@@ -139,6 +139,12 @@ class ResultBrowser(QTextBrowser):
     def append(self, text: str) -> None:
         self.setCurrentCharFormat(self.def_format)
         super().append(text)
+
+
+class StyleSelecter(QComboBox):
+    def __init__(self):
+        super().__init__()
+        self.addItems(QStyleFactory.keys())
 
 
 class HistoryBox(QComboBox):
