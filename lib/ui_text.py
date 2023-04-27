@@ -38,7 +38,7 @@ l_key_2 = f"API-key {tracker_2}"
 l_data_dir = 'Data folder'
 chb_deep_search = 'Deep search to level:'
 l_scan_dir = 'Scan folder'
-l_dtor_save_dir = 'Save new .torrrents'
+l_save_dtors = 'Save new .torrrents'
 l_del_dtors = 'Delete scanned .torrents'
 l_file_check = 'Check files'
 l_post_compare = 'Post upload checks'
@@ -132,7 +132,7 @@ tt_chb_deep_search = "When checked, the data folder will be searched for torrent
                      "level 1 is direct subfolder of data dir. Subfolder of that is level 2 etc."
 tt_l_scan_dir = "This folder will be scanned for .torrents when the 'Scan' button is pressed\n" \
                     "You can download the .torrents from the source tracker here"
-tt_l_dtor_save_dir = "Newly created .torrents from the destination tracker can be saved here\n" \
+tt_l_save_dtors = "Newly created .torrents from the destination tracker can be saved here\n" \
                    "A torrent client's watch folder would be a logical choice to select here"
 tt_fsb_data_dir = "Select data folder"
 tt_fsb_scan_dir = "Select scan folder"

@@ -43,7 +43,7 @@ class SettingsWindow(QDialog):
         settings_form.addRow(wb.l_key_2, wb.le_key_2)
         settings_form.addRow(wb.l_data_dir, data_dir)
         settings_form.addRow(wb.l_scan_dir, wb.fsb_scan_dir)
-        settings_form.addRow(wb.l_dtor_save_dir, save_dtor)
+        settings_form.addRow(wb.l_save_dtors, save_dtor)
         settings_form.addRow(wb.l_del_dtors, wb.chb_del_dtors)
         settings_form.addRow(wb.l_file_check, wb.chb_file_check)
         settings_form.addRow(wb.l_post_compare, wb.chb_post_compare)
@@ -92,7 +92,9 @@ class SettingsWindow(QDialog):
         # Looks
         main = QFormLayout()
         main.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.FieldsStayAtSizeHint)
+        main.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
         job_list = QFormLayout()
+        job_list.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
 
         main.addRow(wb.l_style_selecter, wb.sty_style_selecter)
         main.addRow(wb.l_show_add_dtors, wb.chb_show_add_dtors)

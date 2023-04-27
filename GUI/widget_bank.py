@@ -6,7 +6,7 @@ from PyQt6.QtGui import QIcon
 from gazelle.tracker_data import tr
 from lib import ui_text
 from GUI.misc_classes import TPTextEdit, CyclingTabBar, FolderSelectBox, ResultBrowser, IniSettings, TempPopUp,\
-    ColorExample, PatientLineEdit, ThemeIcon, StyleSelecter
+    ColorExample, PatientLineEdit, ThemeIcon, StyleSelecter, ClickableLabel
 from GUI.mv_classes import JobModel, JobView, RehostModel, RehostTable
 
 TYPE_MAP = {
@@ -35,8 +35,8 @@ CONFIG_NAMES = {
     'chb_deep_search': (0, False),
     'spb_deep_search_level': (2, False),
     'fsb_scan_dir': ([], True),
-    'fsb_dtor_save_dir': ([], True),
-    'chb_save_dtors': (0, False),
+    'fsb_dtor_save_dir': ([], False),
+    'chb_save_dtors': (0, True),
     'chb_del_dtors': (0, True),
     'chb_file_check': (2, True),
     'chb_post_compare': (0, True),
@@ -222,7 +222,13 @@ class WidgetBank:
             # make Label
             if mk_lbl:
                 label_name = 'l_' + name
-                setattr(self, label_name, QLabel(getattr(ui_text, label_name)))
+                if obj_type == QCheckBox:
+                    lbl = ClickableLabel()
+                    lbl.clicked.connect(obj.click)
+                else:
+                    lbl = QLabel()
+                lbl.setText(getattr(ui_text, label_name))
+                setattr(self, label_name, lbl)
 
             if obj_type == FolderSelectBox:
                 obj.dialog_caption = getattr(ui_text, f'tt_{el_name}')

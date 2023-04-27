@@ -7,6 +7,14 @@ from PyQt6.QtGui import QIcon, QAction, QIconEngine
 from PyQt6.QtCore import Qt, pyqtSignal, QSettings, QTimer
 
 
+class ClickableLabel(QLabel):
+    clicked = pyqtSignal()
+
+    def mouseReleaseEvent(self, event):
+        self.clicked.emit()
+        super().mouseReleaseEvent(event)
+
+
 class Application(QApplication):
     scheme_changed = pyqtSignal()
 
