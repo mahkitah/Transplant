@@ -1,7 +1,5 @@
 import os
 import re
-import platform
-import subprocess
 import traceback
 
 def scantree(path):
@@ -17,14 +15,6 @@ def subdirs_gen(path, maxlevel=1, level=1):
             yield os.path.split(entry.path)
             if level < maxlevel:
                 yield from subdirs_gen(entry.path, maxlevel=maxlevel, level=level + 1)
-
-def open_local_folder(path):
-    if platform.system() == 'Windows':
-        os.startfile(path)
-    elif platform.system() == 'Darwin':
-        subprocess.Popen(["open", path])
-    else:
-        subprocess.Popen(["xdf-open", path])
 
 def multi_replace(src_txt, replace_map, *extra_maps):
     txt = src_txt

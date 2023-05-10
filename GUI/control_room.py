@@ -1,7 +1,6 @@
 import os
 import re
 import logging
-import webbrowser
 from urllib.parse import urlparse, parse_qs
 
 from lib import utils, ui_text
@@ -14,8 +13,8 @@ from GUI.main_gui import MainWindow
 from GUI.settings_window import SettingsWindow
 
 from PyQt6.QtWidgets import QFileDialog, QMessageBox
-from PyQt6.QtGui import QKeyEvent
-from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread, QSize
+from PyQt6.QtGui import QKeyEvent, QDesktopServices
+from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread, QSize, QUrl
 
 class LogForward(QObject, logging.Handler):
     log_forward = pyqtSignal(logging.LogRecord)
@@ -136,7 +135,7 @@ def main_connections():
     wb.pb_rem_tr1.clicked.connect(lambda: wb.job_data.filter_for_attr('src_tr', tr.RED))
     wb.pb_rem_tr2.clicked.connect(lambda: wb.job_data.filter_for_attr('src_tr', tr.OPS))
     wb.pb_open_tsavedir.clicked.connect(
-        lambda: utils.open_local_folder(wb.fsb_dtor_save_dir.currentText()))
+        lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(wb.fsb_dtor_save_dir.currentText())))
     wb.tb_go.clicked.connect(gogogo)
     wb.pb_open_upl_urls.clicked.connect(open_tor_urls)
     wb.job_view.horizontalHeader().sectionDoubleClicked.connect(wb.job_data.header_double_clicked)
@@ -502,7 +501,7 @@ def default_descr():
 def open_tor_urls():
     for piece in wb.result_view.toPlainText().split():
         if 'torrentid' in piece:
-            webbrowser.open(piece)
+            QDesktopServices.openUrl(QUrl(piece))
 
 
 def remove_selected():
@@ -554,7 +553,7 @@ def open_torrent_page(index):
         url = domain + 'torrents.php?torrentid=' + job.tor_id
     else:
         return
-    webbrowser.open(url)
+    QDesktopServices.openUrl(QUrl(url))
 
 
 def set_verbosity(lvl):
