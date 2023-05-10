@@ -75,6 +75,7 @@ class WidgetBank:
         self.settings_window_widgets()
 
         self._pop_up = None
+        self.thread = None
 
     @property
     def pop_up(self):

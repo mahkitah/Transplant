@@ -31,25 +31,19 @@ logger.addHandler(handler)
 class TransplantThread(QThread):
     def __init__(self):
         super().__init__()
-        wb.pb_stop.clicked.connect(self.stop)
-        self.started.connect(lambda: logger.info(ui_text.start))
-        self.started.connect(lambda: wb.go_stop_stack.setCurrentIndex(1))
-        self.finished.connect(lambda: logger.info(ui_text.thread_finish))
-        self.finished.connect(lambda: wb.go_stop_stack.setCurrentIndex(0))
-        self.finished.connect(lambda: wb.pb_stop.clicked.disconnect(self.stop))
-        self.finished.connect(self.deleteLater)
-
+        self.trpl_settings = None
         self.stop_run = False
 
     def stop(self):
         self.stop_run = True
 
     def run(self):
+        logger.info(ui_text.start)
         key_dict = {
             tr.RED: wb.config.value('le_key_1'),
             tr.OPS: wb.config.value('le_key_2')
         }
-        transplanter = Transplanter(key_dict, **trpl_settings())
+        transplanter = Transplanter(key_dict, **self.trpl_settings)
 
         for job in wb.job_data.jobs.copy():
             if self.stop_run:
@@ -363,8 +357,16 @@ def gogogo():
         wb.tabs.addTab(ui_text.tab_results)
     wb.tabs.setCurrentIndex(1)
 
-    TransplantThread().start()
+    if not wb.thread:
+        wb.thread = TransplantThread()
+        wb.thread.started.connect(lambda: wb.go_stop_stack.setCurrentIndex(1))
+        wb.thread.started.connect(lambda: wb.pb_stop.clicked.connect(wb.thread.stop))
+        wb.thread.finished.connect(lambda: logger.info(ui_text.thread_finish))
+        wb.thread.finished.connect(lambda: wb.go_stop_stack.setCurrentIndex(0))
 
+    wb.thread.trpl_settings = trpl_settings()
+    wb.thread.stop_run = False
+    wb.thread.start()
 
 def parse_paste_input():
     paste_blob = wb.te_paste_box.toPlainText()
