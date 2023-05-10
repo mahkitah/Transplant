@@ -16,10 +16,6 @@ class MainWindow(QWidget):
         self.setWindowIcon(QIcon(':/switch.svg'))
         self.layout()
 
-    def keyPressEvent(self, event: QKeyEvent):
-        self.key_pressed.emit(event)
-        super().keyPressEvent(event)
-
     def layout(self):
         wb.splitter.addWidget(wb.topwidget)
         wb.splitter.addWidget(wb.bottomwidget)

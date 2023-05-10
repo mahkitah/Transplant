@@ -70,6 +70,7 @@ def start_up():
         wb.config.setValue('config_version', __version__)
 
     wb.main_window = MainWindow()
+    wb.main_window.keyPressEvent = key_press
     wb.settings_window = SettingsWindow(wb.main_window)
     main_connections()
     config_connections()
@@ -145,7 +146,6 @@ def main_connections():
     wb.selection.selectionChanged.connect(lambda x: wb.pb_del_sel.setEnabled(wb.selection.hasSelection()))
     wb.job_view.doubleClicked.connect(open_torrent_page)
     wb.job_view.key_override_sig.connect(key_press)
-    wb.main_window.key_pressed.connect(key_press)
     wb.job_data.layout_changed.connect(lambda: wb.tb_go.setEnabled(bool(wb.job_data)))
     wb.job_data.layout_changed.connect(lambda: wb.pb_clear_j.setEnabled(bool(wb.job_data)))
     wb.job_data.layout_changed.connect(
