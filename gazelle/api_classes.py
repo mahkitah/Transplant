@@ -82,7 +82,7 @@ class BaseApi:
     def torrent_info(self, **kwargs):
         r = self.request('GET', 'torrent', **kwargs)
 
-        return torrent_info.tr_map[self.tr](self.tr, r, req_m=self.request)
+        return torrent_info.tr_map[self.tr](r)
 
     def upload(self, data, files, dest_group=None):
         data_dict = data.upl_dict(self.tr, dest_group)
