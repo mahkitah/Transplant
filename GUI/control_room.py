@@ -308,9 +308,6 @@ def print_log_line(line: str, repl_pattern: str, color: str = None):
     wb.result_view.append(line)
 
 
-def default_colours():
-    ...
-
 def trpl_settings():
     user_settings = (
         'chb_deep_search',
@@ -366,6 +363,7 @@ def gogogo():
     wb.thread.trpl_settings = trpl_settings()
     wb.thread.stop_run = False
     wb.thread.start()
+
 
 def parse_paste_input():
     paste_blob = wb.te_paste_box.toPlainText()
