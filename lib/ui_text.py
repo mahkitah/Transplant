@@ -60,8 +60,8 @@ l_placeholders = "Set a custom release description.\n\n" \
 l_own_uploads = "Description for own uploads."
 pb_def_descr = 'Restore Defaults'
 chb_add_src_descr = "Add release description from source if present. (Must contain %src_descr%)"
-def_rel_descr = "Transplanted from [url=%src_url%torrents.php?id=%tor_id%]%src_id%[/url],\nthanks to the original uploader."
-def_rel_descr_own = "Transplant of my own upload on [url=%src_url%torrents.php?id=%tor_id%]%src_id%[/url]."
+def_rel_descr = "Transplanted from [url=%src_url%torrents.php?torrentid=%tor_id%]%src_id%[/url],\nthanks to the original uploader."
+def_rel_descr_own = "Transplant of my own upload on [url=%src_url%torrents.php?torrentid=%tor_id%]%src_id%[/url]."
 def_src_descr = "[quote=source description:]%src_descr%[/quote]"
 
 l_job_list = 'Job list:'
