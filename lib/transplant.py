@@ -261,6 +261,9 @@ class Transplanter:
         return t.data
 
     def check_files(self):
+        if not self.torrent_folder_path:
+            report.error(f"{ui_text.missing} {self.tor_info.folder_name}")
+            return False
         if self.job.new_dtor:
             if not os.path.exists(self.torrent_folder_path):
                 report.error(f"{ui_text.missing} {self.torrent_folder_path}")
