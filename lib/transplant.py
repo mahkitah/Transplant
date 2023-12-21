@@ -1,8 +1,7 @@
 import os
 import logging
-import base64
+from hashlib import sha1
 
-from hashlib import sha1, sha256
 from urllib.parse import urlparse
 
 from bcoding import bencode, bdecode
@@ -234,11 +233,7 @@ class Transplanter:
 
         elif not self.file_check and self.tor_info.log_ids:
             for i in self.tor_info.log_ids:
-                r = self.api_map[self.job.src_tr].request("GET", "riplog", id=self.tor_info.tor_id, logid=i)
-                log_bytes = base64.b64decode(r["log"])
-                log_checksum = sha256(log_bytes).hexdigest()
-                assert log_checksum == r['log_sha256']
-                files.add_log(log_bytes)
+                files.add_log(src_api.get_riplog(self.tor_info.tor_id, i))
         else:
             for fl in self.tor_info.file_list:
                 fn = fl['names'][-1]
