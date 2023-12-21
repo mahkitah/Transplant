@@ -361,10 +361,7 @@ class RehostTable(QTableView):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        height = self.horizontalHeader().height()
-        row_count = self.verticalHeader().count()
-        for i in range(row_count):
-            height += self.verticalHeader().sectionSize(i)
+        height = self.horizontalHeader().height() + self.verticalHeader().length() + self.frameWidth() * 2
 
-        self.setMaximumHeight(height + 2)
+        self.setMaximumHeight(height)
 
