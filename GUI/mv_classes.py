@@ -7,6 +7,7 @@ from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex, QItem
 from lib import ui_text
 from lib.img_rehost import ih
 from GUI.misc_classes import ThemeIcon
+from gazelle.tracker_data import tr
 
 
 class IntRowItemSelectionModel(QItemSelectionModel):
@@ -125,6 +126,7 @@ class JobModel(QAbstractTableModel):
         self.jobs = []
         self.config = parentconfig
         self._headers = None
+        self.icons = {t: QIcon(f':/{t.favicon}') for t in tr}
         self.rowsInserted.connect(self.layout_changed.emit)
         self.rowsRemoved.connect(self.layout_changed.emit)
 
@@ -165,7 +167,7 @@ class JobModel(QAbstractTableModel):
             return Qt.CheckState.Checked if job.new_dtor else Qt.CheckState.Unchecked
 
         if role == Qt.ItemDataRole.DecorationRole and column == 0 and not no_icon:
-            return QIcon(f':/{job.src_tr.favicon}')
+            return self.icons[job.src_tr]
 
     def rowCount(self, parent: QModelIndex = None) -> int:
         return len(self.jobs)
