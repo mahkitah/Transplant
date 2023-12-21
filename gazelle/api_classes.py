@@ -39,10 +39,7 @@ class BaseApi:
 
     @property
     def announce(self):
-        announce = self.tr.tracker.format(**self.account_info)
-        if self.account_info['username'] == 'bumblyboo':
-            announce = announce.replace('https://', 'http://')
-        return announce
+        return self.tr.tracker.format(**self.account_info)
 
     @ property
     def account_info(self):
