@@ -69,7 +69,7 @@ class FormData:
     def _get_field(self, name, dest):
 
         if name == 'rel_type':
-            return RELEASE_TYPE_MAP[dest][self.rel_type_name]
+            return self.rel_type.tracker_value(dest)
 
         if name == 'alb_descr':
             src_url = self.src_tr.site

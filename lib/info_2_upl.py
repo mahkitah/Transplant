@@ -9,7 +9,7 @@ report = logging.getLogger('tr.upl')
 
 class TorInfo2UplData(FormData):
     one_on_one = ('medium', 'format', 'rem_year', 'rem_title', 'rem_label', 'rem_cat_nr', 'src_tr', 'unknown',
-                  'rel_type_name', 'title', 'o_year', 'vanity', 'scene', 'remastered', 'alb_descr')
+                  'rel_type', 'title', 'o_year', 'vanity', 'scene', 'alb_descr')
 
     def __init__(self, tor_info, img_rehost, whitelist, rel_descr_templ, rel_descr_own_templ, add_src_descr,
                  src_descr_templ, user_id):
