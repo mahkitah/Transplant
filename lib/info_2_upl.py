@@ -1,15 +1,18 @@
 import logging
+from collections import defaultdict
 
-from gazelle.upload import FormData
-from gazelle.tracker_data import ARTIST_MAP
+from gazelle.upload import UploadData
+from gazelle.tracker_data import ArtistType
 from lib import utils, ui_text, img_rehost
 
 report = logging.getLogger('tr.upl')
 
 
-class TorInfo2UplData(FormData):
+class TorInfo2UplData(UploadData):
     one_on_one = ('medium', 'format', 'rem_year', 'rem_title', 'rem_label', 'rem_cat_nr', 'src_tr', 'unknown',
                   'rel_type', 'title', 'o_year', 'vanity', 'scene', 'alb_descr')
+    known_encodings = ('192', 'APS (VBR)', 'V2 (VBR)', 'V1 (VBR)', '256', 'APX (VBR)', 'V0 (VBR)', 'Lossless',
+                       '24bit Lossless')
 
     def __init__(self, tor_info, img_rehost, whitelist, rel_descr_templ, rel_descr_own_templ, add_src_descr,
                  src_descr_templ, user_id):
@@ -35,34 +38,28 @@ class TorInfo2UplData(FormData):
         self.do_img()
         for name in self.one_on_one:
             if not hasattr(self, name):
-                raise AttributeError
+                raise AttributeError(f'no {name}')
             setattr(self, name, getattr(self.tor_info, name))
 
     def parse_artists(self):
-        artists = []
-        importances = []
-        for a_type, names in self.tor_info.artist_data.items():
-            imp = ARTIST_MAP.get(a_type)
-            if imp:
-                for n in names:
-                    importances.append(imp)
-                    artists.append(n['name'])
+        artists = defaultdict(list)
+        a_type: ArtistType
+        for a_type, artist_list in self.tor_info.artist_data.items():
+            # a_dict: {'id': int, 'name': str}
+            for a_dict in artist_list:
+                artists[a_dict['name']].append(a_type)
 
-        self.artists = artists
-        self.importances = importances
+        self.artists = dict(artists)
 
     def bitrate(self):
         inp_encoding = self.tor_info.encoding
-        if inp_encoding in ('192', 'APS (VBR)', 'V2 (VBR)', 'V1 (VBR)', '256', 'APX (VBR)',
-                            'V0 (VBR)', 'Lossless', '24bit Lossless'):
+        if inp_encoding in self.known_encodings:
             self.encoding = inp_encoding
         else:
             self.encoding = 'Other'
-            if inp_encoding.endswith('(VBR)'):
-                self.vbr_bitrate = True
-                inp_encoding = inp_encoding[:-6]
-
-            self.other_bitrate = inp_encoding
+            bitr, vbr, _ = inp_encoding.partition(' (VBR)')
+            self.other_bitrate = bitr
+            self.vbr = bool(vbr)
 
     def tags_to_string(self):
         # There's a 200 character limit for tags (including commas)
