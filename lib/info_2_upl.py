@@ -4,7 +4,7 @@ from gazelle.upload import FormData
 from gazelle.tracker_data import ARTIST_MAP
 from lib import utils, ui_text, img_rehost
 
-report = logging.getLogger(__name__)
+report = logging.getLogger('tr.upl')
 
 
 class TorInfo2UplData(FormData):

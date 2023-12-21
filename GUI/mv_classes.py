@@ -208,7 +208,7 @@ class JobModel(QAbstractTableModel):
             job.dest_group = value or None
 
         if column == 2 and role == Qt.ItemDataRole.CheckStateRole:
-            job.new_dtor = True if Qt.CheckState(value) == Qt.CheckState.Checked else False
+            job.new_dtor = Qt.CheckState(value) == Qt.CheckState.Checked
 
         return True
 

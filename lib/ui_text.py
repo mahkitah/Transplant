@@ -47,7 +47,7 @@ l_verbosity = 'Verbosity'
 rehost_columns = ('Host', 'API key')
 l_rehost = 'Rehost cover art'
 l_whitelist = 'Image host whitelist'
-l_rehost_table = 'Enable image hosts with the checkbox.\nChange priority by dragging rows up or down.\n' \
+l_rehost_table = 'Enable image hosts with the checkbox.\nChange priority by dragging rows up or down. (drag row header)\n' \
                  'Enabled host will be tried from the top down.\nIf the first one fails the next will be tried and so forth.'
 l_placeholders = "Set a custom release description.\n\n" \
               "You can use these placeholders:\n" \

@@ -20,14 +20,14 @@ class RequestFailure(Exception):
 
 report = logging.getLogger(__name__)
 
-# noinspection PyTypeChecker
+
 class BaseApi:
     def __init__(self, tracker, **kwargs):
         assert tracker in tr, 'Unknown Tracker'  # TODO uitext
         self.tr = tracker
         self.url = self.tr.site
         self.session = requests.Session()
-        self.last_x_reqs = deque([0], maxlen=self.tr.req_limit)
+        self.last_x_reqs = deque([.0], maxlen=self.tr.req_limit)
         self.authenticate(kwargs)
         self._account_info = None
 
@@ -132,7 +132,7 @@ class CookieApi(BaseApi):
                 'password': password,
                 'keeplogged': '1'}
         self.session.cookies.clear()
-        r = self.request('login', data=data)
+        self.request('login', data=data)
         assert [c for c in self.session.cookies if c.name == 'session']
         self.session.cookies.save()
 
