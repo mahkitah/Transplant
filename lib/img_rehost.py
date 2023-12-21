@@ -10,6 +10,7 @@ def ra(img_link, key):
     r = requests.post(url, data=data)
     return r.json()['link']
 
+
 def ptpimg(img_link, key):
     url = "https://ptpimg.me/upload.php"
     data = {'api_key': key,
@@ -17,6 +18,7 @@ def ptpimg(img_link, key):
     r = requests.post(url, data=data)
     rj = r.json()[0]
     return f"{url}{rj['code']}.{rj['ext']}"
+
 
 def imgbb(img_link, key):
     url = 'https://api.imgbb.com/1/upload'

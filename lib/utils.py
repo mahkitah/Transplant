@@ -2,6 +2,7 @@ import os
 import re
 import traceback
 
+
 def scantree(path):
     for scan in os.scandir(path):
         if scan.is_dir(follow_symlinks=False) and not scan.name.startswith('.'):
@@ -9,12 +10,14 @@ def scantree(path):
         else:
             yield scan
 
+
 def subdirs_gen(path, maxlevel=1, level=1):
     for entry in os.scandir(path):
         if entry.is_dir():
             yield os.path.split(entry.path)
             if level < maxlevel:
                 yield from subdirs_gen(entry.path, maxlevel=maxlevel, level=level + 1)
+
 
 def multi_replace(src_txt, replace_map, *extra_maps):
     txt = src_txt
@@ -27,7 +30,10 @@ def multi_replace(src_txt, replace_map, *extra_maps):
         txt = txt.replace(k, v)
     return txt
 
+
 STUPID_3_11_TB = re.compile(r'[\s^~]+')
+
+
 def tb_line_gen(tb):
     for line in traceback.format_tb(tb):
         for sub_line in line.splitlines():

@@ -21,6 +21,7 @@ tr_data = {
     },
 }
 
+
 class Tr(Flag):
     def __new__(cls, *args):
         obj = object.__new__(cls)
@@ -80,6 +81,7 @@ class RelTypeMeta(EnumMeta):
             pass
         return cls._member_map_[item]
 
+
 class ReleaseType(Enum, metaclass=RelTypeMeta):
     Album = 1
     Soundtrack = 3
@@ -116,6 +118,7 @@ class ReleaseType(Enum, metaclass=RelTypeMeta):
 
     def tracker_value(self, t):
         return getattr(self, t.name)
+
 
 class ArtistType(Enum):
     Main = 1

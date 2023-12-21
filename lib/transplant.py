@@ -16,6 +16,7 @@ from lib.lean_torrent import Torrent
 
 report = logging.getLogger('tr.core')
 
+
 class Job:
     def __init__(self, src_tr=None, tor_id=None, src_dom=None, dtor_path=None, scanned=False, dest_group=None,
                  new_dtor=False, dest_trs=None):
@@ -82,9 +83,9 @@ class Job:
 
 
 class Transplanter:
-    def __init__(self, key_dict, data_dir=None, deep_search=False, deep_search_level=None, dtor_save_dir=None, save_dtors=False, del_dtors=False,
-                 file_check=True, rel_descr_templ=None, rel_descr_own_templ=None, add_src_descr=True, src_descr_templ=None,
-                 img_rehost=False, whitelist=None, post_compare=False):
+    def __init__(self, key_dict, data_dir=None, deep_search=False, deep_search_level=None, dtor_save_dir=None,
+                 save_dtors=False, del_dtors=False, file_check=True, rel_descr_templ=None, rel_descr_own_templ=None,
+                 add_src_descr=True, src_descr_templ=None, img_rehost=False, whitelist=None, post_compare=False):
 
         self.api_map = {trckr: sleeve(trckr, key=key_dict[trckr]) for trckr in tr}
         self.data_dir = data_dir

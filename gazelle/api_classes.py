@@ -93,6 +93,7 @@ class BaseApi:
     def upl_response_handler(self, r):
         raise NotImplementedError
 
+
 class KeyApi(BaseApi):
 
     def authenticate(self, kwargs):
@@ -105,6 +106,7 @@ class KeyApi(BaseApi):
 
     def upl_response_handler(self, r):
         raise NotImplementedError
+
 
 class CookieApi(BaseApi):
 
@@ -119,7 +121,7 @@ class CookieApi(BaseApi):
             jar.load()
             session_cookie = [c for c in jar if c.name == "session"][0]
             assert not session_cookie.is_expired()
-        except(FileNotFoundError, LoadError, IndexError, AssertionError):
+        except (FileNotFoundError, LoadError, IndexError, AssertionError):
             return False
 
         return True
@@ -153,6 +155,7 @@ class CookieApi(BaseApi):
             raise RequestFailure(f"{warning.group(1) if warning else r.url}")
         return r.url  # TODO re torrentid from url and return
 
+
 class HtmlApi(CookieApi):
 
     def get_account_info(self):
@@ -165,6 +168,7 @@ class HtmlApi(CookieApi):
 
     def torrent_info(self, **kwargs):
         raise AttributeError(f'{self.tr.name} does not provide torrent info')
+
 
 class RedApi(KeyApi):
     def __init__(self, key=None):
@@ -186,6 +190,7 @@ class RedApi(KeyApi):
 
     def upl_response_handler(self, r):
         return r.get('torrentid'), r.get('groupid')
+
 
 class OpsApi(KeyApi):
     def __init__(self, key=None):

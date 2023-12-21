@@ -12,6 +12,7 @@ from lib import ui_text
 from lib.utils import tb_line_gen
 from lib.img_rehost import ih
 
+
 class ColorStreamHandler(logging.StreamHandler):
     LEVEL_COLORS = {
         40: "\x1b[0;31m",  # Error

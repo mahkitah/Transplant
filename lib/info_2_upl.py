@@ -6,6 +6,7 @@ from lib import utils, ui_text, img_rehost
 
 report = logging.getLogger(__name__)
 
+
 class TorInfo2UplData(FormData):
     one_on_one = ('medium', 'format', 'rem_year', 'rem_title', 'rem_label', 'rem_cat_nr', 'src_tr', 'unknown',
                   'rel_type_name', 'title', 'o_year', 'vanity', 'scene', 'remastered', 'alb_descr')
@@ -90,7 +91,8 @@ class TorInfo2UplData(FormData):
 
         src_descr = self.tor_info.rel_descr
         if src_descr and self.add_src_descr:
-            rel_descr += '\n\n' + utils.multi_replace(self.src_descr_templ, descr_placeholders, {'%src_descr%': src_descr})
+            rel_descr += '\n\n' + utils.multi_replace(self.src_descr_templ, descr_placeholders,
+                                                      {'%src_descr%': src_descr})
 
         self.rel_descr = rel_descr
 

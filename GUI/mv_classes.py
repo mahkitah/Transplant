@@ -364,4 +364,3 @@ class RehostTable(QTableView):
         height = self.horizontalHeader().height() + self.verticalHeader().length() + self.frameWidth() * 2
 
         self.setMaximumHeight(height)
-

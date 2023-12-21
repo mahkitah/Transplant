@@ -16,6 +16,7 @@ from PyQt6.QtWidgets import QFileDialog, QMessageBox
 from PyQt6.QtGui import QKeyEvent, QDesktopServices
 from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread, QSize, QUrl
 
+
 class LogForward(QObject, logging.Handler):
     log_forward = pyqtSignal(logging.LogRecord)
 
@@ -26,6 +27,7 @@ logger = logging.getLogger('tr')
 logger.setLevel(logging.INFO)
 handler = LogForward()
 logger.addHandler(handler)
+
 
 class TransplantThread(QThread):
     def __init__(self):
@@ -279,6 +281,8 @@ LEVEL_SETTING_NAME_MAP = {
     30: 'ple_warning_color',
     25: 'ple_success_color',
 }
+
+
 def print_logs(record: logging.LogRecord):
     if wb.tabs.count() == 1:
         wb.tabs.addTab(ui_text.tab_results)

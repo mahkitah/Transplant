@@ -3,6 +3,7 @@ import re
 
 from gazelle.tracker_data import tr, ReleaseType, ArtistType
 
+
 class TorrentInfo:
     def __init__(self):
         self.grp_id: int | None = None
@@ -35,6 +36,7 @@ class TorrentInfo:
         self.file_list: list | None = None
         self.unknown: bool = False
         self.src_tr: tr | None = None
+
 
 class SharedInfo(TorrentInfo):
     FIELD_MAP = {
@@ -130,6 +132,7 @@ class REDTorrentInfo(SharedInfo):
             return html.unescape(thing)
         except TypeError:
             return thing
+
 
 class OPSTorrentInfo(SharedInfo):
     artist_strip_regex = re.compile(r'(.+)\s\(\d+\)$')

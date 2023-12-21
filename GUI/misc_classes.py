@@ -1,8 +1,8 @@
 import os
 import re
 
-from PyQt6.QtWidgets import QFrame, QTextEdit, QComboBox, QFileDialog, QLineEdit, QTabBar, QVBoxLayout, QLabel,\
-    QTextBrowser, QSizePolicy, QApplication, QStyleFactory
+from PyQt6.QtWidgets import QFrame, QTextEdit, QComboBox, QFileDialog, QLineEdit, QTabBar, QVBoxLayout, QLabel, \
+     QTextBrowser, QSizePolicy, QApplication, QStyleFactory
 from PyQt6.QtGui import QIcon, QAction, QIconEngine
 from PyQt6.QtCore import Qt, pyqtSignal, QSettings, QTimer
 
@@ -126,7 +126,7 @@ class ColorExample(QTextBrowser):
             return
         self.current_colors[index] = color
 
-        style = f' style="color: {color}"' # if color else ''
+        style = f' style="color: {color}"'  # if color else ''
 
         line = self.texts[index]
         if index == 4:
