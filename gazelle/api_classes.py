@@ -6,10 +6,7 @@ from http.cookiejar import LWPCookieJar, LoadError
 
 import requests
 
-try:
-    from simplejson import JSONDecodeError
-except ImportError:
-    from json.decoder import JSONDecodeError
+from requests.exceptions import JSONDecodeError
 
 from lib import ui_text
 from gazelle import torrent_info
