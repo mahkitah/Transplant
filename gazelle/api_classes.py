@@ -49,13 +49,13 @@ class BaseApi:
         return self._account_info
 
     def get_account_info(self):
-        r = self.request('GET', 'index')
+        r = self.request('index')
         return {k: v for k, v in r.copy().items() if k in ('authkey', 'passkey', 'id', 'username')}
 
-    def request(self, req_method, url_suffix, data=None, files=None, **kwargs):
-        assert req_method in ('GET', 'POST')
+    def request(self, url_suffix, data=None, files=None, **kwargs):
         url = self.url + url_suffix + '.php'
         report.debug(f'{url_suffix} {kwargs}')
+        req_method = 'POST' if data or files else 'GET'
 
         self._rate_limit()
         r = self.session.request(req_method, url, params=kwargs, data=data, files=files)
@@ -63,10 +63,10 @@ class BaseApi:
 
         try:
             r_dict = r.json()
-            if r_dict["status"] == "success":
-                return r_dict["response"]
-            elif r_dict["status"] == "failure":
-                raise RequestFailure(r_dict["error"])
+            if r_dict['status'] == 'success':
+                return r_dict['response']
+            elif r_dict['status'] == 'failure':
+                raise RequestFailure(r_dict['error'])
         except JSONDecodeError:
             if 'application/x-bittorrent' in r.headers['content-type']:
                 return r.content
@@ -74,7 +74,7 @@ class BaseApi:
                 r.raise_for_status()
 
     def torrent_info(self, **kwargs):
-        r = self.request('GET', 'torrent', **kwargs)
+        r = self.request('torrent', **kwargs)
 
         return torrent_info.tr_map[self.tr](r)
 
@@ -84,7 +84,7 @@ class BaseApi:
         return self._uploader(data_dict, upl_files)
 
     def _uploader(self, data, files):
-        r = self.request('POST', 'upload', data=data, files=files)
+        r = self.request('upload', data=data, files=files)
 
         return self.upl_response_handler(r)
 
@@ -97,9 +97,9 @@ class KeyApi(BaseApi):
         key = kwargs['key']
         self.session.headers.update({"Authorization": key})
 
-    def request(self, req_method, action, data=None, files=None, **kwargs):
+    def request(self, action, data=None, files=None, **kwargs):
         kwargs.update(action=action)
-        return super().request(req_method, 'ajax', data=data, files=files, **kwargs)
+        return super().request('ajax', data=data, files=files, **kwargs)
 
     def upl_response_handler(self, r):
         raise NotImplementedError
@@ -128,18 +128,18 @@ class CookieApi(BaseApi):
                 'password': password,
                 'keeplogged': '1'}
         self.session.cookies.clear()
-        r = self.request('POST', 'login', data=data)
+        r = self.request('login', data=data)
         assert [c for c in self.session.cookies if c.name == 'session']
         self.session.cookies.save()
 
-    def request(self, req_method, action, data=None, files=None, **kwargs):
+    def request(self, action, data=None, files=None, **kwargs):
         if action in ('upload', 'login'):  # TODO download?
             url_addon = action
         else:
             url_addon = 'ajax'
             kwargs.update(action=action)
 
-        return super().request(req_method, url_addon, data=data, files=files, **kwargs)
+        return super().request(url_addon, data=data, files=files, **kwargs)
 
     def _uploader(self, data, files):
         data['submit'] = True
@@ -176,7 +176,7 @@ class RedApi(KeyApi):
         torrent_id, group_id = super()._uploader(data, files)
         if unknown:
             try:
-                self.request("POST", "torrentedit", id=torrent_id, data={'unknown': True})
+                self.request('torrentedit', id=torrent_id, data={'unknown': True})
                 report.info(ui_text.upl_to_unkn)
             except (RequestFailure, requests.HTTPError) as e:
                 report.error(f'{ui_text.edit_fail}{str(e)}')

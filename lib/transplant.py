@@ -216,7 +216,7 @@ class Transplanter:
         elif self.job.dtor_dict:
             files.add_dtor(self.job.dtor_dict, as_dict=True)
         else:
-            dtor_bytes = self.api_map[self.job.src_tr].request("GET", "download", id=self.tor_info.tor_id)
+            dtor_bytes = src_api.request('download', id=self.tor_info.tor_id)
             files.add_dtor(dtor_bytes)
 
     def get_logs(self, files: upload.Files, src_api) -> bool:
