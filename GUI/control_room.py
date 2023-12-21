@@ -188,6 +188,7 @@ def config_connections():
     wb.chb_show_rem_tr1.stateChanged.connect(lambda x: wb.pb_rem_tr1.setVisible(x)),
     wb.chb_show_rem_tr2.stateChanged.connect(lambda x: wb.pb_rem_tr2.setVisible(x)),
     wb.chb_no_icon.stateChanged.connect(wb.job_data.layoutChanged.emit)
+    wb.chb_show_tor_folder.stateChanged.connect(wb.job_data.layoutChanged.emit)
     wb.chb_alt_row_colour.stateChanged.connect(wb.job_view.setAlternatingRowColors)
     wb.chb_show_grid.stateChanged.connect(wb.job_view.setShowGrid)
     wb.spb_row_height.valueChanged.connect(wb.job_view.verticalHeader().setDefaultSectionSize)

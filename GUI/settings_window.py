@@ -102,6 +102,7 @@ class SettingsWindow(QDialog):
         main.addRow(wb.l_show_rem_tr2, wb.chb_show_rem_tr2)
 
         job_list.addRow(wb.l_no_icon, wb.chb_no_icon)
+        job_list.addRow(wb.l_show_tor_folder, wb.chb_show_tor_folder)
         job_list.addRow(wb.l_alt_row_colour, wb.chb_alt_row_colour)
         job_list.addRow(wb.l_show_grid, wb.chb_show_grid)
         job_list.addRow(wb.l_row_height, wb.spb_row_height)

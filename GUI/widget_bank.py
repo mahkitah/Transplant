@@ -47,6 +47,7 @@ CONFIG_NAMES = {
     'te_src_descr_templ': (ui_text.def_src_descr, False),
     'chb_add_src_descr': (2, False),
     'sty_style_selecter': ('Fusion', True),
+    'chb_show_tor_folder': (0, True),
     'chb_no_icon': (0, True),
     'chb_alt_row_colour': (2, True),
     'chb_show_grid': (0, True),

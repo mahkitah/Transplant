@@ -143,14 +143,18 @@ class JobModel(QAbstractTableModel):
             self._headers = headers
         return self._headers
 
-    def data(self, index: QModelIndex, role: int = 1):
+    def data(self, index: QModelIndex, role: int = 0):
         column = index.column()
         job = self.jobs[index.row()]
         no_icon = self.config.value('chb_no_icon') == 2
+        torrent_folder = self.config.value('chb_show_tor_folder') == 2
 
         if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
             if column == 0:
-                show_name = job.display_name or job.tor_id
+                if job.dtor_dict and torrent_folder:
+                    show_name = job.dtor_dict['info']['name']
+                else:
+                    show_name = job.display_name or job.tor_id
                 if no_icon:
                     show_name = f'{job.src_tr.name} - {show_name}'
                 return show_name

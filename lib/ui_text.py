@@ -70,6 +70,7 @@ l_show_add_dtors = "Show 'Add torrent files' button"
 l_show_rem_tr1 = f"Show '{pb_del_tr1}' button"
 l_show_rem_tr2 = f"Show '{pb_del_tr2}' button"
 l_no_icon = 'Text instead of icon'
+l_show_tor_folder = 'Torrent folder instead of file name'
 l_alt_row_colour = 'Alternating row colours'
 l_show_grid = 'Show grid'
 l_row_height = 'Row height'
