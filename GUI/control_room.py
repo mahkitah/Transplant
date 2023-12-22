@@ -213,10 +213,7 @@ def load_config():
     splittersizes = wb.config.value('geometry/splitter_pos', defaultValue=[150, 345], type=int)
     wb.splitter.setSizes(splittersizes)
     wb.splitter.splitterMoved.emit(splittersizes[0], 1)
-    try:
-        wb.job_view.horizontalHeader().restoreState(wb.config.value('geometry/job_view_header'))
-    except TypeError:
-        wb.job_view.horizontalHeader().set_all_sections_visible()
+    wb.job_view.horizontalHeader().restoreState(wb.config.value('geometry/job_view_header'))
 
     wb.settings_window.resize(wb.config.value('geometry/config_window_size', defaultValue=QSize(400, 450)))
 

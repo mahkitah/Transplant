@@ -42,62 +42,54 @@ class JobView(QTableView):
 
 
 class ContextHeaderView(QHeaderView):
-    a_model_has_been_set = pyqtSignal()
     section_visibility_changed = pyqtSignal(int, bool)
 
     def __init__(self, orientation, parent):
         super().__init__(orientation, parent)
-        self.section_visibility_changed.connect(self.set_action_icon)
+        self.section_visibility_changed.connect(self.set_action_checked)
         self.section_visibility_changed.connect(self.disable_actions)
-        self.a_model_has_been_set.connect(self.context_actions)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.ActionsContextMenu)
-
-    def setModel(self, model):
-        super().setModel(model)
-        self.a_model_has_been_set.emit()
 
     def text(self, section):
         return self.model().headerData(section, self.orientation(), Qt.ItemDataRole.DisplayRole)
 
-    def hideSection(self, index):
-        super().hideSection(index)
-        self.section_visibility_changed.emit(index, True)
-
-    def showSection(self, index):
-        super().showSection(index)
-        self.section_visibility_changed.emit(index, False)
-
     def setSectionHidden(self, index, hide):
-        super().setSectionHidden(index, hide)
-        self.section_visibility_changed.emit(index, hide)
+        if not self.isSectionHidden(index) == hide:
+            super().setSectionHidden(index, hide)
+            self.section_visibility_changed.emit(index, hide)
+
+    def set_section_visible(self, index: int, visible: bool):
+        self.setSectionHidden(index, not visible)
 
     def restoreState(self, state):
-        super().restoreState(state)
-        for x in range(self.count()):
-            self.section_visibility_changed.emit(x, self.isSectionHidden(x))
+        try:
+            super().restoreState(state)
+        except TypeError:
+            pass
+        self.context_actions()
 
     def context_actions(self):
         ac_restore_all = QAction(ui_text.header_restore, self)
         self.addAction(ac_restore_all)
         ac_restore_all.triggered.connect(self.set_all_sections_visible)
-        ac_restore_all.setObjectName('restore_all')
+        ac_restore_all.setEnabled(bool(self.hiddenSectionCount()))
 
         for i in range(self.model().columnCount(None)):
             action = QAction(self)
             action.setText(self.text(i))
+            action.setCheckable(True)
+            action.setChecked(not self.isSectionHidden(i))
             self.addAction(action)
-            # 'i' must be evaluated at loop time. isSectionHidden() must be evaluateed at run time.
-            # Hence, the lambda in a partial.
-            action.triggered.connect(partial(lambda x: self.setSectionHidden(x, not self.isSectionHidden(x)), i))
+            action.toggled.connect(partial(self.set_section_visible, i))
 
     def set_all_sections_visible(self):
-        for x in range(self.count()):
-            self.showSection(x)
+        for i in range(self.count()):
+            self.actions()[i + 1].setChecked(True)
 
     def disable_actions(self):
         # all visible
         if not self.hiddenSectionCount():
-            self.findChild(QAction, 'restore_all', Qt.FindChildOption.FindDirectChildrenOnly).setEnabled(False)
+            self.actions()[0].setEnabled(False)
 
         # 1 visible
         elif self.hiddenSectionCount() == self.count() - 1:
@@ -113,9 +105,9 @@ class ContextHeaderView(QHeaderView):
             for action in self.actions():
                 action.setEnabled(True)
 
-    def set_action_icon(self, index, hidden):
-        icon = 'blank-check-box.svg' if hidden else 'check-box.svg'
-        self.actions()[index + 1].setIcon(ThemeIcon(icon))
+    def set_action_checked(self, section: int, hidden: bool):
+        action = self.actions()[section + 1]
+        action.setChecked(not hidden)
 
 
 class JobModel(QAbstractTableModel):
