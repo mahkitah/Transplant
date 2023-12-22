@@ -5,6 +5,8 @@ from PyQt6.QtGui import QIcon
 
 from gazelle.tracker_data import tr
 from lib import ui_text
+from lib.version import __version__
+from lib.img_rehost import ih
 from GUI.misc_classes import TPTextEdit, CyclingTabBar, FolderSelectBox, ResultBrowser, IniSettings, TempPopUp,\
     ColorExample, PatientLineEdit, ThemeIcon, StyleSelecter, ClickableLabel
 from GUI.mv_classes import JobModel, JobView, RehostModel, RehostTable
@@ -69,6 +71,7 @@ class WidgetBank:
         super().__init__()
         self.app = QApplication.instance()
         self.config = IniSettings("Transplant.ini")
+        self.config_update()
         self.user_input_elements()
         self.main_window = None
         self.settings_window = None
@@ -84,6 +87,64 @@ class WidgetBank:
             self._pop_up = TempPopUp(self.main_window)
 
         return self._pop_up
+
+    def config_update(self):
+        config_version = self.config.value('config_version')
+        if config_version == __version__:
+            return
+        if config_version is None:
+            self.config.setValue('config_version', __version__)
+            return
+
+        changes = (
+            ('te_rel_descr', 'te_rel_descr_templ', None),
+            ('te_src_descr', 'te_src_descr_templ', None),
+            ('le_scandir', 'le_scan_dir', None),
+            ('geometry/header', 'geometry/job_view_header', None),
+            ('le_data_dir', 'fsb_data_dir', lambda x: [x]),
+            ('le_scan_dir', 'fsb_scan_dir', lambda x: [x]),
+            ('le_dtor_save_dir', 'fsb_dtor_save_dir', lambda x: [x]),
+        )
+        for old, new, conversion in changes:
+            if self.config.contains(old):
+                value = self.config.value(old)
+                if conversion:
+                    value = conversion(value)
+                self.config.setValue(new, value)
+                self.config.remove(old)
+
+        for key in self.config.allKeys():
+            if key.startswith('chb_'):
+                value = self.config.value(key)
+                if value not in (0, 1, 2):
+                    value = 2 if bool(int(value)) else 0
+                    self.config.setValue(key, value)
+            elif key.startswith('spb_'):
+                value = self.config.value(key)
+                if not type(value) == int:
+                    self.config.setValue(key, int(value))
+            if key == 'spb_splitter_weight':
+                self.config.remove(key)
+            if key == 'bg_source' and self.config.value(key) == 0:
+                self.config.setValue(key, 1)
+            if key == 'le_ptpimg_key':
+                value = self.config.value(key)
+                if value:
+                    ih.PTPimg.key = value
+                    if self.config.value('chb_rehost'):
+                        ih.PTPimg.enabled = True
+                self.config.remove(key)
+            if key.startswith('te_rel_descr'):
+                value = self.config.value(key).replace('[url=%src_url%torrents.php?id=%tor_id%]',
+                                                     '[url=%src_url%torrents.php?torrentid=%tor_id%]')
+                self.config.setValue(key, value)
+
+        old_version = tuple(map(int, config_version.split('.')))
+        new_version = tuple(map(int, __version__.split('.')))
+        if old_version < (2, 5, 2) <= new_version:
+            self.config.remove('geometry/job_view_header')
+
+        self.config.setValue('config_version', __version__)
 
     def main_widgets(self):
         self.topwidget = QWidget()

@@ -6,7 +6,6 @@ from urllib.parse import urlparse, parse_qs
 from lib import utils, ui_text
 from lib.img_rehost import ih
 from lib.transplant import Job, Transplanter
-from lib.version import __version__
 from gazelle.tracker_data import tr
 from GUI.widget_bank import wb
 from GUI.main_gui import MainWindow
@@ -66,11 +65,6 @@ class TransplantThread(QThread):
 
 
 def start_up():
-    config_version = wb.config.value('config_version')
-    if config_version != __version__:
-        config_update()
-        wb.config.setValue('config_version', __version__)
-
     wb.main_window = MainWindow()
     wb.main_window.keyPressEvent = key_press
     wb.settings_window = SettingsWindow(wb.main_window)
@@ -80,47 +74,6 @@ def start_up():
     wb.emit_state()
     wb.pb_scan.setFocus()
     wb.main_window.show()
-
-
-def config_update():
-    changes = (
-        ('te_rel_descr', 'te_rel_descr_templ', None),
-        ('te_src_descr', 'te_src_descr_templ', None),
-        ('le_scandir', 'le_scan_dir', None),
-        ('geometry/header', 'geometry/job_view_header', None),
-        ('le_data_dir', 'fsb_data_dir', lambda x: [x]),
-        ('le_scan_dir', 'fsb_scan_dir', lambda x: [x]),
-        ('le_dtor_save_dir', 'fsb_dtor_save_dir', lambda x: [x]),
-    )
-    for old, new, conversion in changes:
-        if wb.config.contains(old):
-            value = wb.config.value(old)
-            if conversion:
-                value = conversion(value)
-            wb.config.setValue(new, value)
-            wb.config.remove(old)
-
-    for key in wb.config.allKeys():
-        if key.startswith('chb_'):
-            value = wb.config.value(key)
-            if value not in (0, 1, 2):
-                value = 2 if bool(int(value)) else 0
-                wb.config.setValue(key, value)
-        elif key.startswith('spb_'):
-            value = wb.config.value(key)
-            if not type(value) == int:
-                wb.config.setValue(key, int(value))
-        if key == 'spb_splitter_weight':
-            wb.config.remove(key)
-        if key == 'bg_source' and wb.config.value(key) == 0:
-            wb.config.setValue(key, 1)
-        if key == 'le_ptpimg_key':
-            value = wb.config.value(key)
-            if value:
-                ih.PTPimg.key = value
-                if wb.config.value('chb_rehost'):
-                    ih.PTPimg.enabled = True
-            wb.config.remove(key)
 
 
 def main_connections():
@@ -203,14 +156,14 @@ def config_connections():
 def load_config():
     source_id = wb.config.value('bg_source', defaultValue=1)
     wb.bg_source.button(source_id).click()
-    wb.main_window.resize(wb.config.value('geometry/size', defaultValue=QSize(550, 500)))
+    wb.main_window.resize(wb.config.value('geometry/size', defaultValue=QSize(730, 440)))
 
     try:
         wb.main_window.move(wb.config.value('geometry/position'))
     except TypeError:
         pass
 
-    splittersizes = wb.config.value('geometry/splitter_pos', defaultValue=[150, 345], type=int)
+    splittersizes = wb.config.value('geometry/splitter_pos', defaultValue=[100, 336], type=int)
     wb.splitter.setSizes(splittersizes)
     wb.splitter.splitterMoved.emit(splittersizes[0], 1)
     wb.job_view.horizontalHeader().restoreState(wb.config.value('geometry/job_view_header'))
