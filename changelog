@@ -1,3 +1,11 @@
+2.5.2
+- New: Ra and imgBB added to image hosts
+- New: Selectable GUI style
+- New: GUI icons adapt to light/dark mode
+- New: Option to show torrent folder name instead of .torrent file name in job list
+- New: Deep search optimisation + 'depth' levels
+- Fix: url for default descriptions (id= > torrentid=)
+- Requests module: minimum version 2.27 requirement
 2.5.1
 - New: Fusion style by default
 - New: coloured output (GUI and CLI)
