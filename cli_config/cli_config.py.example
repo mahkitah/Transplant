@@ -44,7 +44,7 @@ image_hosts = {
     'ImgBB': (False, '12345', 3),
 }
 
-# "Set a custom release description.
+# Set a custom release description.
 
 # You can use these placeholders:"
 # %src_id% :   Source id (OPS/RED)

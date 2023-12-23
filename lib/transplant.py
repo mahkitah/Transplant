@@ -106,17 +106,18 @@ class Transplanter:
         if img_rehost:
             assert isinstance(whitelist, list)
 
-        self.job = None
-        self.tor_info = None
-
         if self.deep_search:
             self.subdir_store = {}
             self.subdir_gen = utils.subdirs_gen(self.data_dir, maxlevel=self.deep_search_level)
 
-    def do_your_job(self, job):
+        self.job = None
         self.tor_info = None
         self._torrent_folder_path = None
+
+    def do_your_job(self, job):
         self.job = job
+        self.tor_info = None
+        self._torrent_folder_path = None
         report.info(f"{self.job.src_tr.name} {self.job.display_name or self.job.tor_id}")
 
         src_api = self.api_map[self.job.src_tr]
@@ -219,15 +220,17 @@ class Transplanter:
             dtor_bytes = src_api.request('download', id=self.tor_info.tor_id)
             files.add_dtor(dtor_bytes)
 
-    def get_logs(self, files: upload.Files, src_api) -> bool:
+    NOT_RIPLOG = ("audiochecker", "aucdtect", "accurip")
 
-        def is_riplog(fn):
-            if fn.endswith('.log') and not any(x in fn.lower() for x in ("audiochecker", "aucdtect", "accurip")):
-                return True
+    def is_riplog(self, fn):
+        if fn.endswith('.log') and not any(x in fn.lower() for x in self.NOT_RIPLOG):
+            return True
+
+    def get_logs(self, files: upload.Files, src_api) -> bool:
 
         if self.job.new_dtor:
             for scan in utils.scantree(self.torrent_folder_path):
-                if is_riplog(scan.name):
+                if self.is_riplog(scan.name):
                     files.add_log(scan.path, as_path=True)
 
             return True  # new torrent may have no log while original had one
@@ -239,7 +242,7 @@ class Transplanter:
             for fl in self.tor_info.file_list:
                 fn = fl['names'][-1]
 
-                if is_riplog(fn):
+                if self.is_riplog(fn):
                     full_path = os.path.join(self.torrent_folder_path, *fl['names'])
 
                     if not os.path.exists(full_path):

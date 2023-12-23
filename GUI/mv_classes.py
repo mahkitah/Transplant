@@ -6,7 +6,6 @@ from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex, QItem
 
 from GUI import gui_text
 from lib.img_rehost import ih
-from GUI.misc_classes import ThemeIcon
 from gazelle.tracker_data import tr
 
 
@@ -51,7 +50,7 @@ class ContextHeaderView(QHeaderView):
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.ActionsContextMenu)
 
     def text(self, section):
-        return self.model().headerData(section, self.orientation(), Qt.ItemDataRole.DisplayRole)
+        return self.model().headerData(section, self.orientation()).strip()
 
     def setSectionHidden(self, index, hide):
         if not self.isSectionHidden(index) == hide:
@@ -271,8 +270,7 @@ class JobModel(QAbstractTableModel):
         return bool(self.jobs)
 
     def __iter__(self):
-        for j in self.jobs:
-            yield j
+        yield from self.jobs
 
 
 class RehostModel(QAbstractTableModel):
@@ -297,7 +295,7 @@ class RehostModel(QAbstractTableModel):
                 return host.key
 
         if role == Qt.ItemDataRole.CheckStateRole and column == 0:
-            return Qt.CheckState.Checked if host.enabled else Qt.CheckState.Unchecked
+            return Qt.CheckState(host.enabled * 2)
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlag:
         if index.column() == 0:

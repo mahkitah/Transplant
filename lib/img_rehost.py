@@ -84,7 +84,6 @@ def rehost(img_link):
             if host.key:
                 args.append(host.key)
             try:
-                r = host.func(*args)
-                return r
+                return host.func(*args)
             except Exception:
                 continue
