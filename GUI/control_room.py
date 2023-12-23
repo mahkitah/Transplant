@@ -175,8 +175,9 @@ def load_config():
 
 def settings_accepted():
     wb.config.setValue('geometry/config_window_size', wb.settings_window.size())
-    consolidate_fsbs()
     wb.config.setValue('rehost_data', ih.get_attrs())
+    for fsb in wb.fsbs:
+        fsb.consolidate()
 
 
 def key_press(event: QKeyEvent):
@@ -435,11 +436,6 @@ def tooltips(flag):
             obj.setToolTip(ttip if flag else '')
 
     wb.splitter.handle(1).setToolTip(ui_text.ttm_splitter if flag else '')
-
-
-def consolidate_fsbs():
-    for fsb in wb.fsbs():
-        fsb.consolidate()
 
 
 def default_descr():

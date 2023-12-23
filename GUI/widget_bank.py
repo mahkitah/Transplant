@@ -72,6 +72,7 @@ class WidgetBank:
         self.app = QApplication.instance()
         self.config = IniSettings("Transplant.ini")
         self.config_update()
+        self.fsbs = []
         self.user_input_elements()
         self.main_window = None
         self.settings_window = None
@@ -296,6 +297,7 @@ class WidgetBank:
 
             if obj_type == FolderSelectBox:
                 obj.dialog_caption = getattr(ui_text, f'tt_{el_name}')
+                self.fsbs.append(obj)
 
         self.le_key_1.setCursorPosition(0)
         self.le_key_2.setCursorPosition(0)
@@ -317,10 +319,5 @@ class WidgetBank:
             signal_func, _ = ACTION_MAP[type(obj)]
             value = self.config.value(el_name)
             signal_func(obj).emit(value)
-
-    def fsbs(self):
-        for el_name in CONFIG_NAMES:
-            if el_name.startswith('fsb_'):
-                yield getattr(self, el_name)
 
 wb = WidgetBank()
