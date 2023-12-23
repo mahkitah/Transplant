@@ -5,12 +5,11 @@ import logging
 from urllib.parse import urlparse, parse_qs
 
 from lib.transplant import Transplanter, Job
-from gazelle.tracker_data import tr
-
-from cli_config import cli_config
 from lib import tp_text
+from cli_config import cli_config
 from lib.utils import tb_line_gen
 from lib.img_rehost import ih
+from gazelle.tracker_data import tr
 
 
 class ColorStreamHandler(logging.StreamHandler):

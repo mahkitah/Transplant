@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QGridLayout
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QFormLayout, QDialog
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
 

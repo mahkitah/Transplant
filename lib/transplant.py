@@ -1,7 +1,6 @@
 import os
 import logging
 from hashlib import sha1
-
 from urllib.parse import urlparse
 
 from bcoding import bencode, bdecode
@@ -9,7 +8,6 @@ from bcoding import bencode, bdecode
 from gazelle import upload
 from gazelle.tracker_data import tr
 from gazelle.api_classes import sleeve
-
 from lib import utils, tp_text
 from lib.info_2_upl import TorInfo2UplData
 from lib.lean_torrent import Torrent

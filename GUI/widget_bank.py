@@ -9,8 +9,8 @@ from gazelle.tracker_data import tr
 from GUI import gui_text
 from lib.version import __version__
 from lib.img_rehost import ih
-from GUI.misc_classes import TPTextEdit, CyclingTabBar, FolderSelectBox, ResultBrowser, IniSettings, TempPopUp,\
-    ColorExample, PatientLineEdit, ThemeIcon, StyleSelecter, ClickableLabel
+from GUI.misc_classes import (TPTextEdit, CyclingTabBar, FolderSelectBox, ResultBrowser, IniSettings, TempPopUp,
+                              ColorExample, PatientLineEdit, ThemeIcon, StyleSelecter, ClickableLabel)
 from GUI.mv_classes import JobModel, JobView, RehostModel, RehostTable
 
 TYPE_MAP = {

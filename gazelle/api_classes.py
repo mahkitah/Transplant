@@ -1,13 +1,12 @@
+import re
 import time
 import base64
-from hashlib import sha256
-import re
 import logging
+from hashlib import sha256
 from collections import deque
 from http.cookiejar import LWPCookieJar, LoadError
 
 import requests
-
 from requests.exceptions import JSONDecodeError
 
 from lib import tp_text

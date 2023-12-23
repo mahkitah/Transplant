@@ -2,8 +2,8 @@ from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout
 from PyQt6.QtGui import QIcon, QKeyEvent
 from PyQt6.QtCore import pyqtSignal
 
-from GUI import gui_text
 from lib.version import __version__
+from GUI import gui_text
 from GUI.widget_bank import wb
 
 
