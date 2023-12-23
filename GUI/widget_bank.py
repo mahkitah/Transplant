@@ -1,5 +1,5 @@
-from PyQt6.QtWidgets import QApplication, QWidget, QTextEdit, QPushButton, QToolButton, QRadioButton, QButtonGroup,\
-    QSplitter, QSizePolicy, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox, QStackedLayout
+from PyQt6.QtWidgets import (QApplication, QWidget, QTextEdit, QPushButton, QToolButton, QRadioButton, QButtonGroup,
+                             QSplitter, QSizePolicy, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox, QStackedLayout)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 
@@ -48,7 +48,7 @@ CONFIG_NAMES = {
     'te_rel_descr_own_templ': (ui_text.def_rel_descr_own, False),
     'te_src_descr_templ': (ui_text.def_src_descr, False),
     'chb_add_src_descr': (2, False),
-    'sty_style_selecter': ('Fusion', True),
+    'sty_style_selector': ('Fusion', True),
     'chb_show_tor_folder': (0, True),
     'chb_no_icon': (0, True),
     'chb_alt_row_colour': (2, True),
@@ -104,6 +104,7 @@ class WidgetBank:
             ('le_data_dir', 'fsb_data_dir', lambda x: [x]),
             ('le_scan_dir', 'fsb_scan_dir', lambda x: [x]),
             ('le_dtor_save_dir', 'fsb_dtor_save_dir', lambda x: [x]),
+            ('sty_style_selecter', 'sty_style_selector', None)
         )
         for old, new, conversion in changes:
             if self.config.contains(old):

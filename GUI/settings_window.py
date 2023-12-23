@@ -96,7 +96,7 @@ class SettingsWindow(QDialog):
         job_list = QFormLayout()
         job_list.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
 
-        main.addRow(wb.l_style_selecter, wb.sty_style_selecter)
+        main.addRow(wb.l_style_selector, wb.sty_style_selector)
         main.addRow(wb.l_show_add_dtors, wb.chb_show_add_dtors)
         main.addRow(wb.l_show_rem_tr1, wb.chb_show_rem_tr1)
         main.addRow(wb.l_show_rem_tr2, wb.chb_show_rem_tr2)

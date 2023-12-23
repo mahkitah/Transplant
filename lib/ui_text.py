@@ -65,7 +65,7 @@ def_rel_descr_own = "Transplant of my own upload on [url=%src_url%torrents.php?t
 def_src_descr = "[quote=source description:]%src_descr%[/quote]"
 
 l_job_list = 'Job list:'
-l_style_selecter = 'GUI Style'
+l_style_selector = 'GUI Style'
 l_show_add_dtors = "Show 'Add torrent files' button"
 l_show_rem_tr1 = f"Show '{pb_del_tr1}' button"
 l_show_rem_tr2 = f"Show '{pb_del_tr2}' button"

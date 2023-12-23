@@ -130,15 +130,12 @@ def config_connections():
     wb.chb_deep_search.stateChanged.connect(lambda x: wb.spb_deep_search_level.setEnabled(bool(x)))
     wb.chb_show_tips.stateChanged.connect(tooltips)
     wb.spb_verbosity.valueChanged.connect(set_verbosity)
-    wb.sty_style_selecter.currentTextChanged.connect(wb.app.setStyle)
     wb.chb_rehost.stateChanged.connect(wb.rh_on_off_container.setEnabled)
     wb.pb_def_descr.clicked.connect(default_descr)
-    wb.sty_style_selecter.currentTextChanged.connect(wb.app.setStyle)
     wb.pb_def_descr.clicked.connect(default_descr)
-    wb.sty_style_selecter.currentTextChanged.connect(wb.app.setStyle)
+    wb.sty_style_selector.currentTextChanged.connect(wb.app.setStyle)
     wb.chb_rehost.stateChanged.connect(wb.rh_on_off_container.setEnabled)
     wb.pb_def_descr.clicked.connect(default_descr)
-    wb.sty_style_selecter.currentTextChanged.connect(wb.app.setStyle)
     wb.chb_show_add_dtors.stateChanged.connect(lambda x: wb.pb_open_dtors.setVisible(x)),
     wb.chb_show_rem_tr1.stateChanged.connect(lambda x: wb.pb_rem_tr1.setVisible(x)),
     wb.chb_show_rem_tr2.stateChanged.connect(lambda x: wb.pb_rem_tr2.setVisible(x)),
