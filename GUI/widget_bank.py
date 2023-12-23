@@ -1,3 +1,5 @@
+from functools import partial
+
 from PyQt6.QtWidgets import (QApplication, QWidget, QTextEdit, QPushButton, QToolButton, QRadioButton, QButtonGroup,
                              QSplitter, QSizePolicy, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox, QStackedLayout)
 from PyQt6.QtCore import Qt
@@ -261,28 +263,23 @@ class WidgetBank:
 
     def user_input_elements(self):
 
-        def make_lambda(name):
-            return lambda x: self.config.setValue(name, x)
-
         for el_name, (df, mk_lbl) in CONFIG_NAMES.items():
             typ_str, name = el_name.split('_', maxsplit=1)
 
             # instantiate
             obj_type = TYPE_MAP[typ_str]
-            setattr(self, el_name, obj_type())
-            obj = getattr(self, el_name)
-            obj.setObjectName(el_name)
+            obj = obj_type()
+            setattr(self, el_name, obj)
 
             # set values from config
             if not self.config.contains(el_name):
                 self.config.setValue(el_name, df)
 
-            change_sig, set_value = ACTION_MAP[type(obj)]
-            value = self.config.value(el_name)
-            set_value(obj, value)
+            change_sig, set_value_func = ACTION_MAP[obj_type]
+            set_value_func(obj, self.config.value(el_name))
 
             # connection to ini
-            change_sig(obj).connect(make_lambda(el_name))
+            change_sig(obj).connect(partial(self.config.setValue, el_name))
 
             # make Label
             if mk_lbl:
