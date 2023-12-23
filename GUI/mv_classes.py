@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QHeaderView, QTableView
 from PyQt6.QtGui import QIcon, QKeyEvent, QAction
 from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex, QItemSelectionModel
 
-from lib import ui_text
+from GUI import gui_text
 from lib.img_rehost import ih
 from GUI.misc_classes import ThemeIcon
 from gazelle.tracker_data import tr
@@ -69,7 +69,7 @@ class ContextHeaderView(QHeaderView):
         self.context_actions()
 
     def context_actions(self):
-        ac_restore_all = QAction(ui_text.header_restore, self)
+        ac_restore_all = QAction(gui_text.header_restore, self)
         self.addAction(ac_restore_all)
         ac_restore_all.triggered.connect(self.set_all_sections_visible)
         ac_restore_all.setEnabled(bool(self.hiddenSectionCount()))
@@ -129,7 +129,7 @@ class JobModel(QAbstractTableModel):
             index = 0
             while True:
                 try:
-                    headers.append(getattr(ui_text, f'header{index}'))
+                    headers.append(getattr(gui_text, f'header{index}'))
                 except AttributeError:
                     break
                 index += 1
@@ -182,10 +182,10 @@ class JobModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.ToolTipRole and orientation == Qt.Orientation.Horizontal:
             if section == 1:
                 if bool(int(self.config.value('chb_show_tips'))):
-                    return ui_text.ttm_header1
+                    return gui_text.ttm_header1
             if section == 2:
                 if bool(int(self.config.value('chb_show_tips'))):
-                    return ui_text.ttm_header2
+                    return gui_text.ttm_header2
         else:
             return super().headerData(section, orientation, role)
 
@@ -278,7 +278,7 @@ class JobModel(QAbstractTableModel):
 class RehostModel(QAbstractTableModel):
     def __init__(self):
         super().__init__()
-        self.column_names = ui_text.rehost_columns
+        self.column_names = gui_text.rehost_columns
 
     def rowCount(self, parent: QModelIndex = None) -> int:
         return len(ih)

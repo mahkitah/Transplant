@@ -8,7 +8,7 @@ from lib.transplant import Transplanter, Job
 from gazelle.tracker_data import tr
 
 from cli_config import cli_config
-from lib import ui_text
+from lib import tp_text
 from lib.utils import tb_line_gen
 from lib.img_rehost import ih
 
@@ -81,12 +81,12 @@ def parse_input():
                     report.info(f"{scan.name}")
                     yield Job(dtor_path=scan.path, scanned=True)
                 except (AssertionError, TypeError, AttributeError, KeyError):
-                    report.warning(ui_text.skip)
+                    report.warning(tp_text.skip)
                     continue
 
 
 def main():
-    report.info(ui_text.start)
+    report.info(tp_text.start)
 
     trpl_settings = {
         'data_dir': cli_config.data_dir,

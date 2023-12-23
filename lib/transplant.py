@@ -10,7 +10,7 @@ from gazelle import upload
 from gazelle.tracker_data import tr
 from gazelle.api_classes import sleeve
 
-from lib import utils, ui_text
+from lib import utils, tp_text
 from lib.info_2_upl import TorInfo2UplData
 from lib.lean_torrent import Torrent
 
@@ -121,7 +121,7 @@ class Transplanter:
 
         src_api = self.api_map[self.job.src_tr]
 
-        report.info(ui_text.requesting)
+        report.info(tp_text.requesting)
         if self.job.tor_id:
             self.tor_info = src_api.torrent_info(id=self.job.tor_id)
         elif self.job.info_hash:
@@ -151,13 +151,13 @@ class Transplanter:
 
             dest_api = self.api_map[dest_tr]
 
-            report.info(f"{ui_text.upl1} {dest_api.tr.name}")
+            report.info(f"{tp_text.upl1} {dest_api.tr.name}")
             try:
                 new_id, new_group, new_url = dest_api.upload(upl_data, upl_files, dest_group=self.job.dest_group)
-                report.log(25, f"{ui_text.upl2} {new_url}")
+                report.log(25, f"{tp_text.upl2} {new_url}")
             except Exception:
                 saul_goodman = False
-                report.exception(f"{ui_text.upl3}")
+                report.exception(f"{tp_text.upl3}")
                 continue
 
             if self.post_compare:
@@ -165,13 +165,13 @@ class Transplanter:
 
             if self.save_dtors:
                 self.save_dtorrent(upl_files, new_url)
-                report.info(f"{ui_text.dtor_saved} {self.dtor_save_dir}")
+                report.info(f"{tp_text.dtor_saved} {self.dtor_save_dir}")
 
         if not saul_goodman:
             return False
         elif self.del_dtors and self.job.scanned:
             os.remove(self.job.dtor_path)
-            report.info(ui_text.dtor_deleted)
+            report.info(tp_text.dtor_deleted)
 
         return True
 
@@ -201,13 +201,13 @@ class Transplanter:
             score_1 = self.tor_info.log_score
             score_2 = new_tor_info.log_score
             if not score_1 == score_2:
-                report.warning(ui_text.log_score_dif.format(score_1, score_2))
+                report.warning(tp_text.log_score_dif.format(score_1, score_2))
 
         src_descr = self.tor_info.alb_descr.replace(src_api.url, '')
         dest_descr = new_tor_info.alb_descr.replace(dest_api.url, '')
 
         if src_descr != dest_descr or self.tor_info.title != new_tor_info.title:
-            report.warning(ui_text.merged)
+            report.warning(tp_text.merged)
 
     def get_dtor(self, files, src_api):
         if self.job.new_dtor:
@@ -243,40 +243,40 @@ class Transplanter:
                     full_path = os.path.join(self.torrent_folder_path, *fl['names'])
 
                     if not os.path.exists(full_path):
-                        report.error(f"{ui_text.missing} {full_path}")
+                        report.error(f"{tp_text.missing} {full_path}")
                         return False
 
                     files.add_log(full_path, as_path=True)
 
         if not files.logs:
-            report.error(ui_text.no_log)
+            report.error(tp_text.no_log)
             return False
 
         return True
 
     def create_new_torrent(self):
-        report.info(ui_text.new_tor)
+        report.info(tp_text.new_tor)
         t = Torrent(self.torrent_folder_path)
 
         return t.data
 
     def check_files(self):
         if not self.torrent_folder_path:
-            report.error(f"{ui_text.missing} {self.tor_info.folder_name}")
+            report.error(f"{tp_text.missing} {self.tor_info.folder_name}")
             return False
         if self.job.new_dtor:
             if not os.path.exists(self.torrent_folder_path):
-                report.error(f"{ui_text.missing} {self.torrent_folder_path}")
+                report.error(f"{tp_text.missing} {self.torrent_folder_path}")
                 return False
         else:
             for fl in self.tor_info.file_list:
                 file_path = os.path.join(self.torrent_folder_path, *fl['names'])
 
                 if not os.path.exists(file_path):
-                    report.error(f"{ui_text.missing} {file_path}")
+                    report.error(f"{tp_text.missing} {file_path}")
                     return False
 
-        report.info(ui_text.f_checked)
+        report.info(tp_text.f_checked)
         return True
 
     def save_dtorrent(self, files, comment=None):

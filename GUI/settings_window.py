@@ -2,14 +2,14 @@ from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QFormLayout, QDialog, QGri
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import Qt
 
-from lib import ui_text
+from GUI import gui_text
 from GUI.widget_bank import wb
 
 
 class SettingsWindow(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
-        self.setWindowTitle(ui_text.settings_window_title)
+        self.setWindowTitle(gui_text.settings_window_title)
         self.setWindowIcon(QIcon(':/gear.svg'))
         self.layout()
 

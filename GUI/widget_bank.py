@@ -6,7 +6,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 
 from gazelle.tracker_data import tr
-from lib import ui_text
+from GUI import gui_text
 from lib.version import __version__
 from lib.img_rehost import ih
 from GUI.misc_classes import TPTextEdit, CyclingTabBar, FolderSelectBox, ResultBrowser, IniSettings, TempPopUp,\
@@ -46,21 +46,21 @@ CONFIG_NAMES = {
     'chb_post_compare': (0, True),
     'chb_show_tips': (2, True),
     'spb_verbosity': (2, True),
-    'te_rel_descr_templ': (ui_text.def_rel_descr, False),
-    'te_rel_descr_own_templ': (ui_text.def_rel_descr_own, False),
-    'te_src_descr_templ': (ui_text.def_src_descr, False),
+    'chb_rehost': (0, True),
+    'le_whitelist': (gui_text.default_whitelist, True),
+    'te_rel_descr_templ': (gui_text.def_rel_descr, False),
+    'te_rel_descr_own_templ': (gui_text.def_rel_descr_own, False),
+    'te_src_descr_templ': (gui_text.def_src_descr, False),
     'chb_add_src_descr': (2, False),
     'sty_style_selector': ('Fusion', True),
-    'chb_show_tor_folder': (0, True),
-    'chb_no_icon': (0, True),
-    'chb_alt_row_colour': (2, True),
-    'chb_show_grid': (0, True),
-    'spb_row_height': (20, True),
     'chb_show_add_dtors': (2, True),
     'chb_show_rem_tr1': (0, True),
     'chb_show_rem_tr2': (0, True),
-    'chb_rehost': (0, True),
-    'le_whitelist': (ui_text.default_whitelist, True),
+    'chb_no_icon': (0, True),
+    'chb_show_tor_folder': (0, True),
+    'chb_alt_row_colour': (2, True),
+    'chb_show_grid': (0, True),
+    'spb_row_height': (20, True),
     'ple_warning_color': ('orange', True),
     'ple_error_color': ('crimson', True),
     'ple_success_color': ('forestgreen', True),
@@ -165,7 +165,7 @@ class WidgetBank:
         self.te_paste_box = TPTextEdit()
         self.te_paste_box.setAcceptDrops(False)
         self.te_paste_box.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
-        self.te_paste_box.setPlaceholderText(ui_text.pb_placeholder)
+        self.te_paste_box.setPlaceholderText(gui_text.pb_placeholder)
 
         self.rb_tracker1 = QRadioButton(tr.RED.name)
         self.rb_tracker2 = QRadioButton(tr.OPS.name)
@@ -173,12 +173,12 @@ class WidgetBank:
         self.bg_source.addButton(self.rb_tracker1, 1)
         self.bg_source.addButton(self.rb_tracker2, 2)
 
-        self.pb_add = QPushButton(ui_text.pb_add)
+        self.pb_add = QPushButton(gui_text.pb_add)
         self.pb_add.setEnabled(False)
 
-        self.pb_open_dtors = QPushButton(ui_text.open_dtors)
+        self.pb_open_dtors = QPushButton(gui_text.open_dtors)
 
-        self.pb_scan = QPushButton(ui_text.pb_scan)
+        self.pb_scan = QPushButton(gui_text.pb_scan)
         self.pb_scan.setEnabled(False)
 
         self.job_data = JobModel(self.config)
@@ -193,35 +193,35 @@ class WidgetBank:
         self.tabs = CyclingTabBar()
         self.tabs.setDrawBase(False)
         self.tabs.setExpanding(False)
-        self.tabs.addTab(ui_text.tab_joblist)
+        self.tabs.addTab(gui_text.tab_joblist)
 
         self.job_buttons = QWidget()
         self.result_buttons = QWidget()
         self.result_buttons.hide()
-        self.pb_clear_j = QPushButton(ui_text.pb_clear)
+        self.pb_clear_j = QPushButton(gui_text.pb_clear)
         self.pb_clear_j.setEnabled(False)
-        self.pb_clear_r = QPushButton(ui_text.pb_clear)
+        self.pb_clear_r = QPushButton(gui_text.pb_clear)
         self.pb_clear_r.setEnabled(False)
-        self.pb_rem_sel = QPushButton(ui_text.pb_rem_sel)
+        self.pb_rem_sel = QPushButton(gui_text.pb_rem_sel)
         self.pb_rem_sel.setEnabled(False)
-        self.pb_crop = QPushButton(ui_text.pb_crop)
+        self.pb_crop = QPushButton(gui_text.pb_crop)
         self.pb_crop.setEnabled(False)
-        self.pb_del_sel = QPushButton(ui_text.pb_del_sel)
+        self.pb_del_sel = QPushButton(gui_text.pb_del_sel)
         self.pb_del_sel.setEnabled(False)
-        self.pb_rem_tr1 = QPushButton(ui_text.pb_del_tr1)
+        self.pb_rem_tr1 = QPushButton(gui_text.pb_del_tr1)
         self.pb_rem_tr1.setEnabled(False)
-        self.pb_rem_tr2 = QPushButton(ui_text.pb_del_tr2)
+        self.pb_rem_tr2 = QPushButton(gui_text.pb_del_tr2)
         self.pb_rem_tr2.setEnabled(False)
-        self.pb_open_tsavedir = QPushButton(ui_text.pb_open_tsavedir)
+        self.pb_open_tsavedir = QPushButton(gui_text.pb_open_tsavedir)
         self.pb_open_tsavedir.setEnabled(False)
-        self.pb_open_upl_urls = QPushButton(ui_text.pb_open_upl_urls)
+        self.pb_open_upl_urls = QPushButton(gui_text.pb_open_upl_urls)
         self.pb_open_upl_urls.setEnabled(False)
         self.tb_go = QToolButton()
         self.tb_go.setEnabled(False)
         self.tb_go.setIcon(QIcon(':/switch.svg'))
         self.tb_go.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
 
-        self.pb_stop = QPushButton(ui_text.pb_stop)
+        self.pb_stop = QPushButton(gui_text.pb_stop)
         self.pb_stop.hide()
 
     def settings_window_widgets(self):
@@ -231,30 +231,30 @@ class WidgetBank:
         self.rehost = QWidget()
         self.cust_descr = QWidget()
         self.looks = QWidget()
-        self.config_tabs.addTab(self.main_settings, ui_text.main_tab)
-        self.config_tabs.addTab(self.rehost, ui_text.rehost_tab)
-        self.config_tabs.addTab(self.cust_descr, ui_text.desc_tab)
-        self.config_tabs.addTab(self.looks, ui_text.looks_tab)
+        self.config_tabs.addTab(self.main_settings, gui_text.main_tab)
+        self.config_tabs.addTab(self.rehost, gui_text.rehost_tab)
+        self.config_tabs.addTab(self.cust_descr, gui_text.desc_tab)
+        self.config_tabs.addTab(self.looks, gui_text.looks_tab)
 
-        self.pb_cancel = QPushButton(ui_text.pb_cancel)
-        self.pb_ok = QPushButton(ui_text.pb_ok)
+        self.pb_cancel = QPushButton(gui_text.pb_cancel)
+        self.pb_ok = QPushButton(gui_text.pb_ok)
 
         # rehost tab
         self.rh_on_off_container = QWidget()
         self.rehost_model = RehostModel()
         self.rehost_table = RehostTable(self.rehost_model)
-        self.l_rehost_table = QLabel(ui_text.l_rehost_table)
+        self.l_rehost_table = QLabel(gui_text.l_rehost_table)
 
         # descr tab
-        self.l_variables = QLabel(ui_text.l_placeholders)
-        self.l_own_uploads = QLabel(ui_text.l_own_uploads)
+        self.l_variables = QLabel(gui_text.l_placeholders)
+        self.l_own_uploads = QLabel(gui_text.l_own_uploads)
         self.pb_def_descr = QPushButton()
-        self.pb_def_descr.setText(ui_text.pb_def_descr)
+        self.pb_def_descr.setText(gui_text.pb_def_descr)
         self.l_variables.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
 
         # looks tab
-        self.l_job_list = QLabel(ui_text.l_job_list)
-        self.l_colors = QLabel(ui_text.l_colors)
+        self.l_job_list = QLabel(gui_text.l_job_list)
+        self.l_colors = QLabel(gui_text.l_colors)
         self.l_colors.setTextFormat(Qt.TextFormat.RichText)
         self.l_colors.setOpenExternalLinks(True)
         self.color_examples = ColorExample()
@@ -289,22 +289,22 @@ class WidgetBank:
                     lbl.clicked.connect(obj.click)
                 else:
                     lbl = QLabel()
-                lbl.setText(getattr(ui_text, label_name))
+                lbl.setText(getattr(gui_text, label_name))
                 setattr(self, label_name, lbl)
 
             if obj_type == FolderSelectBox:
-                obj.dialog_caption = getattr(ui_text, f'tt_{el_name}')
+                obj.dialog_caption = getattr(gui_text, f'tt_{el_name}')
                 self.fsbs.append(obj)
 
         self.le_key_1.setCursorPosition(0)
         self.le_key_2.setCursorPosition(0)
 
-        self.chb_deep_search.setText(ui_text.chb_deep_search)
+        self.chb_deep_search.setText(gui_text.chb_deep_search)
         self.spb_deep_search_level.setMinimum(2)
         self.spb_verbosity.setMaximum(3)
         self.spb_verbosity.setMaximumWidth(40)
 
-        self.chb_add_src_descr.setText(ui_text.chb_add_src_descr)
+        self.chb_add_src_descr.setText(gui_text.chb_add_src_descr)
 
         self.spb_row_height.setMinimum(12)
         self.spb_row_height.setMaximum(99)

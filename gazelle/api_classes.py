@@ -10,7 +10,7 @@ import requests
 
 from requests.exceptions import JSONDecodeError
 
-from lib import ui_text
+from lib import tp_text
 from gazelle import torrent_info
 from gazelle.tracker_data import tr
 
@@ -183,9 +183,9 @@ class RedApi(KeyApi):
         if unknown:
             try:
                 self.request('torrentedit', id=torrent_id, data={'unknown': True})
-                report.info(ui_text.upl_to_unkn)
+                report.info(tp_text.upl_to_unkn)
             except (RequestFailure, requests.HTTPError) as e:
-                report.error(f'{ui_text.edit_fail}{str(e)}')
+                report.error(f'{tp_text.edit_fail}{str(e)}')
         return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
 
     def upl_response_handler(self, r):

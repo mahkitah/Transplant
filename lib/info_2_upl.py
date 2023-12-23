@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from gazelle.upload import UploadData
 from gazelle.tracker_data import ArtistType
-from lib import utils, ui_text, img_rehost
+from lib import utils, tp_text, img_rehost
 
 report = logging.getLogger('tr.upl')
 
@@ -103,7 +103,7 @@ class TorInfo2UplData(UploadData):
         rehosted = img_rehost.rehost(src_img_url)
         if rehosted:
             self.upl_img_url = rehosted
-            report.info(f"{ui_text.img_rehosted} {self.upl_img_url}")
+            report.info(f"{tp_text.img_rehosted} {self.upl_img_url}")
         else:
-            report.info(ui_text.rehost_failed)
+            report.info(tp_text.rehost_failed)
             self.upl_img_url = src_img_url

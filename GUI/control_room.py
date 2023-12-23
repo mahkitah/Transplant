@@ -3,10 +3,11 @@ import re
 import logging
 from urllib.parse import urlparse, parse_qs
 
-from lib import utils, ui_text
+from lib import utils
 from lib.img_rehost import ih
 from lib.transplant import Job, Transplanter
 from gazelle.tracker_data import tr
+from GUI import gui_text
 from GUI.widget_bank import wb
 from GUI.main_gui import MainWindow
 from GUI.settings_window import SettingsWindow
@@ -38,7 +39,7 @@ class TransplantThread(QThread):
         self.stop_run = True
 
     def run(self):
-        logger.info(ui_text.start)
+        logger.info(gui_text.start)
         key_dict = {
             tr.RED: wb.config.value('le_key_1'),
             tr.OPS: wb.config.value('le_key_2')
@@ -50,7 +51,7 @@ class TransplantThread(QThread):
                 break
             try:
                 if job not in wb.job_data.jobs:  # It's possible to remove jobs from joblist during transplanting
-                    logger.warning(f'{ui_text.removed} {job.display_name}')
+                    logger.warning(f'{gui_text.removed} {job.display_name}')
                     continue
                 try:
                     success = transplanter.do_your_job(job)
@@ -233,7 +234,7 @@ LEVEL_SETTING_NAME_MAP = {
 
 def print_logs(record: logging.LogRecord):
     if wb.tabs.count() == 1:
-        wb.tabs.addTab(ui_text.tab_results)
+        wb.tabs.addTab(gui_text.tab_results)
 
     color = wb.config.value(LEVEL_SETTING_NAME_MAP.get(record.levelno))
     link_color = wb.config.value('ple_link_color')
@@ -303,14 +304,14 @@ def gogogo():
         return
 
     if wb.tabs.count() == 1:
-        wb.tabs.addTab(ui_text.tab_results)
+        wb.tabs.addTab(gui_text.tab_results)
     wb.tabs.setCurrentIndex(1)
 
     if not wb.thread:
         wb.thread = TransplantThread()
         wb.thread.started.connect(lambda: wb.go_stop_stack.setCurrentIndex(1))
         wb.thread.started.connect(lambda: wb.pb_stop.clicked.connect(wb.thread.stop))
-        wb.thread.finished.connect(lambda: logger.info(ui_text.thread_finish))
+        wb.thread.finished.connect(lambda: logger.info(gui_text.thread_finish))
         wb.thread.finished.connect(lambda: wb.go_stop_stack.setCurrentIndex(0))
 
     wb.thread.trpl_settings = trpl_settings()
@@ -343,7 +344,7 @@ def parse_paste_input():
                 continue
 
     if not wb.job_data.append_jobs(new_jobs):
-        wb.pop_up.pop_up(f'{ui_text.pop3}')
+        wb.pop_up.pop_up(f'{gui_text.pop3}')
 
     wb.te_paste_box.clear()
 
@@ -362,7 +363,7 @@ def add_jobs_from_torpaths(torpaths, **kwargs):
 
 
 def select_dtors():
-    file_paths = QFileDialog.getOpenFileNames(wb.main_window, ui_text.sel_dtors_window_title,
+    file_paths = QFileDialog.getOpenFileNames(wb.main_window, gui_text.sel_dtors_window_title,
                                               wb.config.value('torselect_dir'),
                                               "torrents (*.torrent);;All Files (*)")[0]
     if not file_paths:
@@ -386,9 +387,9 @@ def scan_dtorrents():
     torpaths = [scan.path for scan in os.scandir(path) if scan.is_file() and scan.name.endswith(".torrent")]
     if torpaths:
         if add_jobs_from_torpaths(torpaths, scanned=True) is None:
-            wb.pop_up.pop_up(f'{ui_text.pop2}\n{path}')
+            wb.pop_up.pop_up(f'{gui_text.pop2}\n{path}')
     else:
-        wb.pop_up.pop_up(f'{ui_text.pop1}\n{path}')
+        wb.pop_up.pop_up(f'{gui_text.pop1}\n{path}')
 
 
 def settings_check():
@@ -401,21 +402,21 @@ def settings_check():
 
     sum_ting_wong = []
     if not os.path.isdir(data_dir):
-        sum_ting_wong.append(ui_text.sum_ting_wong_1)
+        sum_ting_wong.append(gui_text.sum_ting_wong_1)
     if scan_dir and not os.path.isdir(scan_dir):
-        sum_ting_wong.append(ui_text.sum_ting_wong_2)
+        sum_ting_wong.append(gui_text.sum_ting_wong_2)
     if save_dtors and not os.path.isdir(dtor_save_dir):
-        sum_ting_wong.append(ui_text.sum_ting_wong_3)
+        sum_ting_wong.append(gui_text.sum_ting_wong_3)
     if rehost and not any(h.enabled for h in ih):
-        sum_ting_wong.append(ui_text.sum_ting_wong_4)
+        sum_ting_wong.append(gui_text.sum_ting_wong_4)
     if add_src_descr and '%src_descr%' not in wb.te_src_descr_templ.toPlainText():
-        sum_ting_wong.append(ui_text.sum_ting_wong_5)
+        sum_ting_wong.append(gui_text.sum_ting_wong_5)
     for set_name in ('le_key_1', 'le_key_2'):
         value = wb.config.value(set_name)
         stripped = value.strip()
         if value != stripped:
             show_name = set_name.split('_', maxsplit=1)[1]
-            sum_ting_wong.append(ui_text.sum_ting_wong_6.format(show_name))
+            sum_ting_wong.append(gui_text.sum_ting_wong_6.format(show_name))
 
     if sum_ting_wong:
         warning = QMessageBox()
@@ -429,19 +430,19 @@ def settings_check():
 
 
 def tooltips(flag):
-    for t_name, ttip in vars(ui_text).items():
+    for t_name, ttip in vars(gui_text).items():
         if t_name.startswith('tt_'):
             obj_name = t_name.split('_', maxsplit=1)[1]
             obj = getattr(wb, obj_name)
             obj.setToolTip(ttip if flag else '')
 
-    wb.splitter.handle(1).setToolTip(ui_text.ttm_splitter if flag else '')
+    wb.splitter.handle(1).setToolTip(gui_text.ttm_splitter if flag else '')
 
 
 def default_descr():
-    wb.te_rel_descr_templ.setText(ui_text.def_rel_descr)
-    wb.te_rel_descr_own_templ.setText(ui_text.def_rel_descr_own)
-    wb.te_src_descr_templ.setText(ui_text.def_src_descr)
+    wb.te_rel_descr_templ.setText(gui_text.def_rel_descr)
+    wb.te_rel_descr_own_templ.setText(gui_text.def_rel_descr_own)
+    wb.te_src_descr_templ.setText(gui_text.def_src_descr)
 
 
 def open_tor_urls():
@@ -483,7 +484,7 @@ def delete_selected():
             non_scanned += 1
 
     if non_scanned:
-        wb.pop_up.pop_up(ui_text.pop4.format(non_scanned, 's' if non_scanned > 1 else ''))
+        wb.pop_up.pop_up(gui_text.pop4.format(non_scanned, 's' if non_scanned > 1 else ''))
 
     wb.job_data.del_multi(row_list)
 
