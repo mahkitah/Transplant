@@ -116,25 +116,10 @@ class JobModel(QAbstractTableModel):
         super().__init__()
         self.jobs = []
         self.config = parentconfig
-        self._headers = None
+        self.headers = gui_text.job_list_headers
         self.icons = {t: QIcon(f':/{t.favicon}') for t in tr}
         self.rowsInserted.connect(self.layout_changed.emit)
         self.rowsRemoved.connect(self.layout_changed.emit)
-
-    @property
-    def headers(self):
-        if not self._headers:
-            headers = []
-            index = 0
-            while True:
-                try:
-                    headers.append(getattr(gui_text, f'header{index}'))
-                except AttributeError:
-                    break
-                index += 1
-
-            self._headers = headers
-        return self._headers
 
     def data(self, index: QModelIndex, role: int = 0):
         column = index.column()

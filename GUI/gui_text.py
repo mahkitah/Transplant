@@ -15,9 +15,7 @@ tab_results = "Results"
 tab_joblist = "Job list"
 
 header_restore = 'Restore all'
-header0 = 'torrent'
-header1 = ' dest. group '
-header2 = ' nt '
+job_list_headers = ('torrent', ' dest. group ', ' nt ')
 
 pb_add = "Add"
 open_dtors = "Add .torrent files"
