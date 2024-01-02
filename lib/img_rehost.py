@@ -12,10 +12,10 @@ def ra(img_link, key):
 
 
 def ptpimg(img_link, key):
-    url = "https://ptpimg.me/upload.php"
+    url = "https://ptpimg.me/"
     data = {'api_key': key,
             'link-upload': img_link}
-    r = requests.post(url, data=data)
+    r = requests.post(url + 'upload.php', data=data)
     rj = r.json()[0]
     return f"{url}{rj['code']}.{rj['ext']}"
 
