@@ -27,7 +27,7 @@ class BaseApi:
         self.url = self.tr.site
         self.session = requests.Session()
         self.last_x_reqs = deque([.0], maxlen=self.tr.req_limit)
-        self.authenticate(kwargs)
+        self.authenticate(**kwargs)
         self._account_info = None
 
     def _rate_limit(self):
@@ -99,7 +99,7 @@ class BaseApi:
 
 class KeyApi(BaseApi):
 
-    def authenticate(self, kwargs):
+    def authenticate(self, **kwargs):
         key = kwargs['key']
         self.session.headers.update({"Authorization": key})
 
@@ -113,10 +113,10 @@ class KeyApi(BaseApi):
 
 class CookieApi(BaseApi):
 
-    def authenticate(self, kwargs):
+    def authenticate(self, **kwargs):
         self.session.cookies = LWPCookieJar(f'cookie{self.tr.name}.txt')
         if not self._load_cookie():
-            self._login(kwargs)
+            self._login(**kwargs)
 
     def _load_cookie(self):
         jar = self.session.cookies
@@ -129,7 +129,7 @@ class CookieApi(BaseApi):
 
         return True
 
-    def _login(self, kwargs):
+    def _login(self, **kwargs):
         username, password = kwargs['f']()
         data = {'username': username,
                 'password': password,
