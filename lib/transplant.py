@@ -132,18 +132,23 @@ class Transplanter:
             self.job.display_name = self.tor_info.folder_name
             report.info(self.job.display_name)
 
-        if (self.file_check or self.job.new_dtor) and not self.check_files():
+        if self.tor_folder_is_needed_but_is_missing():
+            report.error(f"{tp_text.missing} {self.tor_info.folder_name}")
+            return False
+
+        if self.file_check and not self.check_files():
+            return False
+
+        upl_files = upload.Files()
+
+        if (self.tor_info.haslog or self.job.new_dtor) and not self.get_logs(upl_files, src_api):
             return False
 
         upl_data = TorInfo2UplData(self.tor_info, self.img_rehost, self.whitelist,
                                    self.rel_descr_templ, self.rel_descr_own_templ, self.add_src_descr,
                                    self.src_descr_templ, src_api.account_info['id'])
-        upl_files = upload.Files()
 
         self.get_dtor(upl_files, src_api)
-
-        if (self.tor_info.haslog or self.job.new_dtor) and not self.get_logs(upl_files, src_api):
-            return False
 
         saul_goodman = True
         for dest_tr in self.job.dest_trs:
@@ -173,6 +178,12 @@ class Transplanter:
             report.info(tp_text.dtor_deleted)
 
         return True
+
+    def tor_folder_is_needed_but_is_missing(self):
+        if self.file_check or self.job.new_dtor or (self.tor_info.haslog and not self.tor_info.log_ids):
+            return self.torrent_folder_path is None or not os.path.exists(self.torrent_folder_path)
+        else:
+            return False
 
     @property
     def torrent_folder_path(self):
@@ -265,20 +276,15 @@ class Transplanter:
         return t.data
 
     def check_files(self):
-        if not self.torrent_folder_path:
-            report.error(f"{tp_text.missing} {self.tor_info.folder_name}")
-            return False
         if self.job.new_dtor:
-            if not os.path.exists(self.torrent_folder_path):
-                report.error(f"{tp_text.missing} {self.torrent_folder_path}")
-                return False
-        else:
-            for fl in self.tor_info.file_list:
-                file_path = os.path.join(self.torrent_folder_path, *fl['names'])
+            return True
 
-                if not os.path.exists(file_path):
-                    report.error(f"{tp_text.missing} {file_path}")
-                    return False
+        for fl in self.tor_info.file_list:
+            file_path = os.path.join(self.torrent_folder_path, *fl['names'])
+
+            if not os.path.exists(file_path):
+                report.error(f"{tp_text.missing} {file_path}")
+                return False
 
         report.info(tp_text.f_checked)
         return True
