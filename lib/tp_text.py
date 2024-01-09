@@ -10,6 +10,7 @@ merged = 'Probably merged into an existing group'
 missing = "Can't find:"
 no_log = "No logs found"
 new_tor = 'Generating new torrent'
+tor_downed = '.torrent downloaded from {}'
 f_checked = 'Files checked'
 img_rehosted = "Image rehosted:"
 rehost_failed = "Image rehost failed. Using source url"

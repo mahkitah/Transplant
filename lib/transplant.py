@@ -216,6 +216,9 @@ class Transplanter:
             files.add_dtor(self.job.dtor_dict, as_dict=True)
         else:
             dtor_bytes = src_api.request('download', id=self.tor_info.tor_id)
+            report.info(tp_text.tor_downed.format(self.job.src_tr.name))
+            dtor_dict = bdecode(dtor_bytes)
+            self.job.dtor_dict = dtor_dict
             files.add_dtor(dtor_bytes)
 
     NOT_RIPLOG = ("audiochecker", "aucdtect", "accurip")
