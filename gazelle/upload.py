@@ -118,7 +118,7 @@ class UploadData:
 class Dtor:
     def __init__(self, tbytes=None, tdict=None, path=None):
 
-        assert len([x for x in (tbytes, tdict, path) if x]) == 1
+        assert (tbytes, tdict, path).count(None) == 2
         self._tdict = None
 
         if tbytes:
