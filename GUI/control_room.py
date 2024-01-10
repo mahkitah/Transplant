@@ -1,6 +1,7 @@
 import os
 import re
 import logging
+import time
 from urllib.parse import urlparse, parse_qs
 
 from lib import utils
@@ -33,10 +34,6 @@ class TransplantThread(QThread):
     def __init__(self):
         super().__init__()
         self.trpl_settings = None
-        self.stop_run = False
-
-    def stop(self):
-        self.stop_run = True
 
     def run(self):
         logger.info(gui_text.start)
@@ -47,7 +44,7 @@ class TransplantThread(QThread):
         transplanter = Transplanter(key_dict, **self.trpl_settings)
 
         for job in wb.job_data.jobs.copy():
-            if self.stop_run:
+            if self.isInterruptionRequested():
                 break
             try:
                 if job not in wb.job_data.jobs:  # It's possible to remove jobs from joblist during transplanting
@@ -310,7 +307,7 @@ def gogogo():
     if not wb.thread:
         wb.thread = TransplantThread()
         wb.thread.started.connect(lambda: wb.go_stop_stack.setCurrentIndex(1))
-        wb.thread.started.connect(lambda: wb.pb_stop.clicked.connect(wb.thread.stop))
+        wb.thread.started.connect(lambda: wb.pb_stop.clicked.connect(wb.thread.requestInterruption))
         wb.thread.finished.connect(lambda: logger.info(gui_text.thread_finish))
         wb.thread.finished.connect(lambda: wb.go_stop_stack.setCurrentIndex(0))
 
