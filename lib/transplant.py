@@ -45,7 +45,7 @@ class Job:
         assert (self.tor_id is None) != (self.info_hash is None)
 
         if not self.dest_trs:
-            self.dest_trs = [~self.src_tr]
+            self.dest_trs = ~self.src_tr
 
     def parse_dtorrent(self, path):
         with open(path, "rb") as f:
