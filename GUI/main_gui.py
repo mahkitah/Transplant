@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout
 from PyQt6.QtGui import QIcon, QKeyEvent
 from PyQt6.QtCore import pyqtSignal
 
-from lib.version import __version__
+from lib.version import version
 from GUI import gui_text
 from GUI.widget_bank import wb
 
@@ -12,7 +12,7 @@ class MainWindow(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle(gui_text.main_window_title.format(__version__))
+        self.setWindowTitle(gui_text.main_window_title.format('.'.join(map(str, version))))
         self.setWindowIcon(QIcon(':/switch.svg'))
         self.layout()
 

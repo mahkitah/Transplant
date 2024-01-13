@@ -7,7 +7,7 @@ from PyQt6.QtGui import QIcon
 
 from gazelle.tracker_data import tr
 from GUI import gui_text
-from lib.version import __version__
+from lib.version import version
 from lib.img_rehost import ih
 from GUI.misc_classes import (TPTextEdit, CyclingTabBar, FolderSelectBox, ResultBrowser, IniSettings, TempPopUp,
                               ColorExample, PatientLineEdit, ThemeIcon, StyleSelecter, ClickableLabel)
@@ -93,10 +93,13 @@ class WidgetBank:
 
     def config_update(self):
         config_version = self.config.value('config_version')
-        if config_version == __version__:
+        if isinstance(config_version, str):
+            config_version = tuple(map(int, config_version.split('.')))
+            self.config.setValue('config_version', config_version)
+        if config_version == version:
             return
         if config_version is None:
-            self.config.setValue('config_version', __version__)
+            self.config.setValue('config_version', version)
             return
 
         changes = (
@@ -143,12 +146,10 @@ class WidgetBank:
                                                      '[url=%src_url%torrents.php?torrentid=%tor_id%]')
                 self.config.setValue(key, value)
 
-        old_version = tuple(map(int, config_version.split('.')))
-        new_version = tuple(map(int, __version__.split('.')))
-        if old_version < (2, 5, 2) <= new_version:
+        if config_version < (2, 5, 2) <= version:
             self.config.remove('geometry/job_view_header')
 
-        self.config.setValue('config_version', __version__)
+        self.config.setValue('config_version', version)
 
     def main_widgets(self):
         self.topwidget = QWidget()
