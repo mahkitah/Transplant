@@ -65,24 +65,22 @@ def parse_input():
 
         match_id = re.fullmatch(r"(RED|OPS)(\d+)", arg)
         if match_id:
-            yield Job(src_tr=tr[match_id.group(1)], tor_id=match_id.group(2))
+            yield arg, {'src_tr': tr[match_id.group(1)], 'tor_id': match_id.group(2)}
             continue
 
         parsed = urlparse(arg)
         hostname = parsed.hostname
-        tor_id = parse_qs(parsed.query).get('torrentid').pop()
+        tor_id = parse_qs(parsed.query).get('torrentid')
         if tor_id and hostname:
-            yield Job(src_dom=hostname, tor_id=tor_id)
+            yield arg, {'src_dom': hostname, 'tor_id': tor_id[0]}
+        else:
+            report.info(arg)
+            report.warning(tp_text.skip)
 
     if batchmode:
         for scan in os.scandir(cli_config.scan_dir):
             if scan.is_file() and scan.name.endswith(".torrent"):
-                try:
-                    report.info(f"{scan.name}")
-                    yield Job(dtor_path=scan.path, scanned=True)
-                except (AssertionError, TypeError, AttributeError, KeyError):
-                    report.warning(tp_text.skip)
-                    continue
+                yield scan.name, {'dtor_path': scan.path, 'scanned': True}
 
 
 def main():
@@ -110,7 +108,7 @@ def main():
     key_dict = {trckr: getattr(cli_config, f'api_key_{trckr.name}') for trckr in tr}
 
     transplanter = Transplanter(key_dict, **trpl_settings)
-    for job in parse_input():
+    for job in get_jobs():
         try:
             transplanter.do_your_job(job)
         except Exception:
