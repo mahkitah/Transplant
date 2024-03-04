@@ -15,6 +15,10 @@ from lib.lean_torrent import Torrent
 report = logging.getLogger('tr.core')
 
 
+class JobCreationError(Exception):
+    pass
+
+
 class Job:
     def __init__(self, src_tr=None, tor_id=None, src_dom=None, dtor_path=None, scanned=False, dest_group=None,
                  new_dtor=False, dest_trs=None):
@@ -41,8 +45,11 @@ class Job:
                     self.src_tr = t
                     break
 
-        assert self.src_tr
-        assert (self.tor_id is None) != (self.info_hash is None)
+        if not self.src_tr:
+            raise JobCreationError(tp_text.no_src_tr)
+
+        if (self.tor_id is None) == (self.info_hash is None):
+            raise JobCreationError(tp_text.id_and_hash)
 
         if not self.dest_trs:
             self.dest_trs = ~self.src_tr
@@ -50,10 +57,12 @@ class Job:
     def parse_dtorrent(self, path):
         with open(path, "rb") as f:
             torbytes = f.read()
-        self.dtor_dict = bdecode(torbytes)
+        try:
+            self.dtor_dict = bdecode(torbytes)
+            info = self.dtor_dict['info']
+        except (KeyError, TypeError):
+            raise JobCreationError(tp_text.not_dtor)
 
-        announce = self.dtor_dict.get('announce')
-        info = self.dtor_dict['info']
         source = info.get('source', '').replace('PTH', 'RED')
         self.info_hash = sha1(bencode(info)).hexdigest()
 
@@ -64,6 +73,7 @@ class Job:
             except KeyError:
                 pass
 
+        announce = self.dtor_dict.get('announce')
         if not announce:
             return
         parsed = urlparse(announce)

@@ -6,7 +6,7 @@ from urllib.parse import urlparse, parse_qs
 
 from lib import utils
 from lib.img_rehost import ih
-from lib.transplant import Job, Transplanter
+from lib.transplant import Job, Transplanter, JobCreationError
 from gazelle.tracker_data import tr
 from GUI import gui_text
 from GUI.widget_bank import wb
@@ -337,7 +337,7 @@ def parse_paste_input():
         if id_list and hostname:
             try:
                 new_jobs.append(Job(src_dom=hostname, tor_id=id_list.pop()))
-            except AssertionError:
+            except JobCreationError:
                 continue
 
     if not wb.job_data.append_jobs(new_jobs):
@@ -351,7 +351,7 @@ def add_jobs_from_torpaths(torpaths, **kwargs):
     for path in torpaths:
         try:
             new_jobs.append(Job(dtor_path=path, **kwargs))
-        except (AssertionError, TypeError, AttributeError):
+        except JobCreationError:
             continue
 
     if wb.job_data.append_jobs(new_jobs):

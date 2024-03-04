@@ -4,7 +4,7 @@ import re
 import logging
 from urllib.parse import urlparse, parse_qs
 
-from lib.transplant import Transplanter, Job
+from lib.transplant import Transplanter, Job, JobCreationError
 from lib import tp_text
 from cli_config import cli_config
 from lib.utils import tb_line_gen
@@ -78,9 +78,20 @@ def parse_input():
             report.warning(tp_text.skip)
 
     if batchmode:
+        report.info(tp_text.batch)
         for scan in os.scandir(cli_config.scan_dir):
             if scan.is_file() and scan.name.endswith(".torrent"):
                 yield scan.name, {'dtor_path': scan.path, 'scanned': True}
+
+
+def get_jobs() -> Iterator[Job]:
+    for arg, kwarg_dict in parse_input():
+        try:
+            yield Job(**kwarg_dict)
+        except JobCreationError as e:
+            report.info(arg)
+            report.warning(f'{tp_text.skip}: {e}\n')
+            continue
 
 
 def main():
