@@ -61,6 +61,7 @@ def parse_input():
     for arg in args:
         if arg.lower() == "batch":
             batchmode = True
+            continue
 
         match_id = re.fullmatch(r"(RED|OPS)(\d+)", arg)
         if match_id:
