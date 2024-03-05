@@ -4,7 +4,7 @@ import logging
 import time
 from urllib.parse import urlparse, parse_qs
 
-from lib import utils
+from lib import utils, tp_text
 from lib.img_rehost import ih
 from lib.transplant import Job, Transplanter, JobCreationError
 from gazelle.tracker_data import tr
@@ -328,7 +328,9 @@ def parse_paste_input():
     for line in paste_blob.split():
         match_id = re.fullmatch(r"\d+", line)
         if match_id:
-            new_jobs.append(Job(src_tr=src_tr, tor_id=line))
+            job = Job(src_tr=src_tr, tor_id=line)
+            if job not in new_jobs:
+                new_jobs.append(job)
             continue
 
         parsed = urlparse(line)
@@ -336,9 +338,11 @@ def parse_paste_input():
         id_list = parse_qs(parsed.query).get('torrentid')
         if id_list and hostname:
             try:
-                new_jobs.append(Job(src_dom=hostname, tor_id=id_list.pop()))
+                job = Job(src_dom=hostname, tor_id=id_list.pop())
             except JobCreationError:
                 continue
+            if job not in new_jobs:
+                new_jobs.append(job)
 
     if not wb.job_data.append_jobs(new_jobs):
         wb.pop_up.pop_up(f'{gui_text.pop3}')
@@ -350,9 +354,17 @@ def add_jobs_from_torpaths(torpaths, **kwargs):
     new_jobs = []
     for path in torpaths:
         try:
-            new_jobs.append(Job(dtor_path=path, **kwargs))
-        except JobCreationError:
+            job = (Job(dtor_path=path, **kwargs))
+        except JobCreationError as e:
+            logger.debug(path)
+            logger.debug(str(e))
             continue
+
+        if job not in new_jobs:
+            new_jobs.append(job)
+        else:
+            logger.debug(path)
+            logger.debug(f'{tp_text.skip}{gui_text.same_hash}')
 
     if wb.job_data.append_jobs(new_jobs):
         wb.job_view.setFocus()
