@@ -121,7 +121,7 @@ class REDTorrentInfo(SharedInfo):
                 self.rem_label = tr_resp['group']['recordLabel']
                 self.rem_cat_nr = tr_resp['group']['catalogueNumber']
 
-    def unexape(self, thing):
+    def unexape(self, thing: str | list | dict | int):
         if isinstance(thing, list):
             for i, x in enumerate(thing):
                 thing[i] = self.unexape(x)

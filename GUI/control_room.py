@@ -1,8 +1,8 @@
 import os
 import re
 import logging
-import time
 from urllib.parse import urlparse, parse_qs
+from typing import Iterable
 
 from lib import utils, tp_text
 from lib.img_rehost import ih
@@ -15,7 +15,7 @@ from GUI.settings_window import SettingsWindow
 
 from PyQt6.QtWidgets import QFileDialog, QMessageBox
 from PyQt6.QtGui import QKeyEvent, QDesktopServices
-from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread, QSize, QUrl
+from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread, QSize, QUrl, QModelIndex
 
 
 class LogForward(QObject, logging.Handler):
@@ -350,7 +350,7 @@ def parse_paste_input():
     wb.te_paste_box.clear()
 
 
-def add_jobs_from_torpaths(torpaths, **kwargs):
+def add_jobs_from_torpaths(torpaths: Iterable[str], **kwargs):
     new_jobs = []
     for path in torpaths:
         try:
@@ -498,7 +498,7 @@ def delete_selected():
     wb.job_data.del_multi(row_list)
 
 
-def open_torrent_page(index):
+def open_torrent_page(index: QModelIndex):
     if index.column() > 0:
         return
     job = wb.job_data.jobs[index.row()]
@@ -512,7 +512,7 @@ def open_torrent_page(index):
     QDesktopServices.openUrl(QUrl(url))
 
 
-def set_verbosity(lvl):
+def set_verbosity(lvl: int):
     verb_map = {
         0: logging.CRITICAL,
         1: logging.ERROR,

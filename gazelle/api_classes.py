@@ -11,17 +11,18 @@ from requests.exceptions import JSONDecodeError
 
 from lib import tp_text
 from gazelle import torrent_info
+from gazelle.upload import UploadData, Files
 from gazelle.tracker_data import tr
 
 
 class RequestFailure(Exception):
     pass
 
-report = logging.getLogger(__name__)
+report = logging.getLogger('tr.api')
 
 
 class BaseApi:
-    def __init__(self, tracker, **kwargs):
+    def __init__(self, tracker: tr, **kwargs):
         assert tracker in tr, 'Unknown Tracker'  # TODO uitext
         self.tr = tracker
         self.url = self.tr.site
@@ -53,9 +54,9 @@ class BaseApi:
         r = self.request('index')
         return {k: v for k, v in r.copy().items() if k in ('authkey', 'passkey', 'id', 'username')}
 
-    def request(self, url_suffix, data=None, files=None, **kwargs):
+    def request(self, url_suffix: str, data=None, files=None, **kwargs) -> dict | bytes:
         url = self.url + url_suffix + '.php'
-        report.debug(f'{url_suffix} {kwargs}')
+        report.debug(f'{self.tr.name} {url_suffix} {kwargs}')
         req_method = 'POST' if data or files else 'GET'
 
         self._rate_limit()
@@ -78,17 +79,17 @@ class BaseApi:
 
             raise RequestFailure(r_dict)
 
-    def torrent_info(self, **kwargs):
+    def torrent_info(self, **kwargs) -> torrent_info.TorrentInfo:
         r = self.request('torrent', **kwargs)
 
         return torrent_info.tr_map[self.tr](r)
 
-    def upload(self, data, files, dest_group=None):
+    def upload(self, data: UploadData, files: Files, dest_group=None):
         data_dict = data.upl_dict(self.tr, dest_group)
         upl_files = files.files_list(self.announce, self.tr.name)
         return self._uploader(data_dict, upl_files)
 
-    def _uploader(self, data, files):
+    def _uploader(self, data: dict, files: list) -> dict:
         r = self.request('upload', data=data, files=files)
 
         return self.upl_response_handler(r)
@@ -103,7 +104,7 @@ class KeyApi(BaseApi):
         key = kwargs['key']
         self.session.headers.update({"Authorization": key})
 
-    def request(self, action, data=None, files=None, **kwargs):
+    def request(self, action: str, data=None, files=None, **kwargs):
         kwargs.update(action=action)
         return super().request('ajax', data=data, files=files, **kwargs)
 
@@ -118,7 +119,7 @@ class CookieApi(BaseApi):
         if not self._load_cookie():
             self._login(**kwargs)
 
-    def _load_cookie(self):
+    def _load_cookie(self) -> bool:
         jar = self.session.cookies
         try:
             jar.load()
@@ -139,7 +140,7 @@ class CookieApi(BaseApi):
         assert [c for c in self.session.cookies if c.name == 'session']
         self.session.cookies.save()
 
-    def request(self, action, data=None, files=None, **kwargs):
+    def request(self, action: str, data=None, files=None, **kwargs):
         if action in ('upload', 'login'):  # TODO download?
             url_addon = action
         else:
@@ -148,11 +149,11 @@ class CookieApi(BaseApi):
 
         return super().request(url_addon, data=data, files=files, **kwargs)
 
-    def _uploader(self, data, files):
+    def _uploader(self, data: dict, files: list):
         data['submit'] = True
         super()._uploader(data, files)
 
-    def upl_response_handler(self, r):
+    def upl_response_handler(self, r: requests.Response):
         if 'torrents.php' not in r.url:
             warning = re.search(r'<p style="color: red;text-align:center;">(.+?)</p>', r.text)
             raise RequestFailure(f"{warning.group(1) if warning else r.url}")
@@ -177,7 +178,7 @@ class RedApi(KeyApi):
     def __init__(self, key=None):
         super().__init__(tr.RED, key=key)
 
-    def _uploader(self, data, files):
+    def _uploader(self, data: dict, files: list) -> (int, int, str):
         unknown = False
         if data.get('unknown'):
             del data['unknown']
@@ -191,7 +192,7 @@ class RedApi(KeyApi):
                 report.error(f'{tp_text.edit_fail}{str(e)}')
         return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
 
-    def upl_response_handler(self, r):
+    def upl_response_handler(self, r: requests.Response) -> (int, int):
         return r.get('torrentid'), r.get('groupid')
 
 
@@ -213,7 +214,7 @@ class OpsApi(KeyApi):
         return log_bytes
 
 
-def sleeve(trckr, **kwargs):
+def sleeve(trckr: tr, **kwargs) -> BaseApi:
     api_map = {
         tr.RED: RedApi,
         tr.OPS: OpsApi

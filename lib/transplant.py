@@ -7,7 +7,8 @@ from bcoding import bencode, bdecode
 
 from gazelle import upload
 from gazelle.tracker_data import tr
-from gazelle.api_classes import sleeve
+from gazelle.api_classes import sleeve, BaseApi, OpsApi, RedApi
+from gazelle.torrent_info import TorrentInfo
 from lib import utils, tp_text
 from lib.info_2_upl import TorInfo2UplData
 from lib.lean_torrent import Torrent
@@ -122,7 +123,7 @@ class Transplanter:
         self.tor_info = None
         self._torrent_folder_path = None
 
-    def do_your_job(self, job):
+    def do_your_job(self, job: Job) -> bool:
         self.job = job
         self.tor_info = None
         self._torrent_folder_path = None
@@ -131,6 +132,7 @@ class Transplanter:
         src_api = self.api_map[self.job.src_tr]
 
         report.info(tp_text.requesting)
+        self.tor_info: TorrentInfo
         if self.job.tor_id:
             self.tor_info = src_api.torrent_info(id=self.job.tor_id)
         elif self.job.info_hash:
@@ -214,7 +216,7 @@ class Transplanter:
 
         return self._torrent_folder_path
 
-    def compare_upl_info(self, src_api, dest_api, new_id):
+    def compare_upl_info(self, src_api: BaseApi, dest_api: BaseApi, new_id: int):
         new_tor_info = dest_api.torrent_info(id=new_id)
 
         if self.tor_info.haslog:
@@ -229,7 +231,7 @@ class Transplanter:
         if src_descr != dest_descr or self.tor_info.title != new_tor_info.title:
             report.warning(tp_text.merged)
 
-    def get_dtor(self, files, src_api):
+    def get_dtor(self, files: upload.Files, src_api: tr):
         if self.job.new_dtor:
             files.add_dtor(self.create_new_torrent(), as_dict=True)
 
@@ -244,11 +246,11 @@ class Transplanter:
 
     NOT_RIPLOG = ("audiochecker", "aucdtect", "accurip")
 
-    def is_riplog(self, fn):
+    def is_riplog(self, fn: str) -> bool:
         if fn.endswith('.log') and not any(x in fn.lower() for x in self.NOT_RIPLOG):
             return True
 
-    def get_logs(self, files: upload.Files, src_api) -> bool:
+    def get_logs(self, files: upload.Files, src_api: BaseApi | OpsApi | RedApi) -> bool:
 
         if self.job.new_dtor:
             for scan in utils.scantree(self.torrent_folder_path):
@@ -279,7 +281,7 @@ class Transplanter:
 
         return True
 
-    def create_new_torrent(self):
+    def create_new_torrent(self) -> dict:
         report.info(tp_text.new_tor)
         t = Torrent(self.torrent_folder_path)
 
@@ -299,7 +301,7 @@ class Transplanter:
         report.info(tp_text.f_checked)
         return True
 
-    def save_dtorrent(self, files, comment=None):
+    def save_dtorrent(self, files: upload.Files, comment: str = None):
         dtor = files.dtors[0].as_dict
         if comment:
             dtor['comment'] = comment

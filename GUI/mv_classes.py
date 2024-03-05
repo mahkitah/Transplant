@@ -204,7 +204,7 @@ class JobModel(QAbstractTableModel):
                     job.new_dtor = False
                     self.dataChanged.emit(index, index, [])
 
-    def append_jobs(self, new_jobs: list):
+    def append_jobs(self, new_jobs: list) -> bool:
         if not new_jobs:
             return False
         deduped = [j for j in new_jobs if j not in self.jobs]

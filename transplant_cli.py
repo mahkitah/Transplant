@@ -3,6 +3,7 @@ import os
 import re
 import logging
 from urllib.parse import urlparse, parse_qs
+from typing import Iterator
 
 from lib.transplant import Transplanter, Job, JobCreationError
 from lib import tp_text
@@ -54,7 +55,7 @@ else:
 report.addHandler(handler)
 
 
-def parse_input():
+def parse_input() -> Iterator[tuple[str, dict]]:
     args = sys.argv[1:]
     batchmode = False
 

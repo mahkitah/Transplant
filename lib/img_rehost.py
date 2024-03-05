@@ -46,14 +46,14 @@ class IHMeta(EnumMeta):
                 for k, v in zip(cls.extra, attrs):
                     setattr(member, k, v)
 
-    def get_attrs(cls):
+    def get_attrs(cls) -> dict:
         attr_dict = {}
         for m in cls:
             attrs = tuple(getattr(m, name) for name in cls.extra)
             attr_dict[m.name] = attrs
         return attr_dict
 
-    def prioritised(cls):
+    def prioritised(cls) -> list:
         return sorted(cls, key=lambda m: m.prio)
 
 
@@ -77,7 +77,7 @@ class ih(Enum, metaclass=IHMeta):
         self._key = key.strip()
 
 
-def rehost(img_link):
+def rehost(img_link: str) -> str:
     for host in ih.prioritised():
         if host.enabled:
             args = [img_link]
