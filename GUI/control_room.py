@@ -457,7 +457,7 @@ def default_descr():
 def open_tor_urls():
     for piece in wb.result_view.toPlainText().split():
         if 'torrentid' in piece:
-            QDesktopServices.openUrl(QUrl(piece))
+            QDesktopServices.openUrl(QUrl('https://' + piece))
 
 
 def remove_selected():
