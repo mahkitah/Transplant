@@ -156,7 +156,7 @@ class Transplanter:
 
         upl_data = TorInfo2UplData(self.tor_info, self.img_rehost, self.whitelist,
                                    self.rel_descr_templ, self.rel_descr_own_templ, self.add_src_descr,
-                                   self.src_descr_templ, src_api.account_info['id'])
+                                   self.src_descr_templ, src_api.account_info['id'], self.job.dest_group)
 
         self.get_dtor(upl_files, src_api)
 

@@ -15,7 +15,7 @@ class TorInfo2UplData(UploadData):
                        '24bit Lossless')
 
     def __init__(self, tor_info, img_rehost, whitelist, rel_descr_templ, rel_descr_own_templ, add_src_descr,
-                 src_descr_templ, user_id):
+                 src_descr_templ, user_id, dest_group):
         super().__init__()
         self.tor_info = tor_info
 
@@ -26,16 +26,19 @@ class TorInfo2UplData(UploadData):
         self.add_src_descr = add_src_descr
         self.src_descr_templ = src_descr_templ
         self.user_id = user_id
+        self.dest_group = dest_group
 
         self.parse_input()
         # self.medium = 'blabla'
 
     def parse_input(self):
-        self.parse_artists()
         self.bitrate()
         self.tags_to_string()
         self.release_description()
-        self.do_img()
+        if not self.dest_group:
+            self.parse_artists()
+            self.do_img()
+
         for name in self.one_on_one:
             if not hasattr(self, name):
                 raise AttributeError(f'no {name}')
