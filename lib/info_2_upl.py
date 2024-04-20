@@ -1,8 +1,9 @@
+import re
 import logging
 from collections import defaultdict
 
 from gazelle.upload import UploadData
-from gazelle.tracker_data import ArtistType
+from gazelle.tracker_data import ArtistType, ReleaseType
 from lib import utils, tp_text, img_rehost
 
 report = logging.getLogger('tr.upl')
@@ -64,9 +65,21 @@ class TorInfo2UplData(UploadData):
             self.other_bitrate = bitr
             self.vbr = bool(vbr)
 
+    decade_rex = re.compile(r'((19|20)\d)0s')
+
+    def tag_gen(self):
+        skip_decade = self.tor_info.rel_type in (ReleaseType.Album, ReleaseType.EP, ReleaseType.Single)
+        for tag in self.tor_info.tags:
+            if skip_decade and (m := self.decade_rex.fullmatch(tag)):
+                if m.group(1) == str(self.tor_info.o_year)[:3]:
+                    continue
+            yield tag
+
     def tags_to_string(self):
-        # There's a 200 character limit for tags (including commas)
-        tag_string = ",".join(self.tor_info.tags)
+        tag_list = list(self.tag_gen()) or self.tor_info.tags
+
+        # There's a 200-character limit for tags (including commas)
+        tag_string = ",".join(tag_list)
 
         if len(tag_string) > 200:
             tag_string = tag_string[:tag_string.rfind(',', 0, 201)]
