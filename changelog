@@ -1,3 +1,10 @@
+2.5.3
+- Fix: ptpimg rehost returned wrong url
+- Fix: CLI batch command was evaluated as URL
+- Fix: 'Open urls' button works again
+- Useful error message when deep search doesn't find torrent folder
+- Improved error messaging for CLI
+- Downloaded .torrent is reused when upload fails
 2.5.2
 - New: Ra and imgBB added to image hosts
 - New: Selectable GUI style
@@ -6,6 +13,7 @@
 - New: Deep search optimisation + 'depth' levels
 - Fix: url for default descriptions (id= > torrentid=)
 - Requests module: minimum version 2.27 requirement
+- Qt 6.5+ requirement
 2.5.1
 - New: Fusion style by default
 - New: coloured output (GUI and CLI)
