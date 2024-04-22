@@ -36,32 +36,32 @@ FIELD_MAPPING = {
 
 class UploadData:
     def __init__(self):
-        self.rel_type: ReleaseType | None = None
-        self.artists: dict[str, list[ArtistType]] | None = None
-        self.title: str | None = None
-        self.o_year: int | None = None
+        self.rel_type = None
+        self.artists = None
+        self.title = None
+        self.o_year = None
         self.unknown: bool = False
         self.remastered: bool = True
-        self.rem_year: int | None = None
-        self.rem_title: str | None = None
-        self.rem_label: str | None = None
-        self.rem_cat_nr: str | None = None
+        self.rem_year = None
+        self.rem_title = None
+        self.rem_label = None
+        self.rem_cat_nr = None
         self.scene: bool = False
-        self.medium: str | None = None
-        self.format: str | None = None
-        self.encoding: str | None = None
-        self.other_bitrate: str | None = None
+        self.medium = None
+        self.format = None
+        self.encoding = None
+        self.other_bitrate = None
         self.vbr: bool = False
         self.vanity: bool = False
-        self.tags: str | None = None
-        self.upl_img_url: str | None = None
-        self.alb_descr: str | None = None
-        self.rel_descr: str | None = None
-        self.request_id: int | None = None
-        self.extra_format: str | None = None
-        self.extra_encoding: str | None = None
-        self.extra_rel_descr: str | None = None
-        self.src_tr: tr | None = None
+        self.tags = None
+        self.upl_img_url = None
+        self.alb_descr = None
+        self.rel_descr = None
+        self.request_id = None
+        self.extra_format = None
+        self.extra_encoding = None
+        self.extra_rel_descr = None
+        self.src_tr = None
 
     def _get_field(self, name, dest: tr):
 

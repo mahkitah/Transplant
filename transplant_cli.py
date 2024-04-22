@@ -84,7 +84,7 @@ def parse_input():
                 yield scan.name, {'dtor_path': scan.path, 'scanned': True}
 
 
-def get_jobs() -> Iterator[Job]:
+def get_jobs():
     for arg, kwarg_dict in parse_input():
         try:
             yield Job(**kwarg_dict)

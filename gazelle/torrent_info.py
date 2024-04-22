@@ -6,36 +6,36 @@ from gazelle.tracker_data import tr, ReleaseType, ArtistType
 
 class TorrentInfo:
     def __init__(self):
-        self.grp_id: int | None = None
-        self.img_url: str | None = None
-        self.title: str | None = None
-        self.o_year: int | None = None
-        self.rel_type: ReleaseType | None = None
+        self.grp_id = None
+        self.img_url = None
+        self.title = None
+        self.o_year = None
+        self.rel_type = None
         self.vanity: bool = False
-        self.artist_data: dict | None = None
-        self.tags: list | None = None
-        self.alb_descr: str | None = None
+        self.artist_data = None
+        self.tags = None
+        self.alb_descr = None
     
-        self.tor_id: int | None = None
-        self.medium: str | None = None
-        self.format: str | None = None
-        self.encoding: str | None = None
-        self.rem_year: int | None = None
-        self.rem_title: str | None = None
-        self.rem_label: str | None = None
-        self.rem_cat_nr: str | None = None
+        self.tor_id = None
+        self.medium = None
+        self.format = None
+        self.encoding = None
+        self.rem_year = None
+        self.rem_title = None
+        self.rem_label = None
+        self.rem_cat_nr = None
         self.scene: bool = False
         self.haslog: bool = False
-        self.log_score: int | None = None
-        self.log_ids: list | None = None
-        self.rel_descr: str | None = None
-        self.folder_name: str | None = None
-        self.uploader_id: int | None = None
-        self.uploader: str | None = None
+        self.log_score = None
+        self.log_ids = None
+        self.rel_descr = None
+        self.folder_name = None
+        self.uploader_id = None
+        self.uploader = None
     
-        self.file_list: list | None = None
+        self.file_list = None
         self.unknown: bool = False
-        self.src_tr: tr | None = None
+        self.src_tr = None
 
 
 class SharedInfo(TorrentInfo):
