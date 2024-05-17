@@ -160,29 +160,23 @@ class Transplanter:
 
         self.get_dtor(upl_files, src_api)
 
-        saul_goodman = True
-        for dest_tr in self.job.dest_trs:
+        dest_api = self.api_map[self.job.dest_trs]
 
-            dest_api = self.api_map[dest_tr]
-
-            report.info(f"{tp_text.upl1} {dest_api.tr.name}")
-            try:
-                new_id, new_group, new_url = dest_api.upload(upl_data, upl_files, dest_group=self.job.dest_group)
-                report.log(25, f"{tp_text.upl2} {new_url}")
-            except Exception:
-                saul_goodman = False
-                report.exception(f"{tp_text.upl3}")
-                continue
-
-            if self.post_compare:
-                self.compare_upl_info(src_api, dest_api, new_id)
-
-            if self.save_dtors:
-                self.save_dtorrent(upl_files, new_url)
-                report.info(f"{tp_text.dtor_saved} {self.dtor_save_dir}")
-
-        if not saul_goodman:
+        report.info(f"{tp_text.upl1} {dest_api.tr.name}")
+        try:
+            new_id, new_group, new_url = dest_api.upload(upl_data, upl_files, dest_group=self.job.dest_group)
+            report.log(25, f"{tp_text.upl2} {new_url}")
+        except Exception:
+            report.exception(f"{tp_text.upl3}")
             return False
+
+        if self.post_compare:
+            self.compare_upl_info(src_api, dest_api, new_id)
+
+        if self.save_dtors:
+            self.save_dtorrent(upl_files, new_url)
+            report.info(f"{tp_text.dtor_saved} {self.dtor_save_dir}")
+
         elif self.del_dtors and self.job.scanned:
             os.remove(self.job.dtor_path)
             report.info(tp_text.dtor_deleted)
