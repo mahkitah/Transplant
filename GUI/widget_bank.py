@@ -143,7 +143,7 @@ class WidgetBank:
                 self.config.remove(key)
             if key.startswith('te_rel_descr'):
                 value = self.config.value(key).replace('[url=%src_url%torrents.php?id=%tor_id%]',
-                                                     '[url=%src_url%torrents.php?torrentid=%tor_id%]')
+                                                       '[url=%src_url%torrents.php?torrentid=%tor_id%]')
                 self.config.setValue(key, value)
 
         if config_version < (2, 5, 2) <= version:

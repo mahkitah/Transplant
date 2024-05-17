@@ -148,7 +148,7 @@ class OPSTorrentInfo(SharedInfo):
         if log_ids:
             self.log_ids = log_ids
 
-        # strip disambuigation nr from artists
+        # strip disambiguation nr from artists
         self.strip_artists()
 
         if tr_resp['torrent']['remastered']:
