@@ -138,6 +138,10 @@ class Transplanter:
         else:
             return False
 
+        if not self.tor_info.folder_name:
+            report.error(tp_text.no_torfolder)
+            return False
+
         if not self.job.display_name:
             self.job.display_name = self.tor_info.folder_name
             report.info(self.job.display_name)
