@@ -1,5 +1,6 @@
 # progress report
 requesting = "Requesting torrent info"
+no_torfolder = 'Torrent has no folder'
 upl1 = 'Uploading to'
 upl2 = 'Upload successful:'
 upl3 = 'Upload failed:'
