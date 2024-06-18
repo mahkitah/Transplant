@@ -177,7 +177,7 @@ class Transplanter:
             self.save_dtorrent(upl_files, new_url)
             report.info(f"{tp_text.dtor_saved} {self.dtor_save_dir}")
 
-        elif self.del_dtors and self.job.scanned:
+        if self.del_dtors and self.job.scanned:
             os.remove(self.job.dtor_path)
             report.info(tp_text.dtor_deleted)
 
