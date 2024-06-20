@@ -23,14 +23,13 @@ tr_data = {
 
 
 class Tr(Flag):
-    def __new__(cls, *args):
+    def __new__(cls, value: dict):
         obj = object.__new__(cls)
         obj._value_ = 2 ** len(cls.__members__)
+        for k, v in value.items():
+            setattr(obj, k, v)
         return obj
 
-    def __init__(self, attr: dict):
-        for k, v in attr.items():
-            setattr(self, k, v)
 
 tr = Tr('Tr', tr_data.items())
 
