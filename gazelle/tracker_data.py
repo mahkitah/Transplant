@@ -59,7 +59,7 @@ class ReleaseType(Enum, metaclass=RelTypeMeta):
     Interview = 15
     Mixtape = 16
     DJ_Mix = 19, 17
-    Concert_Recording = 18
+    Concert_recording = 18
     Unknown = 21
 
     def __new__(cls, *args):
