@@ -34,10 +34,10 @@ class TorInfo2UplData(UploadData):
 
     def parse_input(self):
         self.bitrate()
-        self.tags_to_string()
         self.release_description()
         if not self.dest_group:
             self.parse_artists()
+            self.tags_to_string()
             self.do_img()
 
         for name in self.one_on_one:
