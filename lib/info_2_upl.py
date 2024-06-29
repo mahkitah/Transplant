@@ -6,7 +6,7 @@ from gazelle.upload import UploadData
 from gazelle.tracker_data import ArtistType, ReleaseType, Encoding
 from lib import utils, tp_text, img_rehost
 
-report = logging.getLogger('tr.upl')
+report = logging.getLogger('tr.inf2upl')
 
 
 class TorInfo2UplData(UploadData):
