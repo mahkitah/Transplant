@@ -90,3 +90,50 @@ class ArtistType(Enum):
     DJ_Comp = 6
     Producer = 7
     Arranger = 8
+
+
+class EncMeta(EnumMeta):
+    def __new__(cls, *args, **kwargs):
+        classdict = args[2]
+        cls.alt_names = {v: k for k, v in classdict.items() if k in classdict._member_names}
+        return super().__new__(cls, *args, **kwargs)
+
+
+class Encoding(Flag, metaclass=EncMeta):
+    Lossless = 'Lossless'
+    Lossless_24 = '24bit Lossless'
+    C320 = '320'
+    C256 = '256'
+    C192 = '192'
+    C160 = '160'
+    C128 = '128'
+    V0 = 'V0 (VBR)'
+    V1 = 'V1 (VBR)'
+    V2 = 'V2 (VBR)'
+    APS = 'APS (VBR)'
+    APX = 'APX (VBR)'
+    Other = 'Other'
+
+    def __new__(cls, arg):
+        obj = object.__new__(cls)
+        obj._value_ = 2 ** len(cls.__members__)
+        obj.alt_name = arg
+        return obj
+
+    @property
+    def name(self):
+        return self.alt_name
+
+    @classmethod
+    def mem_from_enc_str(cls, enc_str: str):
+        mem_name: str = cls.alt_names.get(enc_str)
+        if mem_name is None:
+            mem = cls._member_map_['Other']
+            bitr, vbr, _ = enc_str.partition(' (VBR)')
+            mem.bitr = int(bitr)
+            mem.vbr = bool(vbr)
+        else:
+            mem = cls._member_map_[mem_name]
+        return mem
+
+BAD_RED_ENCODINGS = Encoding.C128 | Encoding.C160
