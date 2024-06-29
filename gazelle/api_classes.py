@@ -11,7 +11,6 @@ from requests.exceptions import JSONDecodeError
 
 from lib import tp_text
 from gazelle import torrent_info
-from gazelle.upload import UploadData, Files
 from gazelle.tracker_data import tr
 
 
@@ -84,10 +83,8 @@ class BaseApi:
 
         return torrent_info.tr_map[self.tr](r)
 
-    def upload(self, data: UploadData, files: Files, dest_group=None):
-        data_dict = data.upl_dict(self.tr, dest_group)
-        upl_files = files.files_list(self.announce, self.tr.name)
-        return self._uploader(data_dict, upl_files)
+    def upload(self, upl_data: dict, files: list):
+        return self._uploader(upl_data, files)
 
     def _uploader(self, data: dict, files: list) -> dict:
         r = self.request('upload', data=data, files=files)
