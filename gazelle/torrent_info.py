@@ -108,10 +108,8 @@ class REDTorrentInfo(SharedInfo):
         self.src_tr = tr.RED
         self.alb_descr = tr_resp['group']['bbBody']
 
-        for r_type in ReleaseType:
-            if r_type.tracker_value(tr.RED) == tr_resp['group']['releaseType']:
-                self.rel_type = r_type
-                break
+        rel_type: int = tr_resp['group']['releaseType']
+        self.rel_type = ReleaseType.mem_from_tr_value(rel_type, tr.RED)
 
         if not self.rem_year:
             if tr_resp['torrent']['remastered']:

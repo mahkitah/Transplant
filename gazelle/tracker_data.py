@@ -35,6 +35,21 @@ tr = Tr('Tr', tr_data.items())
 
 
 class RelTypeMeta(EnumMeta):
+    def __new__(cls, *args, **kwargs):
+        classdict = args[2]
+        cls.value_tr_map = {t: {} for t in tr}
+        for k, v in classdict.items():
+            if k not in classdict._member_names:
+                continue
+            if isinstance(v, int):
+                v = (v, v)
+
+            for t, val in zip(tr, v):
+                if val is not None:
+                    cls.value_tr_map[t].update({val: k})
+
+        return super().__new__(cls, *args, **kwargs)
+
     def __getitem__(cls, item):
         try:
             item = item.replace(' ', '_')
@@ -79,6 +94,11 @@ class ReleaseType(Enum, metaclass=RelTypeMeta):
 
     def tracker_value(self, t):
         return getattr(self, t.name)
+
+    @classmethod
+    def mem_from_tr_value(cls, val: int, t: tr):
+        mem_name = cls.value_tr_map[t][val]
+        return cls._member_map_[mem_name]
 
 
 class ArtistType(Enum):
