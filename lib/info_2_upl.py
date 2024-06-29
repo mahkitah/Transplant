@@ -3,7 +3,7 @@ import logging
 from collections import defaultdict
 
 from gazelle.upload import UploadData
-from gazelle.tracker_data import ArtistType, ReleaseType
+from gazelle.tracker_data import ArtistType, ReleaseType, Encoding
 from lib import utils, tp_text, img_rehost
 
 report = logging.getLogger('tr.upl')
@@ -11,9 +11,7 @@ report = logging.getLogger('tr.upl')
 
 class TorInfo2UplData(UploadData):
     one_on_one = ('medium', 'format', 'rem_year', 'rem_title', 'rem_label', 'rem_cat_nr', 'src_tr', 'unknown',
-                  'rel_type', 'title', 'o_year', 'vanity', 'scene', 'alb_descr')
-    known_encodings = ('192', 'APS (VBR)', 'V2 (VBR)', 'V1 (VBR)', '256', 'APX (VBR)', 'V0 (VBR)', 'Lossless',
-                       '24bit Lossless')
+                  'rel_type', 'encoding', 'title', 'o_year', 'vanity', 'scene', 'alb_descr')
 
     def __init__(self, tor_info, img_rehost, whitelist, rel_descr_templ, rel_descr_own_templ, add_src_descr,
                  src_descr_templ, user_id, dest_group):
@@ -33,7 +31,6 @@ class TorInfo2UplData(UploadData):
         # self.medium = 'blabla'
 
     def parse_input(self):
-        self.bitrate()
         self.release_description()
         if not self.dest_group:
             self.parse_artists()
@@ -45,6 +42,10 @@ class TorInfo2UplData(UploadData):
                 raise AttributeError(f'no {name}')
             setattr(self, name, getattr(self.tor_info, name))
 
+        if self.encoding == Encoding.Other:
+            self.other_bitrate = self.encoding.bitr
+            self.vbr = self.encoding.vbr
+
     def parse_artists(self):
         artists = defaultdict(list)
         a_type: ArtistType
@@ -54,16 +55,6 @@ class TorInfo2UplData(UploadData):
                 artists[a_dict['name']].append(a_type)
 
         self.artists = dict(artists)
-
-    def bitrate(self):
-        inp_encoding = self.tor_info.encoding
-        if inp_encoding in self.known_encodings:
-            self.encoding = inp_encoding
-        else:
-            self.encoding = 'Other'
-            bitr, vbr, _ = inp_encoding.partition(' (VBR)')
-            self.other_bitrate = bitr
-            self.vbr = bool(vbr)
 
     decade_rex = re.compile(r'((19|20)\d)0s')
 

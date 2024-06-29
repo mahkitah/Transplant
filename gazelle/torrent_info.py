@@ -1,7 +1,7 @@
 import html
 import re
 
-from gazelle.tracker_data import tr, ReleaseType, ArtistType
+from gazelle.tracker_data import tr, ReleaseType, ArtistType, Encoding
 
 
 class TorrentInfo:
@@ -52,7 +52,6 @@ class SharedInfo(TorrentInfo):
             'id': 'tor_id',
             'media': 'medium',
             'format': 'format',
-            'encoding': 'encoding',
             'remasterYear': 'rem_year',
             'remasterTitle': 'rem_title',
             'remasterRecordLabel': 'rem_label',
@@ -85,6 +84,8 @@ class SharedInfo(TorrentInfo):
                 value = tr_resp[sub_name][gaz_name]
                 if value:
                     setattr(self, torinfo_name, value)
+
+        self.encoding = Encoding.mem_from_enc_str(tr_resp['torrent']['encoding'])
 
         files = []
         for s in tr_resp['torrent']['fileList'].split("|||"):

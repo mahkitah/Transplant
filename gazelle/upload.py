@@ -1,6 +1,6 @@
 from bcoding import bencode, bdecode
-from gazelle.tracker_data import tr, ReleaseType, ArtistType
-
+from gazelle.tracker_data import tr, ReleaseType, ArtistType, Encoding, BAD_RED_ENCODINGS
+from lib import tp_text
 
 FIELD_MAPPING = {
     'edition': {
@@ -67,7 +67,8 @@ class UploadData:
 
         if name == 'rel_type':
             return self.rel_type.tracker_value(dest)
-
+        if name == 'encoding':
+            return self.encoding.name
         if name == 'alb_descr':
             src_url = self.src_tr.site
             dest_url = dest.site
@@ -100,6 +101,9 @@ class UploadData:
                 upl_data[v] = value
 
         if dest == tr.RED:
+            if (self.encoding in BAD_RED_ENCODINGS or
+                    (self.encoding == Encoding.Other and self.other_bitrate < 192)):
+                raise ValueError(tp_text.bad_bitr)
             if self.unknown:
                 upl_data['remaster_year'] = '1990'
                 upl_data['remaster_title'] = 'Unknown release year'
