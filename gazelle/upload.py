@@ -104,12 +104,11 @@ class UploadData:
             if (self.encoding in BAD_RED_ENCODINGS or
                     (self.encoding == Encoding.Other and self.other_bitrate < 192)):
                 raise ValueError(tp_text.bad_bitr)
+            if self.rel_type == ReleaseType.Sampler:
+                upl_data['releasetype'] = 7
             if self.unknown:
                 upl_data['remaster_year'] = '1990'
                 upl_data['remaster_title'] = 'Unknown release year'
-
-            if self.rel_type == ReleaseType.Sampler:
-                self.rel_type = ReleaseType.Compilation
 
         elif dest == tr.OPS:
             upl_data['workaround_broken_html_entities'] = 0
