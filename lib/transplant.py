@@ -162,13 +162,22 @@ class Transplanter:
                                    self.rel_descr_templ, self.rel_descr_own_templ, self.add_src_descr,
                                    self.src_descr_templ, src_api.account_info['id'], self.job.dest_group)
 
-        self.get_dtor(upl_files, src_api)
+        dest_tr = self.job.dest_trs
+        dest_api = self.api_map[dest_tr]
 
-        dest_api = self.api_map[self.job.dest_trs]
-
-        report.info(f"{tp_text.upl1} {dest_api.tr.name}")
         try:
-            new_id, new_group, new_url = dest_api.upload(upl_data, upl_files, dest_group=self.job.dest_group)
+            data_dict = upl_data.upl_dict(dest_tr, self.job.dest_group)
+        except ValueError as e:
+            report.error(str(e))
+            return False
+
+        if not upl_files.dtors:
+            self.get_dtor(upl_files, src_api)
+        files_list = upl_files.files_list(dest_api.announce, dest_tr.name)
+
+        report.info(f"{tp_text.upl1} {dest_tr.name}")
+        try:
+            new_id, new_group, new_url = dest_api.upload(data_dict, files_list)
             report.log(25, f"{tp_text.upl2} {new_url}")
         except Exception:
             report.exception(f"{tp_text.upl3}")

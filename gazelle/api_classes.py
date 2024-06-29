@@ -17,11 +17,11 @@ from gazelle.tracker_data import tr
 class RequestFailure(Exception):
     pass
 
-report = logging.getLogger(__name__)
+report = logging.getLogger('tr.api')
 
 
 class BaseApi:
-    def __init__(self, tracker, **kwargs):
+    def __init__(self, tracker: tr, **kwargs):
         assert tracker in tr, 'Unknown Tracker'  # TODO uitext
         self.tr = tracker
         self.url = self.tr.site
@@ -83,10 +83,8 @@ class BaseApi:
 
         return torrent_info.tr_map[self.tr](r)
 
-    def upload(self, data, files, dest_group=None):
-        data_dict = data.upl_dict(self.tr, dest_group)
-        upl_files = files.files_list(self.announce, self.tr.name)
-        return self._uploader(data_dict, upl_files)
+    def upload(self, upl_data: dict, files: list):
+        return self._uploader(upl_data, files)
 
     def _uploader(self, data, files):
         r = self.request('upload', data=data, files=files)
