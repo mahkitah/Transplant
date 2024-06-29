@@ -1,6 +1,10 @@
+import logging
 from bcoding import bencode, bdecode
-from gazelle.tracker_data import tr, ReleaseType, ArtistType, Encoding, BAD_RED_ENCODINGS
+from gazelle.tracker_data import tr, ReleaseType, Encoding, BAD_RED_ENCODINGS
 from lib import tp_text
+
+report = logging.getLogger('tr.upl')
+
 
 FIELD_MAPPING = {
     'edition': {
@@ -106,6 +110,9 @@ class UploadData:
                 raise ValueError(tp_text.bad_bitr)
             if self.rel_type == ReleaseType.Sampler:
                 upl_data['releasetype'] = 7
+            if self.rel_type == ReleaseType.Split:
+                upl_data['releasetype'] = 21
+                report.warning(tp_text.split_warn)
             if self.unknown:
                 upl_data['remaster_year'] = '1990'
                 upl_data['remaster_title'] = 'Unknown release year'
