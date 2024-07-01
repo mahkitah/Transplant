@@ -68,7 +68,7 @@ class UploadData:
         self.extra_rel_descr = None
         self.src_tr = None
 
-    def _get_field(self, name, dest: tr):
+    def _get_field(self, name: str, dest: tr):
 
         if name == 'rel_type':
             return self.rel_type.tracker_value(dest)
@@ -81,7 +81,7 @@ class UploadData:
 
         return getattr(self, name)
 
-    def upl_dict(self, dest, dest_group=None):
+    def upl_dict(self, dest: tr, dest_group=None):
 
         field_map = FIELD_MAPPING['edition'].copy()
         upl_data = {'type': 0}

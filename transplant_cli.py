@@ -3,6 +3,7 @@ import re
 import logging
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
+from typing import Iterator
 
 from lib.transplant import Transplanter, Job, JobCreationError
 from lib import tp_text
@@ -54,7 +55,7 @@ else:
 report.addHandler(handler)
 
 
-def parse_input():
+def parse_input() -> Iterator[tuple[str, dict]]:
     args = sys.argv[1:]
     batchmode = False
 
@@ -83,7 +84,7 @@ def parse_input():
             yield p.name, {'dtor_path': p, 'scanned': True}
 
 
-def get_jobs():
+def get_jobs() -> Iterator[Job]:
     for arg, kwarg_dict in parse_input():
         try:
             yield Job(**kwarg_dict)

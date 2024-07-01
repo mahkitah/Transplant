@@ -53,7 +53,7 @@ class BaseApi:
         r = self.request('index')
         return {k: v for k, v in r.copy().items() if k in ('authkey', 'passkey', 'id', 'username')}
 
-    def request(self, url_suffix, data=None, files=None, **kwargs):
+    def request(self, url_suffix: str, data=None, files=None, **kwargs):
         url = self.url + url_suffix + '.php'
         report.debug(f'{self.tr.name} {url_suffix} {kwargs}')
         req_method = 'POST' if data or files else 'GET'
@@ -78,7 +78,7 @@ class BaseApi:
 
             raise RequestFailure(r_dict)
 
-    def torrent_info(self, **kwargs):
+    def torrent_info(self, **kwargs) -> torrent_info.TorrentInfo:
         r = self.request('torrent', **kwargs)
 
         return torrent_info.tr_map[self.tr](r)
@@ -86,7 +86,7 @@ class BaseApi:
     def upload(self, upl_data: dict, files: list):
         return self._uploader(upl_data, files)
 
-    def _uploader(self, data, files):
+    def _uploader(self, data: dict, files: list) -> dict:
         r = self.request('upload', data=data, files=files)
 
         return self.upl_response_handler(r)
@@ -101,7 +101,7 @@ class KeyApi(BaseApi):
         key = kwargs['key']
         self.session.headers.update({"Authorization": key})
 
-    def request(self, action, data=None, files=None, **kwargs):
+    def request(self, action: str, data=None, files=None, **kwargs):
         kwargs.update(action=action)
         return super().request('ajax', data=data, files=files, **kwargs)
 
@@ -116,7 +116,7 @@ class CookieApi(BaseApi):
         if not self._load_cookie():
             self._login(**kwargs)
 
-    def _load_cookie(self):
+    def _load_cookie(self) -> bool:
         jar = self.session.cookies
         try:
             jar.load()
@@ -137,7 +137,7 @@ class CookieApi(BaseApi):
         assert [c for c in self.session.cookies if c.name == 'session']
         self.session.cookies.save()
 
-    def request(self, action, data=None, files=None, **kwargs):
+    def request(self, action: str, data=None, files=None, **kwargs):
         if action in ('upload', 'login'):  # TODO download?
             url_addon = action
         else:
@@ -146,11 +146,11 @@ class CookieApi(BaseApi):
 
         return super().request(url_addon, data=data, files=files, **kwargs)
 
-    def _uploader(self, data, files):
+    def _uploader(self, data: dict, files: list):
         data['submit'] = True
         super()._uploader(data, files)
 
-    def upl_response_handler(self, r):
+    def upl_response_handler(self, r: requests.Response):
         if 'torrents.php' not in r.url:
             warning = re.search(r'<p style="color: red;text-align:center;">(.+?)</p>', r.text)
             raise RequestFailure(f"{warning.group(1) if warning else r.url}")
@@ -175,7 +175,7 @@ class RedApi(KeyApi):
     def __init__(self, key=None):
         super().__init__(tr.RED, key=key)
 
-    def _uploader(self, data, files):
+    def _uploader(self, data: dict, files: list) -> (int, int, str):
         unknown = False
         if data.get('unknown'):
             del data['unknown']
@@ -189,7 +189,7 @@ class RedApi(KeyApi):
                 report.error(f'{tp_text.edit_fail}{str(e)}')
         return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
 
-    def upl_response_handler(self, r):
+    def upl_response_handler(self, r: requests.Response) -> (int, int):
         return r.get('torrentid'), r.get('groupid')
 
 
@@ -211,7 +211,7 @@ class OpsApi(KeyApi):
         return log_bytes
 
 
-def sleeve(trckr, **kwargs):
+def sleeve(trckr: tr, **kwargs) -> BaseApi:
     api_map = {
         tr.RED: RedApi,
         tr.OPS: OpsApi

@@ -92,7 +92,7 @@ class ReleaseType(Enum, metaclass=RelTypeMeta):
     def name(self):
         return super().name.replace('_', ' ')
 
-    def tracker_value(self, t):
+    def tracker_value(self, t: tr):
         return getattr(self, t.name)
 
     @classmethod

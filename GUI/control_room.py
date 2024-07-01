@@ -15,7 +15,7 @@ from GUI.settings_window import SettingsWindow
 
 from PyQt6.QtWidgets import QFileDialog, QMessageBox
 from PyQt6.QtGui import QKeyEvent, QDesktopServices
-from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread, QSize, QUrl
+from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread, QSize, QUrl, QModelIndex
 
 
 class LogForward(QObject, logging.Handler):
@@ -504,7 +504,7 @@ def delete_selected():
     wb.job_data.del_multi(row_list)
 
 
-def open_torrent_page(index):
+def open_torrent_page(index: QModelIndex):
     if index.column() > 0:
         return
     job = wb.job_data.jobs[index.row()]
@@ -518,7 +518,7 @@ def open_torrent_page(index):
     QDesktopServices.openUrl(QUrl(url))
 
 
-def set_verbosity(lvl):
+def set_verbosity(lvl: int):
     verb_map = {
         0: logging.CRITICAL,
         1: logging.ERROR,
