@@ -237,10 +237,10 @@ class Transplanter:
 
     def get_dtor(self, files, src_api):
         if self.job.new_dtor:
-            files.add_dtor(self.create_new_torrent(), as_dict=True)
+            files.add_dtor(self.create_new_torrent())
 
         elif self.job.dtor_dict:
-            files.add_dtor(self.job.dtor_dict, as_dict=True)
+            files.add_dtor(self.job.dtor_dict)
         else:
             dtor_bytes = src_api.request('download', id=self.tor_info.tor_id)
             report.info(tp_text.tor_downed.format(self.job.src_tr.name))
@@ -277,7 +277,7 @@ class Transplanter:
                         report.error(f"{tp_text.missing} {full_path}")
                         return False
 
-                    files.add_log(full_path, as_path=True)
+                    files.add_log(full_path)
 
         if not files.logs:
             report.error(tp_text.no_log)

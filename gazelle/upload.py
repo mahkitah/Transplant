@@ -127,20 +127,18 @@ class UploadData:
 
 
 class Dtor:
-    def __init__(self, tbytes=None, tdict=None, path=None):
+    def __init__(self, tor):
 
-        assert (tbytes, tdict, path).count(None) == 2
-        self._tdict = None
-
-        if tbytes:
-            self._tdict = bdecode(tbytes)
-        if tdict:
-            self._tdict = {'info': tdict['info']}
-            if 'announce' in tdict:
-                self._tdict['announce'] = tdict['announce']
-        if path:
-            with open(path, 'rb') as f:
-                self._tdict = bdecode(f.read())
+        if isinstance(tor, bytes):
+            self._tdict = bdecode(tor)
+        elif isinstance(tor, dict):
+            self._tdict = {'info': tor['info']}
+            if 'announce' in tor:
+                self._tdict['announce'] = tor['announce']
+        elif isinstance(tor, Path):
+            self._tdict = bdecode(tor.read_bytes())
+        else:
+            raise TypeError
 
     @property
     def as_bytes(self):
@@ -167,22 +165,16 @@ class Files:
         self.dtors = []
         self.logs = []
 
-    def add_log(self, log, as_path=False):
-        if as_path:
-            with open(log, 'rb') as f:
-                self.logs.append(f.read())
-        else:
-            assert isinstance(log, bytes)
+    def add_log(self, log):
+        if isinstance(log, Path):
+            self.logs.append(log.read_bytes())
+        elif isinstance(log, bytes):
             self.logs.append(log)
-
-    def add_dtor(self, dtor, as_dict=False, as_path=False):
-        if as_path:
-            self.dtors.append(Dtor(path=dtor))
-        elif as_dict:
-            self.dtors.append(Dtor(tdict=dtor))
         else:
-            assert isinstance(dtor, bytes)
-            self.dtors.append(Dtor(tbytes=dtor))
+            raise TypeError
+
+    def add_dtor(self, dtor):
+        self.dtors.append(Dtor(dtor))
 
     @staticmethod
     def tor_field_names():
