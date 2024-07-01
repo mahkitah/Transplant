@@ -1,7 +1,7 @@
 import os
 import re
 import logging
-import time
+from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
 from lib import utils, tp_text
@@ -273,8 +273,8 @@ def trpl_settings():
         'te_src_descr_templ'
     )
     settings_dict = {
-        'data_dir': wb.fsb_data_dir.currentText(),
-        'dtor_save_dir': wb.fsb_dtor_save_dir.currentText()
+        'data_dir': Path(wb.fsb_data_dir.currentText()),
+        'dtor_save_dir': Path(tsd) if (tsd := wb.fsb_dtor_save_dir.currentText()) else None
     }
     for s in user_settings:
         _, arg_name = s.split('_', maxsplit=1)
@@ -390,7 +390,7 @@ def select_dtors():
 
 
 def scan_dtorrents():
-    path = wb.fsb_scan_dir.currentText()
+    scan_path = Path(wb.fsb_scan_dir.currentText())
     wb.tabs.setCurrentIndex(0)
 
     torpaths = [scan.path for scan in os.scandir(path) if scan.is_file() and scan.name.endswith(".torrent")]
@@ -402,19 +402,19 @@ def scan_dtorrents():
 
 
 def settings_check():
-    data_dir = wb.fsb_data_dir.currentText()
-    scan_dir = wb.fsb_scan_dir.currentText()
-    dtor_save_dir = wb.fsb_dtor_save_dir.currentText()
+    data_dir = Path(wb.fsb_data_dir.currentText())
+    scan_dir = Path(wb.fsb_scan_dir.currentText())
+    dtor_save_dir = Path(wb.fsb_dtor_save_dir.currentText())
     save_dtors = wb.config.value('chb_save_dtors')
     rehost = wb.config.value('chb_rehost')
     add_src_descr = wb.config.value('chb_add_src_descr')
 
     sum_ting_wong = []
-    if not os.path.isdir(data_dir):
+    if not data_dir.is_dir():
         sum_ting_wong.append(gui_text.sum_ting_wong_1)
-    if scan_dir and not os.path.isdir(scan_dir):
+    if scan_dir and not scan_dir.is_dir():
         sum_ting_wong.append(gui_text.sum_ting_wong_2)
-    if save_dtors and not os.path.isdir(dtor_save_dir):
+    if save_dtors and not dtor_save_dir.is_dir():
         sum_ting_wong.append(gui_text.sum_ting_wong_3)
     if rehost and not any(h.enabled for h in ih):
         sum_ting_wong.append(gui_text.sum_ting_wong_4)
@@ -487,7 +487,7 @@ def delete_selected():
     for i in row_list.copy():
         job = wb.job_data.jobs[i]
         if job.scanned:
-            os.remove(job.dtor_path)
+            job.dtor_path.unlink()
         else:
             row_list.remove(i)
             non_scanned += 1

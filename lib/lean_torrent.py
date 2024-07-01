@@ -1,14 +1,14 @@
-import os
 import math
-from multiprocessing import pool
 from hashlib import sha1
+from pathlib import Path
+from multiprocessing import pool
 
 from lib.utils import scantree
 
 
 class Torrent:
-    def __init__(self, path):
-        self.path = os.path.normpath(path)
+    def __init__(self, path: Path):
+        self.path = path
         self._file_list = []
         self._total_size = 0
         self._piece_size = None
@@ -17,14 +17,14 @@ class Torrent:
         self.generate_data()
 
     def scan_files(self):
-        if os.path.isdir(self.path):
-            for scan in scantree(self.path):
-                fsize = scan.stat().st_size
+        if self.path.is_dir():
+            for p in scantree(self.path):
+                fsize = p.stat().st_size
                 self._total_size += fsize
-                self._file_list.append((scan.path, fsize))
+                self._file_list.append((p, fsize))
 
     @property
-    def file_list(self):
+    def file_list(self) -> list[tuple[Path, int]]:
         if not self._file_list:
             self.scan_files()
         return self._file_list
@@ -52,7 +52,7 @@ class Torrent:
 
     def file_objects(self):
         for path, _ in self.file_list:
-            with open(path, 'rb') as f:
+            with path.open('rb') as f:
                 yield f
 
     def file_chunks(self):
@@ -88,14 +88,14 @@ class Torrent:
     def generate_data(self):
         info = {
             'files': [],
-            'name': os.path.basename(self.path),
+            'name': self.path.name,
             'pieces': b''.join(self.file_hashes()),
             'piece length': self.piece_size,
             'private': 1
         }
         for path, size in self.file_list:
             fx = {'length': size,
-                  'path': os.path.relpath(path, self.path).split(os.sep)}
+                  'path': path.relative_to(self.path).parts}
             info['files'].append(fx)
 
         self.data = {'info': info}

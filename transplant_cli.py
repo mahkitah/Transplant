@@ -1,7 +1,7 @@
 import sys
-import os
 import re
 import logging
+from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
 from lib.transplant import Transplanter, Job, JobCreationError
@@ -79,9 +79,8 @@ def parse_input():
 
     if batchmode:
         report.info(tp_text.batch)
-        for scan in os.scandir(cli_config.scan_dir):
-            if scan.is_file() and scan.name.endswith(".torrent"):
-                yield scan.name, {'dtor_path': scan.path, 'scanned': True}
+        for p in Path(cli_config.scan_dir).glob('*.torrent'):
+            yield p.name, {'dtor_path': p, 'scanned': True}
 
 
 def get_jobs():
@@ -98,10 +97,10 @@ def main():
     report.info(tp_text.start)
 
     trpl_settings = {
-        'data_dir': cli_config.data_dir,
+        'data_dir': Path(cli_config.data_dir),
         'deep_search': cli_config.deep_search,
         'deep_search_level': cli_config.deep_search_level,
-        'dtor_save_dir': cli_config.torrent_save_dir,
+        'dtor_save_dir': Path(tsd) if (tsd := cli_config.torrent_save_dir) else None,
         'save_dtors': bool(cli_config.torrent_save_dir),
         'del_dtors': cli_config.del_dtors,
         'file_check': cli_config.file_check,
