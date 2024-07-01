@@ -55,7 +55,7 @@ class BaseApi:
 
     def request(self, url_suffix, data=None, files=None, **kwargs):
         url = self.url + url_suffix + '.php'
-        report.debug(f'{url_suffix} {kwargs}')
+        report.debug(f'{self.tr.name} {url_suffix} {kwargs}')
         req_method = 'POST' if data or files else 'GET'
 
         self._rate_limit()
