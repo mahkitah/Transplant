@@ -277,8 +277,11 @@ def trpl_settings():
         'dtor_save_dir': Path(tsd) if (tsd := wb.fsb_dtor_save_dir.currentText()) else None
     }
     for s in user_settings:
-        _, arg_name = s.split('_', maxsplit=1)
-        settings_dict[arg_name] = wb.config.value(s)
+        typ, arg_name = s.split('_', maxsplit=1)
+        val = wb.config.value(s)
+        if typ == 'chb':
+            val = bool(val)
+        settings_dict[arg_name] = val
 
     if wb.config.value('chb_rehost'):
         white_str_nospace = ''.join(wb.config.value('le_whitelist').split())
