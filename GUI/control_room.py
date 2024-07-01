@@ -316,6 +316,33 @@ def gogogo():
     wb.thread.start()
 
 
+class JobCollector:
+    def __init__(self):
+        self.jobs = []
+
+    def collect(self, name, **kwargs):
+        try:
+            job = Job(**kwargs)
+        except JobCreationError as e:
+            logger.debug(name)
+            logger.debug(str(e) + '\n')
+            return
+
+        if job in self.jobs or job in wb.job_data.jobs:
+            logger.debug(name)
+            logger.debug(f'{tp_text.skip}{gui_text.dupe_add}\n')
+            return
+
+        self.jobs.append(job)
+        return True
+
+    def add_jobs_2_joblist(self, empty_msg=None):
+        if self.jobs:
+            wb.job_data.append_jobs(self.jobs)
+        elif empty_msg:
+            wb.pop_up.pop_up(empty_msg)
+
+
 def parse_paste_input():
     paste_blob = wb.te_paste_box.toPlainText()
     if not paste_blob:
@@ -324,51 +351,20 @@ def parse_paste_input():
     wb.tabs.setCurrentIndex(0)
     src_tr = tr(wb.config.value('bg_source'))
 
-    new_jobs = []
+    new_jobs = JobCollector()
     for line in paste_blob.split():
         match_id = re.fullmatch(r"\d+", line)
         if match_id:
-            job = Job(src_tr=src_tr, tor_id=line)
-            if job not in new_jobs:
-                new_jobs.append(job)
-            continue
-
-        parsed = urlparse(line)
-        hostname = parsed.hostname
-        id_list = parse_qs(parsed.query).get('torrentid')
-        if id_list and hostname:
-            try:
-                job = Job(src_dom=hostname, tor_id=id_list.pop())
-            except JobCreationError:
-                continue
-            if job not in new_jobs:
-                new_jobs.append(job)
-
-    if not wb.job_data.append_jobs(new_jobs):
-        wb.pop_up.pop_up(f'{gui_text.pop3}')
-
-    wb.te_paste_box.clear()
-
-
-def add_jobs_from_torpaths(torpaths, **kwargs):
-    new_jobs = []
-    for path in torpaths:
-        try:
-            job = (Job(dtor_path=path, **kwargs))
-        except JobCreationError as e:
-            logger.debug(path)
-            logger.debug(str(e))
-            continue
-
-        if job not in new_jobs:
-            new_jobs.append(job)
+            new_jobs.collect(line, src_tr=src_tr, tor_id=line)
         else:
-            logger.debug(path)
-            logger.debug(f'{tp_text.skip}{gui_text.same_hash}')
+            parsed = urlparse(line)
+            hostname = parsed.hostname
+            id_list = parse_qs(parsed.query).get('torrentid')
+            if id_list and hostname:
+                new_jobs.collect(line, src_dom=hostname, tor_id=id_list.pop())
 
-    if wb.job_data.append_jobs(new_jobs):
-        wb.job_view.setFocus()
-        return True
+    new_jobs.add_jobs_2_joblist(gui_text.pop3)
+    wb.te_paste_box.clear()
 
 
 def select_dtors():
@@ -384,21 +380,28 @@ def select_dtors():
     else:
         common_path = os.path.dirname(file_paths[0])
 
-    wb.config.setValue('torselect_dir', os.path.normpath(common_path))
+    wb.config.setValue('torselect_dir', common_path)
 
-    add_jobs_from_torpaths(file_paths)
+    new_jobs = JobCollector()
+    for fp in file_paths:
+        p = Path(fp)
+        new_jobs.collect(p.name, dtor_path=p)
+
+    new_jobs.add_jobs_2_joblist()
 
 
 def scan_dtorrents():
     scan_path = Path(wb.fsb_scan_dir.currentText())
     wb.tabs.setCurrentIndex(0)
 
-    torpaths = [scan.path for scan in os.scandir(path) if scan.is_file() and scan.name.endswith(".torrent")]
-    if torpaths:
-        if add_jobs_from_torpaths(torpaths, scanned=True) is None:
-            wb.pop_up.pop_up(f'{gui_text.pop2}\n{path}')
-    else:
-        wb.pop_up.pop_up(f'{gui_text.pop1}\n{path}')
+    torpaths = tuple(scan_path.glob('*.torrent'))
+    new_jobs = JobCollector()
+
+    for p in torpaths:
+        new_jobs.collect(p.name, dtor_path=p, scanned=True)
+
+    poptxt = gui_text.pop2 if torpaths else gui_text.pop1
+    new_jobs.add_jobs_2_joblist(f'{poptxt}\n{scan_path}')
 
 
 def settings_check():

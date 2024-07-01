@@ -206,16 +206,12 @@ class JobModel(QAbstractTableModel):
 
     def append_jobs(self, new_jobs: list):
         if not new_jobs:
-            return False
-        deduped = [j for j in new_jobs if j not in self.jobs]
-        if deduped:
-            first = len(self.jobs)
-            last = first + len(new_jobs) - 1
-            self.beginInsertRows(QModelIndex(), first, last)
-            self.jobs.extend(deduped)
-            self.endInsertRows()
-            return True
-        return False
+            return
+        first = len(self.jobs)
+        last = first + len(new_jobs) - 1
+        self.beginInsertRows(QModelIndex(), first, last)
+        self.jobs.extend(new_jobs)
+        self.endInsertRows()
 
     @staticmethod
     def continuous_slices(numbers):
