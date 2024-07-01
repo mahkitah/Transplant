@@ -1,22 +1,23 @@
-import os
 import re
 import traceback
+from pathlib import Path
+from typing import Iterator
 
 
-def scantree(path):
-    for scan in os.scandir(path):
-        if scan.is_dir(follow_symlinks=False) and not scan.name.startswith('.'):
-            yield from scantree(scan.path)
+def scantree(path: Path) -> Iterator[Path]:
+    for p in path.iterdir():
+        if p.is_dir() and not p.name.startswith('.'):
+            yield from scantree(p)
         else:
-            yield scan
+            yield p
 
 
-def subdirs_gen(path, maxlevel=1, level=1):
-    for entry in os.scandir(path):
-        if entry.is_dir():
-            yield os.path.split(entry.path)
+def subdirs_gen(path: Path, maxlevel=1, level=1) -> Iterator[Path]:
+    for p in path.iterdir():
+        if p.is_dir():
+            yield p
             if level < maxlevel:
-                yield from subdirs_gen(entry.path, maxlevel=maxlevel, level=level + 1)
+                yield from subdirs_gen(p, maxlevel=maxlevel, level=level + 1)
 
 
 def multi_replace(src_txt, replace_map, *extra_maps):

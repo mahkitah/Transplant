@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 import logging
 from hashlib import sha1
 from urllib.parse import urlparse
@@ -27,7 +27,7 @@ class Job:
         self.src_tr = src_tr
         self.tor_id = tor_id
         self.scanned = scanned
-        self.dtor_path = dtor_path
+        self.dtor_path: Path = dtor_path
         self.dest_group = dest_group
         self.new_dtor = new_dtor
         self.dest_trs = dest_trs
@@ -36,9 +36,9 @@ class Job:
         self.display_name = None
         self.dtor_dict = None
 
-        if dtor_path:
-            self.parse_dtorrent(dtor_path)
-            self.display_name = os.path.splitext(os.path.basename(dtor_path))[0]
+        if self.dtor_path:
+            self.parse_dtorrent(self.dtor_path)
+            self.display_name = self.dtor_path.stem
 
         if src_dom:
             for t in tr:
@@ -55,9 +55,8 @@ class Job:
         if not self.dest_trs:
             self.dest_trs = ~self.src_tr
 
-    def parse_dtorrent(self, path):
-        with open(path, "rb") as f:
-            torbytes = f.read()
+    def parse_dtorrent(self, path: Path):
+        torbytes = path.read_bytes()
         try:
             self.dtor_dict = bdecode(torbytes)
             info = self.dtor_dict['info']
@@ -97,10 +96,10 @@ class Transplanter:
                  add_src_descr=True, src_descr_templ=None, img_rehost=False, whitelist=None, post_compare=False):
 
         self.api_map = {trckr: sleeve(trckr, key=key_dict[trckr]) for trckr in tr}
-        self.data_dir = data_dir
+        self.data_dir: Path = data_dir
         self.deep_search = deep_search
         self.deep_search_level = deep_search_level
-        self.dtor_save_dir = dtor_save_dir
+        self.dtor_save_dir: Path | None = dtor_save_dir
         self.save_dtors = save_dtors
         self.del_dtors = del_dtors
         self.file_check = file_check
@@ -198,33 +197,33 @@ class Transplanter:
         if not saul_goodman:
             return False
         elif self.del_dtors and self.job.scanned:
-            os.remove(self.job.dtor_path)
+            self.job.dtor_path.unlink()
             report.info(tp_text.dtor_deleted)
 
         return True
 
     def tor_folder_is_needed_but_is_missing(self):
         if self.file_check or self.job.new_dtor or (self.tor_info.haslog and not self.tor_info.log_ids):
-            return self.torrent_folder_path is None or not os.path.exists(self.torrent_folder_path)
+            return self.torrent_folder_path is None or not self.torrent_folder_path.exists()
         else:
             return False
 
     @property
-    def torrent_folder_path(self):
+    def torrent_folder_path(self) -> Path:
         if not self._torrent_folder_path:
             tor_folder_name = self.tor_info.folder_name
             if self.deep_search:
                 if tor_folder_name in self.subdir_store:
-                    self._torrent_folder_path = os.path.join(self.subdir_store[tor_folder_name], tor_folder_name)
+                    self._torrent_folder_path = self.subdir_store[tor_folder_name]
                 else:
-                    for root, subdir in self.subdir_gen:
-                        if subdir == tor_folder_name:
-                            self._torrent_folder_path = os.path.join(root, subdir)
+                    for p in self.subdir_gen:
+                        if p.name == tor_folder_name:
+                            self._torrent_folder_path = p
                             break
                         else:
-                            self.subdir_store[subdir] = root
+                            self.subdir_store[p.name] = p
             else:
-                self._torrent_folder_path = os.path.join(self.data_dir, tor_folder_name)
+                self._torrent_folder_path = self.data_dir / tor_folder_name
 
         return self._torrent_folder_path
 
@@ -259,15 +258,15 @@ class Transplanter:
     NOT_RIPLOG = ("audiochecker", "aucdtect", "accurip")
 
     def is_riplog(self, fn: str) -> bool:
-        if fn.endswith('.log') and not any(x in fn.lower() for x in self.NOT_RIPLOG):
+        if not any(x in fn.lower() for x in self.NOT_RIPLOG):
             return True
 
     def get_logs(self, files: upload.Files, src_api: BaseApi | OpsApi | RedApi) -> bool:
 
         if self.job.new_dtor:
-            for scan in utils.scantree(self.torrent_folder_path):
-                if self.is_riplog(scan.name):
-                    files.add_log(scan.path, as_path=True)
+            for p in self.torrent_folder_path.rglob('*.log'):
+                if self.is_riplog(p.name):
+                    files.add_log(p)
 
             return True  # new torrent may have no log while original had one
 
@@ -279,9 +278,9 @@ class Transplanter:
                 fn = fl['names'][-1]
 
                 if self.is_riplog(fn):
-                    full_path = os.path.join(self.torrent_folder_path, *fl['names'])
+                    full_path = Path(self.torrent_folder_path, *fl['names'])
 
-                    if not os.path.exists(full_path):
+                    if not full_path.exists():
                         report.error(f"{tp_text.missing} {full_path}")
                         return False
 
@@ -304,9 +303,9 @@ class Transplanter:
             return True
 
         for fl in self.tor_info.file_list:
-            file_path = os.path.join(self.torrent_folder_path, *fl['names'])
+            file_path = Path(self.torrent_folder_path, *fl['names'])
 
-            if not os.path.exists(file_path):
+            if not file_path.exists():
                 report.error(f"{tp_text.missing} {file_path}")
                 return False
 
@@ -317,6 +316,5 @@ class Transplanter:
         dtor = files.dtors[0].as_dict
         if comment:
             dtor['comment'] = comment
-        file_path = os.path.join(self.dtor_save_dir, self.tor_info.folder_name) + ".torrent"
-        with open(file_path, "wb") as f:
-            f.write(bencode(dtor))
+        file_path = (self.dtor_save_dir / self.tor_info.folder_name).with_suffix('.torrent')
+        file_path.write_bytes(bencode(dtor))

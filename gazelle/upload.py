@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from bcoding import bencode, bdecode
 from gazelle.tracker_data import tr, ReleaseType, ArtistType, Encoding, BAD_RED_ENCODINGS
 from lib import tp_text
