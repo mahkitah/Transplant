@@ -37,7 +37,7 @@ sum_ting_wong_4 = 'No image hosts enabled'
 sum_ting_wong_5 = 'Source description text must contain %src_descr%'
 sum_ting_wong_6 = 'Leading and/or trailing space in {}'
 
-same_hash = ': .torrent with same infohash already added\n'
+dupe_add = ': Torrent already added'
 
 # Pop-ups
 pop1 = 'Nothing to add in'
