@@ -102,14 +102,20 @@ class ReleaseType(Enum, metaclass=RelTypeMeta):
 
 
 class ArtistType(Enum):
-    Main = 1
-    Guest = 2
-    Remixer = 3
-    Composer = 4
-    Conductor = 5
-    DJ_Comp = 6
-    Producer = 7
-    Arranger = 8
+    Main = 1, 'artists'
+    Guest = 2, 'with'
+    Remixer = 3, 'remixedBy'
+    Composer = 4, 'composers'
+    Conductor = 5, 'conductor'
+    DJ_Comp = 6, 'dj'
+    Producer = 7, 'producer'
+    Arranger = 8, 'arranger'
+
+    def __new__(cls, int_val, str_val):
+        obj = object.__new__(cls)
+        obj._value_ = str_val
+        obj.nr = int_val
+        return obj
 
 
 class EncMeta(EnumMeta):
