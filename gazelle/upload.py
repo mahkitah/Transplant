@@ -96,7 +96,7 @@ class UploadData:
             for artist_name, a_types in self.artists.items():
                 for a_type in a_types:
                     artists.append(artist_name)
-                    importances.append(a_type.value)
+                    importances.append(a_type.nr)
             upl_data['artists[]'] = artists
             upl_data['importance[]'] = importances
 

@@ -65,16 +65,6 @@ class SharedInfo(TorrentInfo):
             'username': 'uploader',
         }
     }
-    ARTIST_MAP = {
-        'artists': 1,
-        'with': 2,
-        'remixedBy': 3,
-        'composers': 4,
-        'conductor': 5,
-        'dj': 6,
-        'producer': 7,
-        'arranger': 8
-    }
 
     def __init__(self, tr_resp: dict):
         super().__init__()
@@ -96,7 +86,7 @@ class SharedInfo(TorrentInfo):
 
         artists = {}
         for a_type, artist_list in tr_resp['group']['musicInfo'].items():
-            artists[ArtistType(self.ARTIST_MAP[a_type])] = artist_list
+            artists[ArtistType(a_type)] = artist_list
         self.artist_data = artists
 
 
