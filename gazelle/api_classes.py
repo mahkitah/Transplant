@@ -68,7 +68,7 @@ class BaseApi:
             if 'application/x-bittorrent' in r.headers['content-type']:
                 return r.content
             else:
-                raise RequestFailure('no json, no torrent')
+                raise RequestFailure(f'no json, no torrent. {r.status_code}')
         else:
             status = r_dict.get('status')
             if status == 'success':
