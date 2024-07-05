@@ -12,6 +12,7 @@ log_score_dif = 'Log scores different: {} - {}'
 merged = 'Probably merged into an existing group'
 missing = "Can't find:"
 no_log = "No logs found"
+log_count_wrong = 'Torrent has {} logs, {} found'
 new_tor = 'Generating new torrent'
 tor_downed = '.torrent downloaded from {}'
 f_checked = 'Files checked'
