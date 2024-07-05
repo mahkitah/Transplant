@@ -131,13 +131,13 @@ class Transplanter:
         src_api = self.api_map[self.job.src_tr]
 
         report.info(tp_text.requesting)
-        self.tor_info: TorrentInfo
         if self.job.tor_id:
-            self.tor_info = src_api.torrent_info(id=self.job.tor_id)
+            info_kwarg = {'id': self.job.tor_id}
         elif self.job.info_hash:
-            self.tor_info = src_api.torrent_info(hash=self.job.info_hash)
+            info_kwarg = {'hash': self.job.info_hash}
         else:
             return False
+        self.tor_info: TorrentInfo = src_api.torrent_info(**info_kwarg)
 
         if not self.tor_info.folder_name:
             report.error(tp_text.no_torfolder)
