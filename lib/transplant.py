@@ -281,7 +281,13 @@ class Transplanter:
 
                     files.add_log(full_path)
 
-        if not files.logs:
+        if self.tor_info.log_ids:
+            tor_log_count = len(self.tor_info.log_ids)
+            found = len(files.logs)
+            if tor_log_count != found:
+                report.warning(tp_text.log_count_wrong.format(tor_log_count, found))
+
+        elif not files.logs:
             report.error(tp_text.no_log)
             return False
 
