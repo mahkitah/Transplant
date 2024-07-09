@@ -1,5 +1,6 @@
 import html
 import re
+from pathlib import Path
 
 from gazelle.tracker_data import tr, ReleaseType, ArtistType, Encoding
 
@@ -79,9 +80,9 @@ class SharedInfo(TorrentInfo):
 
         files = []
         for s in tr_resp['torrent']['fileList'].split("|||"):
-            match = re.match(r"(.+){{3}(\d+)}{3}", s)
-            files.append({'names': match.group(1).split("/"),
-                          'size': match.group(2)})
+            path, size = s.removesuffix('}}}').split('{{{')
+            files.append({'path': Path(path),
+                          'size': int(size)})
         self.file_list = files
 
         artists = {}
