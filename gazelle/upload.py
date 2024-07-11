@@ -167,11 +167,13 @@ class Files:
 
     def add_log(self, log: Path | bytes):
         if isinstance(log, Path):
-            self.logs.append(log.read_bytes())
+            log = log.read_bytes()
         elif isinstance(log, bytes):
-            self.logs.append(log)
+            pass
         else:
             raise TypeError
+        if log not in self.logs:
+            self.logs.append(log)
 
     def add_dtor(self, dtor):
         self.dtors.append(Dtor(dtor))
