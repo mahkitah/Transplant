@@ -41,3 +41,7 @@ def tb_line_gen(tb):
             if STUPID_3_11_TB.fullmatch(sub_line):
                 continue
             yield sub_line
+
+
+unicode_directional_markers = ('\u202a', '\u202b', '\u202c', '\u202d', '\u202e', '\u200e', '\u200f')
+uni_t_table = str.maketrans(dict.fromkeys(unicode_directional_markers))

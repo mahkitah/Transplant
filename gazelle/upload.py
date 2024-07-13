@@ -3,6 +3,7 @@ from pathlib import Path
 from bcoding import bencode, bdecode
 from gazelle.tracker_data import tr, ReleaseType, Encoding, BAD_RED_ENCODINGS
 from lib import tp_text
+from lib .utils import uni_t_table
 
 report = logging.getLogger('tr.upl')
 
@@ -128,42 +129,57 @@ class UploadData:
 
 class Dtor:
     def __init__(self, tor):
+        self.announce = None
+        self.source = None
 
         if isinstance(tor, bytes):
-            self._tdict = bdecode(tor)
+            self.t_info = bdecode(tor)['info']
         elif isinstance(tor, dict):
-            self._tdict = {'info': tor['info']}
-            if 'announce' in tor:
-                self._tdict['announce'] = tor['announce']
+            self.t_info = tor['info']
         elif isinstance(tor, Path):
-            self._tdict = bdecode(tor.read_bytes())
+            self.t_info = bdecode(tor.read_bytes())['info']
         else:
             raise TypeError
 
-    @property
-    def as_bytes(self):
-        return bencode(self._tdict)
+        if 'source' in self.t_info:
+            del self.t_info['source']
 
-    @property
-    def as_dict(self):
-        return self._tdict.copy()
+        self.lrm = False
+
+        self.stripped_info = self.t_info.copy()
+        self.stripped_info['name'] = self.t_info['name'].translate(uni_t_table)
+        for fd in self.stripped_info['files']:
+            p_elements: list = fd['path']
+            fd['path'] = [e.translate(uni_t_table) for e in p_elements]
+        if self.stripped_info != self.t_info:
+            self.lrm = True
+
+    def as_bytes(self, u_strip=False):
+        return bencode(self.as_dict(u_strip))
+
+    def as_dict(self, u_strip=False):
+        tordict = {}
+        if self.announce:
+            tordict['announce'] = self.announce
+        if not self.lrm or not u_strip:
+            info = self.t_info
+        else:
+            info = self.stripped_info
+        if self.source:
+            info['source'] = self.source
+
+        tordict['info'] = info
+        return tordict
 
     def trackerise(self, announce=None, source=None):
-        if announce:
-            self._tdict['announce'] = announce
-        if source:
-            self._tdict['info']['source'] = source
-        else:
-            try:
-                del self._tdict['info']['source']
-            except KeyError:
-                pass
+        self.announce = announce
+        self.source = source
 
 
 class Files:
     def __init__(self):
-        self.dtors = []
-        self.logs = []
+        self.dtors: list[Dtor] = []
+        self.logs: list[bytes] = []
 
     def add_log(self, log):
         if isinstance(log, Path):
@@ -183,17 +199,16 @@ class Files:
         index = 0
         while True:
             if not index:
-                yield 'file_input'
+                yield 'file_input', index
             else:
-                yield f'extra_file_{index}'
+                yield f'extra_file_{index}', index
             index += 1
 
-    def files_list(self, announce=None, source=None) -> list:
+    def files_list(self, announce=None, source=None, u_strip=False) -> list:
         files = []
-        for field_name, dtor, i in zip(self.tor_field_names(), self.dtors, range(len(self.dtors))):
-            if announce or source:
-                dtor.trackerise(announce, source)
-            files.append((field_name, (f'blabla{i}.torrent', dtor.as_bytes, 'application/x-bittorrent')))
+        for (field_name, i), dtor in zip(self.tor_field_names(), self.dtors):
+            dtor.trackerise(announce, source)
+            files.append((field_name, (f'blabla{i}.torrent', dtor.as_bytes(u_strip), 'application/x-bittorrent')))
 
         for log in self.logs:
             files.append(('logfiles[]', ('log.log', log, 'application/octet-stream')))
