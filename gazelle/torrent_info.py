@@ -1,6 +1,7 @@
 import html
 import re
 from pathlib import Path
+from typing import Iterator
 
 from gazelle.tracker_data import tr, ReleaseType, ArtistType, Encoding
 
@@ -89,6 +90,16 @@ class SharedInfo(TorrentInfo):
         for a_type, artist_list in tr_resp['group']['musicInfo'].items():
             artists[ArtistType(a_type)] = artist_list
         self.artist_data = artists
+
+    def file_paths(self) -> Iterator[Path]:
+        for fd in self.file_list:
+            yield fd['path']
+
+    def glob(self, pattern: str) -> Iterator[Path]:
+        # todo 3.12: pattern = Path(pattern)
+        for p in self.file_paths():
+            if p.match(pattern):
+                yield p
 
 
 class REDTorrentInfo(SharedInfo):
