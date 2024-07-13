@@ -121,11 +121,16 @@ class Transplanter:
         self.job = None
         self.tor_info = None
         self._torrent_folder_path = None
+        self.lrm = False
+        self.local_is_stripped = False
 
     def do_your_job(self, job: Job) -> bool:
         self.job = job
         self.tor_info = None
         self._torrent_folder_path = None
+        self.lrm = False
+        self.local_is_stripped = False
+
         report.info(f"{self.job.src_tr.name} {self.job.display_name or self.job.tor_id}")
 
         src_api = self.api_map[self.job.src_tr]
@@ -176,7 +181,7 @@ class Transplanter:
 
             if not upl_files.dtors:
                 self.get_dtor(upl_files, src_api)
-            files_list = upl_files.files_list(dest_api.announce, dest_tr.name)
+            files_list = upl_files.files_list(dest_api.announce, dest_tr.name, u_strip=self.strip_tor)
 
             report.info(f"{tp_text.upl1} {dest_tr.name}")
             try:
@@ -202,30 +207,54 @@ class Transplanter:
 
         return True
 
+    @property
+    def strip_tor(self) -> bool:
+        return self.lrm == self.local_is_stripped is True
+
     def tor_folder_is_needed_but_is_missing(self):
         if self.file_check or self.job.new_dtor or (self.tor_info.haslog and not self.tor_info.log_ids):
-            return self.torrent_folder_path is None or not self.torrent_folder_path.exists()
+            return self.torrent_folder_path is None
         else:
             return False
 
     @property
     def torrent_folder_path(self) -> Path:
         if not self._torrent_folder_path:
-            tor_folder_name = self.tor_info.folder_name
-            if self.deep_search:
-                if tor_folder_name in self.subdir_store:
-                    self._torrent_folder_path = self.subdir_store[tor_folder_name]
-                else:
-                    for p in self.subdir_gen:
-                        if p.name == tor_folder_name:
-                            self._torrent_folder_path = p
-                            break
-                        else:
-                            self.subdir_store[p.name] = p
-            else:
-                self._torrent_folder_path = self.data_dir / tor_folder_name
+            tor_folder_name: str = self.tor_info.folder_name
+            stripped_folder = tor_folder_name.translate(utils.uni_t_table)
+            if stripped_folder != tor_folder_name:
+                self.lrm = True
+
+            if (p := self.data_dir / tor_folder_name).exists():
+                self._torrent_folder_path = p
+            elif self.lrm and (p := self.data_dir / stripped_folder).exists():
+                self._torrent_folder_path = p
+                self.local_is_stripped = True
+
+            elif self.deep_search:
+                self.search_deep(tor_folder_name, stripped_folder)
 
         return self._torrent_folder_path
+
+    def search_deep(self, tor_folder_name: str, stripped_folder: str):
+        if tor_folder_name in self.subdir_store:
+            self._torrent_folder_path = self.subdir_store[tor_folder_name]
+            return
+        if self.lrm and stripped_folder in self.subdir_store:
+            self._torrent_folder_path = self.subdir_store[stripped_folder]
+            self.local_is_stripped = True
+            return
+
+        for p in self.subdir_gen:
+            if p.name == tor_folder_name:
+                self._torrent_folder_path = p
+                break
+            elif self.lrm and p.name == stripped_folder:
+                self._torrent_folder_path = p
+                self.local_is_stripped = True
+                break
+            else:
+                self.subdir_store[p.name] = p
 
     def compare_upl_info(self, src_api: BaseApi, dest_api: BaseApi, new_id: int):
         new_tor_info = dest_api.torrent_info(id=new_id)
@@ -253,16 +282,14 @@ class Transplanter:
             report.info(tp_text.tor_downed.format(self.job.src_tr.name))
             dtor_dict = bdecode(dtor_bytes)
             self.job.dtor_dict = dtor_dict
-            files.add_dtor(dtor_bytes)
+            files.add_dtor(dtor_dict)
 
-    NOT_RIPLOG = ("audiochecker", "aucdtect", "accurip")
+    NOT_RIPLOG = ('audiochecker', 'aucdtect', 'accurip')
 
     def is_riplog(self, fn: str) -> bool:
-        if not any(x in fn.lower() for x in self.NOT_RIPLOG):
-            return True
+        return not any(x in fn.lower() for x in self.NOT_RIPLOG)
 
     def get_logs(self, files: upload.Files, src_api: BaseApi | OpsApi | RedApi) -> bool:
-
         if self.job.new_dtor:
             for p in self.torrent_folder_path.rglob('*.log'):
                 if self.is_riplog(p.name):
@@ -274,17 +301,15 @@ class Transplanter:
             for i in self.tor_info.log_ids:
                 files.add_log(src_api.get_riplog(self.tor_info.tor_id, i))
         else:
-            for fl in self.tor_info.file_list:
-                fn = fl['names'][-1]
+            for p in self.tor_info.glob('*.log'):
+                if not self.is_riplog(p.name):
+                    continue
+                found = self.check_path(p)
+                if found is None:
+                    report.error(f"{tp_text.missing} {p}")
+                    return False
 
-                if self.is_riplog(fn):
-                    full_path = Path(self.torrent_folder_path, *fl['names'])
-
-                    if not full_path.exists():
-                        report.error(f"{tp_text.missing} {full_path}")
-                        return False
-
-                    files.add_log(full_path)
+                files.add_log(found)
 
         if self.tor_info.log_ids:
             tor_log_count = len(self.tor_info.log_ids)
@@ -304,22 +329,36 @@ class Transplanter:
 
         return t.data
 
-    def check_files(self):
+    def check_path(self, rel_path: Path) -> Path | None:
+        stripped = Path(str(rel_path).translate(utils.uni_t_table))
+
+        has_lrm = rel_path != stripped
+        if has_lrm:
+            self.lrm = True
+
+        full_p = self.torrent_folder_path / rel_path
+        if full_p.exists():
+            return full_p
+        elif has_lrm:
+            fp_stripped = self.torrent_folder_path / stripped
+            if fp_stripped.exists():
+                self.local_is_stripped = True
+                return fp_stripped
+
+    def check_files(self) -> bool:
         if self.job.new_dtor:
             return True
 
-        for fl in self.tor_info.file_list:
-            file_path = Path(self.torrent_folder_path, *fl['names'])
-
-            if not file_path.exists():
-                report.error(f"{tp_text.missing} {file_path}")
+        for info_path in self.tor_info.file_paths():
+            if self.check_path(info_path) is None:
+                report.error(f"{tp_text.missing} {info_path}")
                 return False
 
         report.info(tp_text.f_checked)
         return True
 
     def save_dtorrent(self, files: upload.Files, comment: str = None):
-        dtor = files.dtors[0].as_dict
+        dtor = files.dtors[0].as_dict(u_strip=self.strip_tor)
         if comment:
             dtor['comment'] = comment
         file_path = (self.dtor_save_dir / self.tor_info.folder_name).with_suffix('.torrent')
