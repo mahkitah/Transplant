@@ -13,12 +13,12 @@ class TorInfo2UplData(UploadData):
     one_on_one = ('medium', 'format', 'rem_year', 'rem_title', 'rem_label', 'rem_cat_nr', 'src_tr', 'unknown',
                   'rel_type', 'encoding', 'title', 'o_year', 'vanity', 'scene', 'alb_descr')
 
-    def __init__(self, tor_info, img_rehost, whitelist, rel_descr_templ, rel_descr_own_templ, add_src_descr,
+    def __init__(self, tor_info, rehost_img, whitelist, rel_descr_templ, rel_descr_own_templ, add_src_descr,
                  src_descr_templ, user_id, dest_group):
         super().__init__()
         self.tor_info = tor_info
 
-        self.img_rehost = img_rehost
+        self.rehost_img = rehost_img
         self.whitelist = whitelist
         self.rel_descr_templ = rel_descr_templ
         self.rel_descr_own_templ = rel_descr_own_templ
@@ -103,7 +103,7 @@ class TorInfo2UplData(UploadData):
     def do_img(self):
         src_img_url = self.tor_info.img_url
 
-        if not self.img_rehost or not src_img_url or any(w in src_img_url for w in self.whitelist):
+        if not self.rehost_img or not src_img_url or any(w in src_img_url for w in self.whitelist):
             self.upl_img_url = src_img_url
             return
 
