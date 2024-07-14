@@ -1,3 +1,4 @@
+version = (2, 5, 5)
 # progress report
 requesting = "Requesting torrent info"
 no_torfolder = 'Torrent has no folder'
