@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (QApplication, QWidget, QTextEdit, QPushButton, QToo
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 
-from gazelle.tracker_data import tr
+from gazelle.tracker_data import TR
 from GUI import gui_text
 from lib.tp_text import version
 from lib.img_rehost import IH
@@ -167,8 +167,8 @@ class WidgetBank:
         self.te_paste_box.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         self.te_paste_box.setPlaceholderText(gui_text.pb_placeholder)
 
-        self.rb_tracker1 = QRadioButton(tr.RED.name)
-        self.rb_tracker2 = QRadioButton(tr.OPS.name)
+        self.rb_tracker1 = QRadioButton(TR.RED.name)
+        self.rb_tracker2 = QRadioButton(TR.OPS.name)
         self.bg_source = QButtonGroup()
         self.bg_source.addButton(self.rb_tracker1, 1)
         self.bg_source.addButton(self.rb_tracker2, 2)

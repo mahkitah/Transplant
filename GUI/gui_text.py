@@ -1,4 +1,4 @@
-from gazelle.tracker_data import tr
+from gazelle.tracker_data import TR
 
 # thread
 start = 'Starting\n'
@@ -24,8 +24,8 @@ pb_clear = "Clear"
 pb_rem_sel = "Rem sel"
 pb_crop = "Crop"
 pb_del_sel = "Del sel"
-pb_del_tr1 = f"Rem {tr.RED.name}"
-pb_del_tr2 = f"Rem {tr.OPS.name}"
+pb_del_tr1 = f"Rem {TR.RED.name}"
+pb_del_tr2 = f"Rem {TR.OPS.name}"
 pb_open_tsavedir = "Save dir"
 pb_open_upl_urls = "Open urls"
 pb_stop = 'Stop'
@@ -90,8 +90,8 @@ l_colors = ('Set colours for text in the results pane.<br>'
             'Leave empty for default text colour.')
 
 # user input element labels
-l_key_1 = f"API-key {tr.RED.name}"
-l_key_2 = f"API-key {tr.OPS.name}"
+l_key_1 = f"API-key {TR.RED.name}"
+l_key_2 = f"API-key {TR.OPS.name}"
 l_data_dir = 'Data folder'
 l_scan_dir = 'Scan folder'
 l_save_dtors = 'Save new .torrrents'
@@ -161,8 +161,8 @@ tt_pb_clear_r = "Empty the results pane (ctrl-W)"
 tt_pb_rem_sel = "Remove selected jobs (torrents) from the job list (Backspace)"
 tt_pb_crop = "Keep selection (ctrl-R)"
 tt_pb_del_sel = "Delete selected .torrent files from scan dir"
-tt_pb_rem_tr1 = f"Remove all {tr.RED.name} jobs from job list (ctrl-1)"
-tt_pb_rem_tr2 = f"Remove all {tr.OPS.name} jobs from job list (ctrl-2)"
+tt_pb_rem_tr1 = f"Remove all {TR.RED.name} jobs from job list (ctrl-1)"
+tt_pb_rem_tr2 = f"Remove all {TR.OPS.name} jobs from job list (ctrl-2)"
 tt_pb_open_tsavedir = "Open torrent save location"
 tt_pb_open_upl_urls = "Open all uploads in browser (ctrl-O)"
 tt_tb_go = "Start Transplanting\n (ctrl-shift-Enter)"

@@ -7,7 +7,7 @@ from urllib.parse import urlparse, parse_qs
 from lib import utils, tp_text
 from lib.img_rehost import IH
 from lib.transplant import Job, Transplanter, JobCreationError
-from gazelle.tracker_data import tr
+from gazelle.tracker_data import TR
 from GUI import gui_text
 from GUI.widget_bank import wb
 from GUI.main_gui import MainWindow
@@ -38,8 +38,8 @@ class TransplantThread(QThread):
     def run(self):
         logger.info(gui_text.start)
         key_dict = {
-            tr.RED: wb.config.value('le_key_1'),
-            tr.OPS: wb.config.value('le_key_2')
+            TR.RED: wb.config.value('le_key_1'),
+            TR.OPS: wb.config.value('le_key_2')
         }
         transplanter = Transplanter(key_dict, **self.trpl_settings)
 
@@ -86,8 +86,8 @@ def main_connections():
     wb.pb_rem_sel.clicked.connect(remove_selected)
     wb.pb_crop.clicked.connect(crop)
     wb.pb_del_sel.clicked.connect(delete_selected)
-    wb.pb_rem_tr1.clicked.connect(lambda: wb.job_data.filter_for_attr('src_tr', tr.RED))
-    wb.pb_rem_tr2.clicked.connect(lambda: wb.job_data.filter_for_attr('src_tr', tr.OPS))
+    wb.pb_rem_tr1.clicked.connect(lambda: wb.job_data.filter_for_attr('src_tr', TR.RED))
+    wb.pb_rem_tr2.clicked.connect(lambda: wb.job_data.filter_for_attr('src_tr', TR.OPS))
     wb.pb_open_tsavedir.clicked.connect(
         lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(wb.fsb_dtor_save_dir.currentText())))
     wb.tb_go.clicked.connect(gogogo)
@@ -102,9 +102,9 @@ def main_connections():
     wb.job_data.layout_changed.connect(lambda: wb.tb_go.setEnabled(bool(wb.job_data)))
     wb.job_data.layout_changed.connect(lambda: wb.pb_clear_j.setEnabled(bool(wb.job_data)))
     wb.job_data.layout_changed.connect(
-        lambda: wb.pb_rem_tr1.setEnabled(any(j.src_tr == tr.RED for j in wb.job_data)))
+        lambda: wb.pb_rem_tr1.setEnabled(any(j.src_tr == TR.RED for j in wb.job_data)))
     wb.job_data.layout_changed.connect(
-        lambda: wb.pb_rem_tr2.setEnabled(any(j.src_tr == tr.OPS for j in wb.job_data)))
+        lambda: wb.pb_rem_tr2.setEnabled(any(j.src_tr == TR.OPS for j in wb.job_data)))
     wb.result_view.textChanged.connect(
         lambda: wb.pb_clear_r.setEnabled(bool(wb.result_view.toPlainText())))
     wb.result_view.textChanged.connect(
@@ -352,7 +352,7 @@ def parse_paste_input():
         return
 
     wb.tabs.setCurrentIndex(0)
-    src_tr = tr(wb.config.value('bg_source'))
+    src_tr = TR(wb.config.value('bg_source'))
 
     new_jobs = JobCollector()
     for line in paste_blob.split():

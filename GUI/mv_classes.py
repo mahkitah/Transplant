@@ -6,7 +6,7 @@ from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex, QItem
 
 from GUI import gui_text
 from lib.img_rehost import IH
-from gazelle.tracker_data import tr
+from gazelle.tracker_data import TR
 
 
 class IntRowItemSelectionModel(QItemSelectionModel):
@@ -117,7 +117,7 @@ class JobModel(QAbstractTableModel):
         self.jobs = []
         self.config = parentconfig
         self.headers = gui_text.job_list_headers
-        self.icons = {t: QIcon(f':/{t.favicon}') for t in tr}
+        self.icons = {t: QIcon(f':/{t.favicon}') for t in TR}
         self.rowsInserted.connect(self.layout_changed.emit)
         self.rowsRemoved.connect(self.layout_changed.emit)
 

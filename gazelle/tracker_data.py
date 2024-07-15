@@ -1,28 +1,20 @@
 from enum import Enum, Flag, EnumMeta
 
-tr_data = {
-    'RED': {
+
+class TR(Flag):
+    RED = {
         'site': 'https://redacted.ch/',
         'tracker': 'https://flacsfor.me/{passkey}/announce',
         'favicon': 'pth.ico',
-        'api': True,
-        'key': True,
-        'source_flag': True,
         'req_limit': 10
-    },
-    'OPS': {
+    }
+    OPS = {
         'site': 'https://orpheus.network/',
         'tracker': 'https://home.opsfet.ch/{passkey}/announce',
         'favicon': 'ops.ico',
-        'api': True,
-        'key': True,
-        'source_flag': True,
         'req_limit': 5,
-    },
-}
+    }
 
-
-class Tr(Flag):
     def __new__(cls, value: dict):
         obj = object.__new__(cls)
         obj._value_ = 2 ** len(cls.__members__)
@@ -31,11 +23,8 @@ class Tr(Flag):
         return obj
 
 
-tr = Tr('Tr', tr_data.items())
-
-
 class RelTypeMeta(EnumMeta):
-    tr_val_mem_map = {t: {} for t in tr}
+    tr_val_mem_map = {t: {} for t in TR}
 
     def __getitem__(cls, item):
         try:
@@ -67,10 +56,10 @@ class ReleaseType(Enum, metaclass=RelTypeMeta):
     def __new__(cls, *args):
         obj = object.__new__(cls)
         obj._value_ = len(cls.__members__) + 1
-        if len(args) != len(tr):
-            args *= len(tr)
+        if len(args) != len(TR):
+            args *= len(TR)
         obj._tracker_values = {}
-        for t, val in zip(tr, args):
+        for t, val in zip(TR, args):
             obj._tracker_values[t] = val
             cls.tr_val_mem_map[t][val] = obj
         return obj
@@ -79,11 +68,11 @@ class ReleaseType(Enum, metaclass=RelTypeMeta):
     def name(self):
         return self._name_.replace('_', ' ')
 
-    def tracker_value(self, t: tr):
+    def tracker_value(self, t: TR):
         return self._tracker_values[t]
 
     @classmethod
-    def mem_from_tr_value(cls, val: int, t: tr):
+    def mem_from_tr_value(cls, val: int, t: TR):
         return cls.tr_val_mem_map[t][val]
 
 
