@@ -35,20 +35,7 @@ tr = Tr('Tr', tr_data.items())
 
 
 class RelTypeMeta(EnumMeta):
-    def __new__(cls, *args, **kwargs):
-        classdict = args[2]
-        cls.value_tr_map = {t: {} for t in tr}
-        for k, v in classdict.items():
-            if k not in classdict._member_names:
-                continue
-            if isinstance(v, int):
-                v = (v, v)
-
-            for t, val in zip(tr, v):
-                if val is not None:
-                    cls.value_tr_map[t].update({val: k})
-
-        return super().__new__(cls, *args, **kwargs)
+    tr_val_mem_map = {t: {} for t in tr}
 
     def __getitem__(cls, item):
         try:
@@ -80,25 +67,24 @@ class ReleaseType(Enum, metaclass=RelTypeMeta):
     def __new__(cls, *args):
         obj = object.__new__(cls)
         obj._value_ = len(cls.__members__) + 1
+        if len(args) != len(tr):
+            args *= len(tr)
+        obj._tracker_values = {}
+        for t, val in zip(tr, args):
+            obj._tracker_values[t] = val
+            cls.tr_val_mem_map[t][val] = obj
         return obj
-
-    def __init__(self, *values):
-        if len(values) != len(tr):
-            values *= len(tr)
-        for t, val in zip(tr, values):
-            setattr(self, t.name, val)
 
     @property
     def name(self):
-        return super().name.replace('_', ' ')
+        return self._name_.replace('_', ' ')
 
     def tracker_value(self, t: tr):
-        return getattr(self, t.name)
+        return self._tracker_values[t]
 
     @classmethod
     def mem_from_tr_value(cls, val: int, t: tr):
-        mem_name = cls.value_tr_map[t][val]
-        return cls._member_map_[mem_name]
+        return cls.tr_val_mem_map[t][val]
 
 
 class ArtistType(Enum):
