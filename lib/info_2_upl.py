@@ -4,7 +4,8 @@ from collections import defaultdict
 
 from gazelle.upload import UploadData
 from gazelle.tracker_data import ArtistType, ReleaseType, Encoding
-from lib import utils, tp_text, img_rehost
+from lib import utils, tp_text
+from lib.img_rehost import IH
 
 report = logging.getLogger('tr.inf2upl')
 
@@ -107,7 +108,7 @@ class TorInfo2UplData(UploadData):
             self.upl_img_url = src_img_url
             return
 
-        rehosted = img_rehost.rehost(src_img_url)
+        rehosted = IH.rehost(src_img_url)
         if rehosted:
             self.upl_img_url = rehosted
             report.info(f"{tp_text.img_rehosted} {self.upl_img_url}")

@@ -5,7 +5,7 @@ from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
 from lib import utils, tp_text
-from lib.img_rehost import ih
+from lib.img_rehost import IH
 from lib.transplant import Job, Transplanter, JobCreationError
 from gazelle.tracker_data import tr
 from GUI import gui_text
@@ -167,13 +167,13 @@ def load_config():
 
     hostdata = wb.config.value('rehost_data')
     if hostdata:
-        ih.set_attrs(hostdata)
+        IH.set_attrs(hostdata)
     wb.rehost_table.move_to_priority()
 
 
 def settings_accepted():
     wb.config.setValue('geometry/config_window_size', wb.settings_window.size())
-    wb.config.setValue('rehost_data', ih.get_attrs())
+    wb.config.setValue('rehost_data', IH.get_attrs())
     for fsb in wb.fsbs:
         fsb.consolidate()
 
@@ -422,7 +422,7 @@ def settings_check():
         sum_ting_wong.append(gui_text.sum_ting_wong_2)
     if save_dtors and not dtor_save_dir.is_dir():
         sum_ting_wong.append(gui_text.sum_ting_wong_3)
-    if rehost and not any(h.enabled for h in ih):
+    if rehost and not any(h.enabled for h in IH):
         sum_ting_wong.append(gui_text.sum_ting_wong_4)
     if add_src_descr and '%src_descr%' not in wb.te_src_descr_templ.toPlainText():
         sum_ting_wong.append(gui_text.sum_ting_wong_5)
@@ -528,7 +528,7 @@ def set_verbosity(lvl: int):
 
 
 def save_state():
-    wb.config.setValue('rehost_data', ih.get_attrs())
+    wb.config.setValue('rehost_data', IH.get_attrs())
     wb.config.setValue('geometry/size', wb.main_window.size())
     wb.config.setValue('geometry/position', wb.main_window.pos())
     wb.config.setValue('geometry/splitter_pos', wb.splitter.sizes())

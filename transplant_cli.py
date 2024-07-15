@@ -9,7 +9,7 @@ from lib.transplant import Transplanter, Job, JobCreationError
 from lib import tp_text
 from cli_config import cli_config
 from lib.utils import tb_line_gen
-from lib.img_rehost import ih
+from lib.img_rehost import IH
 from gazelle.tracker_data import tr
 
 
@@ -114,7 +114,7 @@ def main():
         'post_compare': cli_config.post_upload_checks,
     }
     if cli_config.img_rehost:
-        ih.set_attrs(cli_config.image_hosts)
+        IH.set_attrs(cli_config.image_hosts)
 
     key_dict = {trckr: getattr(cli_config, f'api_key_{trckr.name}') for trckr in tr}
 
