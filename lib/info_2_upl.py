@@ -12,7 +12,7 @@ report = logging.getLogger('tr.inf2upl')
 
 class TorInfo2UplData(UploadData):
     one_on_one = ('medium', 'format', 'rem_year', 'rem_title', 'rem_label', 'rem_cat_nr', 'src_tr', 'unknown',
-                  'rel_type', 'encoding', 'title', 'o_year', 'vanity', 'scene', 'alb_descr')
+                  'rel_type', 'encoding', 'other_bitrate', 'vbr', 'title', 'o_year', 'vanity', 'scene', 'alb_descr')
 
     def __init__(self, tor_info, rehost_img, whitelist, rel_descr_templ, rel_descr_own_templ, add_src_descr,
                  src_descr_templ, user_id, dest_group):
@@ -42,10 +42,6 @@ class TorInfo2UplData(UploadData):
             if not hasattr(self, name):
                 raise AttributeError(f'no {name}')
             setattr(self, name, getattr(self.tor_info, name))
-
-        if self.encoding == Encoding.Other:
-            self.other_bitrate = self.encoding.bitr
-            self.vbr = self.encoding.vbr
 
     def parse_artists(self):
         artists = defaultdict(list)

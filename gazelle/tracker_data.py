@@ -119,10 +119,12 @@ class ArtistType(Enum):
 
 
 class EncMeta(EnumMeta):
-    def __new__(cls, *args, **kwargs):
-        classdict = args[2]
-        cls.alt_names = {v: k for k, v in classdict.items() if k in classdict._member_names}
-        return super().__new__(cls, *args, **kwargs)
+    alt_names_map = {}
+
+    def __getitem__(cls, item):
+        if item in cls.alt_names_map:
+            return cls.alt_names_map[item]
+        return cls._member_map_['Other']
 
 
 class Encoding(Flag, metaclass=EncMeta):
@@ -144,22 +146,12 @@ class Encoding(Flag, metaclass=EncMeta):
         obj = object.__new__(cls)
         obj._value_ = 2 ** len(cls.__members__)
         obj.alt_name = arg
+        cls.alt_names_map[arg] = obj
         return obj
 
     @property
     def name(self):
         return self.alt_name
 
-    @classmethod
-    def mem_from_enc_str(cls, enc_str: str):
-        mem_name: str = cls.alt_names.get(enc_str)
-        if mem_name is None:
-            mem = cls._member_map_['Other']
-            bitr, vbr, _ = enc_str.partition(' (VBR)')
-            mem.bitr = int(bitr)
-            mem.vbr = bool(vbr)
-        else:
-            mem = cls._member_map_[mem_name]
-        return mem
 
 BAD_RED_ENCODINGS = Encoding.C128 | Encoding.C160
