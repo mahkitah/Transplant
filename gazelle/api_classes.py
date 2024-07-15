@@ -11,7 +11,7 @@ from requests.exceptions import JSONDecodeError
 
 from lib import tp_text
 from gazelle import torrent_info
-from gazelle.tracker_data import tr
+from gazelle.tracker_data import TR
 
 
 class RequestFailure(Exception):
@@ -21,8 +21,8 @@ report = logging.getLogger('tr.api')
 
 
 class BaseApi:
-    def __init__(self, tracker: tr, **kwargs):
-        assert tracker in tr, 'Unknown Tracker'  # TODO uitext
+    def __init__(self, tracker: TR, **kwargs):
+        assert tracker in TR, 'Unknown Tracker'  # TODO uitext
         self.tr = tracker
         self.url = self.tr.site
         self.session = requests.Session()
@@ -173,7 +173,7 @@ class HtmlApi(CookieApi):
 
 class RedApi(KeyApi):
     def __init__(self, key=None):
-        super().__init__(tr.RED, key=key)
+        super().__init__(TR.RED, key=key)
 
     def _uploader(self, data: dict, files: list) -> (int, int, str):
         unknown = False
@@ -195,7 +195,7 @@ class RedApi(KeyApi):
 
 class OpsApi(KeyApi):
     def __init__(self, key=None):
-        super().__init__(tr.OPS, key=f"token {key}")
+        super().__init__(TR.OPS, key=f"token {key}")
 
     def upl_response_handler(self, r):
         group_id = r.get('groupId')
@@ -211,9 +211,9 @@ class OpsApi(KeyApi):
         return log_bytes
 
 
-def sleeve(trckr: tr, **kwargs) -> BaseApi:
+def sleeve(trckr: TR, **kwargs) -> BaseApi:
     api_map = {
-        tr.RED: RedApi,
-        tr.OPS: OpsApi
+        TR.RED: RedApi,
+        TR.OPS: OpsApi
     }
     return api_map[trckr](**kwargs)

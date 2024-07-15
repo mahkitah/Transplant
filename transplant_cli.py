@@ -10,7 +10,7 @@ from lib import tp_text
 from cli_config import cli_config
 from lib.utils import tb_line_gen
 from lib.img_rehost import IH
-from gazelle.tracker_data import tr
+from gazelle.tracker_data import TR
 
 
 class ColorStreamHandler(logging.StreamHandler):
@@ -66,7 +66,7 @@ def parse_input() -> Iterator[tuple[str, dict]]:
 
         match_id = re.fullmatch(r"(RED|OPS)(\d+)", arg)
         if match_id:
-            yield arg, {'src_tr': tr[match_id.group(1)], 'tor_id': match_id.group(2)}
+            yield arg, {'src_tr': TR[match_id.group(1)], 'tor_id': match_id.group(2)}
             continue
 
         parsed = urlparse(arg)
@@ -116,7 +116,7 @@ def main():
     if cli_config.img_rehost:
         IH.set_attrs(cli_config.image_hosts)
 
-    key_dict = {trckr: getattr(cli_config, f'api_key_{trckr.name}') for trckr in tr}
+    key_dict = {trckr: getattr(cli_config, f'api_key_{trckr.name}') for trckr in TR}
 
     transplanter = Transplanter(key_dict, **trpl_settings)
     for job in get_jobs():

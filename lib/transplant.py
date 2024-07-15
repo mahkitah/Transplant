@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 from bcoding import bencode, bdecode
 
 from gazelle import upload
-from gazelle.tracker_data import tr
+from gazelle.tracker_data import TR
 from gazelle.api_classes import sleeve, BaseApi, OpsApi, RedApi
 from gazelle.torrent_info import TorrentInfo
 from lib import utils, tp_text
@@ -41,7 +41,7 @@ class Job:
             self.display_name = self.dtor_path.stem
 
         if src_dom:
-            for t in tr:
+            for t in TR:
                 if src_dom in t.site:
                     self.src_tr = t
                     break
@@ -68,7 +68,7 @@ class Job:
 
         if source:
             try:
-                self.src_tr = tr[source]
+                self.src_tr = TR[source]
                 return
             except KeyError:
                 pass
@@ -78,7 +78,7 @@ class Job:
             return
         parsed = urlparse(announce)
         if parsed.hostname:
-            for t in tr:
+            for t in TR:
                 if parsed.hostname in t.tracker.lower():
                     self.src_tr = t
                     break
@@ -95,7 +95,7 @@ class Transplanter:
                  save_dtors=False, del_dtors=False, file_check=True, rel_descr_templ=None, rel_descr_own_templ=None,
                  add_src_descr=True, src_descr_templ=None, img_rehost=False, whitelist=None, post_compare=False):
 
-        self.api_map = {trckr: sleeve(trckr, key=key_dict[trckr]) for trckr in tr}
+        self.api_map = {trckr: sleeve(trckr, key=key_dict[trckr]) for trckr in TR}
         self.data_dir: Path = data_dir
         self.deep_search = deep_search
         self.deep_search_level = deep_search_level
@@ -271,7 +271,7 @@ class Transplanter:
         if src_descr != dest_descr or self.tor_info.title != new_tor_info.title:
             report.warning(tp_text.merged)
 
-    def get_dtor(self, files: upload.Files, src_api: tr):
+    def get_dtor(self, files: upload.Files, src_api: BaseApi):
         if self.job.new_dtor:
             files.add_dtor(self.create_new_torrent())
 

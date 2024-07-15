@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import Iterator
 
-from gazelle.tracker_data import tr, ReleaseType, ArtistType, Encoding
+from gazelle.tracker_data import TR, ReleaseType, ArtistType, Encoding
 
 
 class TorrentInfo:
@@ -39,7 +39,7 @@ class TorrentInfo:
     
         self.file_list: list | None = None
         self.unknown: bool = False
-        self.src_tr: tr | None = None
+        self.src_tr: TR | None = None
 
 
 class SharedInfo(TorrentInfo):
@@ -114,11 +114,11 @@ class REDTorrentInfo(SharedInfo):
         self.unexape(tr_resp)
         super().__init__(tr_resp)
 
-        self.src_tr = tr.RED
+        self.src_tr = TR.RED
         self.alb_descr = tr_resp['group']['bbBody']
 
         rel_type: int = tr_resp['group']['releaseType']
-        self.rel_type = ReleaseType.mem_from_tr_value(rel_type, tr.RED)
+        self.rel_type = ReleaseType.mem_from_tr_value(rel_type, TR.RED)
 
         if not self.rem_year:
             if tr_resp['torrent']['remastered']:
@@ -148,7 +148,7 @@ class OPSTorrentInfo(SharedInfo):
     def __init__(self, tr_resp: dict):
         super().__init__(tr_resp)
 
-        self.src_tr = tr.OPS
+        self.src_tr = TR.OPS
         self.rel_type = ReleaseType[tr_resp['group']['releaseTypeName']]
         self.alb_descr = tr_resp['group']['wikiBBcode']
 
@@ -180,6 +180,6 @@ class OPSTorrentInfo(SharedInfo):
 
 
 tr_map = {
-    tr.RED: REDTorrentInfo,
-    tr.OPS: OPSTorrentInfo
+    TR.RED: REDTorrentInfo,
+    TR.OPS: OPSTorrentInfo
 }
