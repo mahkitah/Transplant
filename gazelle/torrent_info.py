@@ -22,6 +22,8 @@ class TorrentInfo:
         self.medium = None
         self.format = None
         self.encoding = None
+        self.other_bitrate = None
+        self.vbr: bool = False
         self.rem_year = None
         self.rem_title = None
         self.rem_label = None
@@ -77,7 +79,12 @@ class SharedInfo(TorrentInfo):
                 if value:
                     setattr(self, torinfo_name, value)
 
-        self.encoding = Encoding.mem_from_enc_str(tr_resp['torrent']['encoding'])
+        enc_str = tr_resp['torrent']['encoding']
+        self.encoding = Encoding[enc_str]
+        if self.encoding == Encoding.Other:
+            bitr, vbr, _ = enc_str.partition(' (VBR)')
+            self.other_bitrate = int(bitr)
+            self.vbr = bool(vbr)
 
         files = []
         for s in tr_resp['torrent']['fileList'].split("|||"):
