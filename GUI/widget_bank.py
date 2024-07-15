@@ -8,7 +8,7 @@ from PyQt6.QtGui import QIcon
 from gazelle.tracker_data import tr
 from GUI import gui_text
 from lib.tp_text import version
-from lib.img_rehost import ih
+from lib.img_rehost import IH
 from GUI.misc_classes import (TPTextEdit, CyclingTabBar, FolderSelectBox, ResultBrowser, IniSettings, TempPopUp,
                               ColorExample, PatientLineEdit, ThemeIcon, StyleSelecter, ClickableLabel)
 from GUI.mv_classes import JobModel, JobView, RehostModel, RehostTable
@@ -136,9 +136,9 @@ class WidgetBank:
             if key == 'le_ptpimg_key':
                 value = self.config.value(key)
                 if value:
-                    ih.PTPimg.key = value
+                    IH.PTPimg.key = value
                     if self.config.value('chb_rehost'):
-                        ih.PTPimg.enabled = True
+                        IH.PTPimg.enabled = True
                 self.config.remove(key)
             if key.startswith('te_rel_descr'):
                 value = self.config.value(key).replace('[url=%src_url%torrents.php?id=%tor_id%]',

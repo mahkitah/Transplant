@@ -5,7 +5,7 @@ from PyQt6.QtGui import QIcon, QKeyEvent, QAction
 from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex, QItemSelectionModel
 
 from GUI import gui_text
-from lib.img_rehost import ih
+from lib.img_rehost import IH
 from gazelle.tracker_data import tr
 
 
@@ -258,14 +258,14 @@ class RehostModel(QAbstractTableModel):
         self.column_names = gui_text.rehost_columns
 
     def rowCount(self, parent: QModelIndex = None) -> int:
-        return len(ih)
+        return len(IH)
 
     def columnCount(self, parent: QModelIndex = None) -> int:
         return len(self.column_names)
 
     def data(self, index: QModelIndex, role: int = 0):
         column = index.column()
-        host = ih[index.row()]
+        host = IH(index.row())
 
         if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
             if column == 0:
@@ -288,12 +288,12 @@ class RehostModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
             return self.column_names[section]
         if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Vertical:
-            return ih[section].prio + 1
+            return IH(section).prio + 1
         else:
             return super().headerData(section, orientation, role)
 
     def setData(self, index: QModelIndex, value, role: int = 0) -> bool:
-        host = ih[index.row()]
+        host = IH(index.row())
         column = index.column()
 
         if column == 1:
@@ -320,14 +320,14 @@ class RehostTable(QTableView):
         self.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
 
     def move_to_priority(self):
-        for h in ih.prioritised():
+        for h in IH.prioritised():
             v_index = self.verticalHeader().visualIndex(h.value)
             if h.prio != v_index:
                 self.verticalHeader().moveSection(v_index, h.prio)
         self.verticalHeader().sectionMoved.connect(self.update_priorities)
 
     def update_priorities(self):
-        for host in ih:
+        for host in IH:
             host.prio = self.verticalHeader().visualIndex(host.value)
 
     def resizeEvent(self, event):
