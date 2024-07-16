@@ -6,8 +6,8 @@ from urllib.parse import urlparse
 from bcoding import bencode, bdecode
 
 from gazelle import upload
-from gazelle.tracker_data import TR
-from gazelle.api_classes import sleeve, BaseApi, OpsApi, RedApi
+from gazelle.tracker_data import TR, Encoding, BAD_RED_ENCODINGS
+from gazelle.api_classes import sleeve, BaseApi, OpsApi
 from gazelle.torrent_info import TorrentInfo
 from lib import utils, tp_text
 from lib.info_2_upl import TorInfo2UplData
@@ -49,8 +49,8 @@ class Job:
         if not self.src_tr:
             raise JobCreationError(tp_text.no_src_tr)
 
-        if (self.tor_id is None) == (self.info_hash is None):
-            raise JobCreationError(tp_text.id_and_hash)
+        if (self.tor_id is None) is (self.info_hash is None):
+            raise JobCreationError(tp_text.id_xor_hash)
 
         if not self.dest_trs:
             self.dest_trs = ~self.src_tr
@@ -112,75 +112,50 @@ class Transplanter:
         self.inf_2_upl = TorInfo2UplData(img_rehost, whitelist, rel_descr_templ, rel_descr_own_templ,
                                          add_src_descr, src_descr_templ)
         self.job = None
-        self.tor_info = None
+        self.tor_info: TorrentInfo | None = None
         self._torrent_folder_path = None
         self.lrm = False
         self.local_is_stripped = False
 
     def do_your_job(self, job: Job) -> bool:
+        self.reset()
         self.job = job
-        self.tor_info = None
-        self._torrent_folder_path = None
-        self.lrm = False
-        self.local_is_stripped = False
 
         report.info(f"{self.job.src_tr.name} {self.job.display_name or self.job.tor_id}")
 
         src_api = self.api_map[self.job.src_tr]
-
-        report.info(tp_text.requesting)
-        if self.job.tor_id:
-            info_kwarg = {'id': self.job.tor_id}
-        elif self.job.info_hash:
-            info_kwarg = {'hash': self.job.info_hash}
-        else:
-            return False
-        self.tor_info: TorrentInfo = src_api.torrent_info(**info_kwarg)
-
-        if not self.tor_info.folder_name:
-            report.error(tp_text.no_torfolder)
+        if not self.get_torinfo(src_api):
             return False
 
         if not self.job.display_name:
             self.job.display_name = self.tor_info.folder_name
             report.info(self.job.display_name)
 
-        if self.tor_folder_is_needed_but_is_missing():
-            report.error(f"{tp_text.missing} {self.tor_info.folder_name}")
-            return False
-
-        if self.file_check and not self.check_files():
+        if self.fail_conditions():
             return False
 
         upl_files = upload.Files()
 
         if (self.tor_info.haslog or self.job.new_dtor) and not self.get_logs(upl_files, src_api):
             return False
-
         upl_data = self.inf_2_upl.translate(self.tor_info, src_api.account_info['id'], self.job.dest_group)
+        self.get_dtor(upl_files, src_api)
 
         saul_goodman = True
         for dest_tr in self.job.dest_trs:
 
             dest_api = self.api_map[dest_tr]
-            try:
-                data_dict = upl_data.upl_dict(dest_tr, self.job.dest_group)
-            except ValueError as e:
-                saul_goodman = False
-                report.error(str(e))
-                continue
+            data_dict = upl_data.upl_dict(dest_tr, self.job.dest_group)
 
-            if not upl_files.dtors:
-                self.get_dtor(upl_files, src_api)
             files_list = upl_files.files_list(dest_api.announce, dest_tr.name, u_strip=self.strip_tor)
 
-            report.info(f"{tp_text.upl1} {dest_tr.name}")
+            report.info(f"{tp_text.uploading} {dest_tr.name}")
             try:
                 new_id, new_group, new_url = dest_api.upload(data_dict, files_list)
-                report.log(25, f"{tp_text.upl2} {new_url}")
+                report.log(25, f"{tp_text.upl_success} {new_url}")
             except Exception:
                 saul_goodman = False
-                report.exception(f"{tp_text.upl3}")
+                report.exception(f"{tp_text.upl_fail}")
                 continue
 
             if self.post_compare:
@@ -192,21 +167,63 @@ class Transplanter:
 
         if not saul_goodman:
             return False
-        elif self.del_dtors and self.job.scanned:
+
+        if self.del_dtors and self.job.scanned:
             self.job.dtor_path.unlink()
             report.info(tp_text.dtor_deleted)
 
         return True
 
+    def reset(self):
+        self.tor_info = None
+        self._torrent_folder_path = None
+        self.lrm = False
+        self.local_is_stripped = False
+
+    def get_torinfo(self, src_api):
+        report.info(tp_text.requesting)
+        if self.job.tor_id:
+            info_kwarg = {'id': self.job.tor_id}
+        elif self.job.info_hash:
+            info_kwarg = {'hash': self.job.info_hash}
+        else:
+            return
+        try:
+            self.tor_info = src_api.torrent_info(**info_kwarg)
+        except Exception:
+            report.log(42, tp_text.fail, exc_info=True)
+        else:
+            report.log(22, tp_text.done)
+            return True
+
+    def fail_conditions(self) -> bool:
+        if not self.tor_info.folder_name:
+            report.error(tp_text.no_torfolder)
+            return True
+
+        if self.job.dest_trs is TR.RED:
+            bad_bitrate = None
+            if self.tor_info.encoding in BAD_RED_ENCODINGS:
+                bad_bitrate = self.tor_info.encoding.name
+            elif self.tor_info.encoding is Encoding.Other and self.tor_info.other_bitrate < 192:
+                bad_bitrate = f'{self.tor_info.other_bitrate}' + (' (VBR)' if self.tor_info.vbr else '')
+            if bad_bitrate:
+                report.error(f'{tp_text.bad_bitr}: {bad_bitrate}')
+                return True
+
+        folder_needed = self.file_check or self.job.new_dtor or self.tor_info.haslog and not self.tor_info.log_ids
+        if folder_needed and self.torrent_folder_path is None:
+            report.error(f"{tp_text.missing} {self.tor_info.folder_name}")
+            return True
+
+        if self.file_check and not self.check_files():
+            return True
+
+        return False
+
     @property
     def strip_tor(self) -> bool:
         return self.lrm is self.local_is_stripped is True
-
-    def tor_folder_is_needed_but_is_missing(self):
-        if self.file_check or self.job.new_dtor or (self.tor_info.haslog and not self.tor_info.log_ids):
-            return self.torrent_folder_path is None
-        else:
-            return False
 
     @property
     def torrent_folder_path(self) -> Path:
@@ -280,7 +297,7 @@ class Transplanter:
     def is_riplog(self, fn: str) -> bool:
         return not any(x in fn.lower() for x in self.NOT_RIPLOG)
 
-    def get_logs(self, files: upload.Files, src_api: BaseApi | OpsApi | RedApi) -> bool:
+    def get_logs(self, files: upload.Files, src_api: OpsApi) -> bool:
         if self.job.new_dtor:
             for p in self.torrent_folder_path.rglob('*.log'):
                 if self.is_riplog(p.name):

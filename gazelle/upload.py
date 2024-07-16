@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 from bcoding import bencode, bdecode
-from gazelle.tracker_data import TR, ReleaseType, ArtistType, Encoding, BAD_RED_ENCODINGS
+from gazelle.tracker_data import TR, ReleaseType, ArtistType, Encoding
 from lib import tp_text
 from lib .utils import uni_t_table
 
@@ -105,9 +105,6 @@ class UploadData:
                 upl_data[v] = value
 
         if dest == TR.RED:
-            if (self.encoding in BAD_RED_ENCODINGS or
-                    (self.encoding == Encoding.Other and self.other_bitrate < 192)):
-                raise ValueError(tp_text.bad_bitr)
             if self.rel_type == ReleaseType.Sampler:
                 upl_data['releasetype'] = 7
             if self.rel_type == ReleaseType.Split:
