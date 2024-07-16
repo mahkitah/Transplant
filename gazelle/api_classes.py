@@ -176,11 +176,13 @@ class RedApi(KeyApi):
         super().__init__(TR.RED, key=key)
 
     def _uploader(self, data: dict, files: list) -> (int, int, str):
-        unknown = False
-        if data.get('unknown'):
-            del data['unknown']
-            unknown = True
+        try:
+            unknown = data.pop('unknown')
+        except KeyError:
+            unknown = False
+
         torrent_id, group_id = super()._uploader(data, files)
+
         if unknown:
             try:
                 self.request('torrentedit', id=torrent_id, data={'unknown': True})
