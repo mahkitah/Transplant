@@ -191,7 +191,7 @@ class RedApi(KeyApi):
                 report.error(f'{tp_text.edit_fail}{str(e)}')
         return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
 
-    def upl_response_handler(self, r: requests.Response) -> (int, int):
+    def upl_response_handler(self, r: dict) -> (int, int):
         return r.get('torrentid'), r.get('groupid')
 
 
@@ -213,7 +213,7 @@ class OpsApi(KeyApi):
         return log_bytes
 
 
-def sleeve(trckr: TR, **kwargs) -> BaseApi:
+def sleeve(trckr: TR, **kwargs) -> RedApi | OpsApi:
     api_map = {
         TR.RED: RedApi,
         TR.OPS: OpsApi
