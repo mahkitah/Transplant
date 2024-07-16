@@ -209,7 +209,7 @@ class Transplanter:
 
     @property
     def strip_tor(self) -> bool:
-        return self.lrm == self.local_is_stripped is True
+        return self.lrm is self.local_is_stripped is True
 
     def tor_folder_is_needed_but_is_missing(self):
         if self.file_check or self.job.new_dtor or (self.tor_info.haslog and not self.tor_info.log_ids):
