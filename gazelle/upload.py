@@ -76,9 +76,7 @@ class UploadData:
         if name == 'encoding':
             return self.encoding.name
         if name == 'alb_descr':
-            src_url = self.src_tr.site
-            dest_url = dest.site
-            return self.alb_descr.replace(src_url, dest_url)
+            return self.alb_descr.replace(self.src_tr.site, dest.site)
 
         return getattr(self, name)
 
