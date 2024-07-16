@@ -103,21 +103,14 @@ class Transplanter:
         self.save_dtors = save_dtors
         self.del_dtors = del_dtors
         self.file_check = file_check
-        self.img_rehost = img_rehost
-        self.whitelist = whitelist
-        self.rel_descr_templ = rel_descr_templ
-        self.rel_descr_own_templ = rel_descr_own_templ
-        self.add_src_descr = add_src_descr
-        self.src_descr_templ = src_descr_templ
         self.post_compare = post_compare
-
-        if img_rehost:
-            assert isinstance(whitelist, list)
 
         if self.deep_search:
             self.subdir_store = {}
             self.subdir_gen = utils.subdirs_gen(self.data_dir, maxlevel=self.deep_search_level)
 
+        self.inf_2_upl = TorInfo2UplData(img_rehost, whitelist, rel_descr_templ, rel_descr_own_templ,
+                                         add_src_descr, src_descr_templ)
         self.job = None
         self.tor_info = None
         self._torrent_folder_path = None
@@ -164,9 +157,7 @@ class Transplanter:
         if (self.tor_info.haslog or self.job.new_dtor) and not self.get_logs(upl_files, src_api):
             return False
 
-        upl_data = TorInfo2UplData(self.tor_info, self.img_rehost, self.whitelist,
-                                   self.rel_descr_templ, self.rel_descr_own_templ, self.add_src_descr,
-                                   self.src_descr_templ, src_api.account_info['id'], self.job.dest_group)
+        upl_data = self.inf_2_upl.translate(self.tor_info, src_api.account_info['id'], self.job.dest_group)
 
         saul_goodman = True
         for dest_tr in self.job.dest_trs:
