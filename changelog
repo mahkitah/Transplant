@@ -1,3 +1,7 @@
+2.5.5
+- New: Deal with unicode directional markers in folder and file names
+- New: Warning if log count doesn't match site log count (OPS > RED only)
+- Fix: Regression, all files were added as log
 2.5.4
 - New: Fail torrents without folder
 - New: Check for low bitrates to RED
