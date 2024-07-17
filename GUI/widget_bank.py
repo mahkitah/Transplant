@@ -257,7 +257,7 @@ class WidgetBank:
         self.l_colors = QLabel(gui_text.l_colors)
         self.l_colors.setTextFormat(Qt.TextFormat.RichText)
         self.l_colors.setOpenExternalLinks(True)
-        self.color_examples = ColorExample()
+        self.color_examples = ColorExample(self.config)
         self.color_examples.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
         self.color_examples.setSizeAdjustPolicy(QTextEdit.SizeAdjustPolicy.AdjustToContents)
 

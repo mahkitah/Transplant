@@ -105,37 +105,33 @@ class PatientLineEdit(QLineEdit):
 
 
 class ColorExample(QTextBrowser):
-    texts = (
-        'This is normal text',
-        'This may require your attention',
-        'Oops, something went bad',
-        'That went well',
-        'http://example.com/'
-    )
+    texts = ('This is normal text<br>'
+             '<span class=warning >This may require your attention</span><br>'
+             '<span class=bad >Oops, something went bad</span><br>'
+             '<span class=good >That went well</span><br>'
+             '<a href="https://example.com">example.com</a>')
 
-    def __init__(self):
+    def __init__(self, config: QSettings):
         super().__init__()
-        self.lines = list(self.texts)
-        link = self.lines[4]
-        self.lines[4] = f'<a href="{link}">{link}</a>'
+        self.config = config
         self.current_colors = {i: '_' for i in range(1, 5)}
+
+    @property
+    def css(self):
+        return (f'.warning {{color: {self.current_colors[1]}}}'
+                f'.bad {{color: {self.current_colors[2]}}}'
+                f'.good {{color: {self.current_colors[3]}}}'
+                f'a {{color: {self.current_colors[4]}}}')
 
     def update_colors(self, color: str, index):
         color = ''.join(color.split())
         if color == self.current_colors[index]:
             return
         self.current_colors[index] = color
-
-        style = f' style="color: {color}"'  # if color else ''
-
-        line = self.texts[index]
-        if index == 4:
-            line = f'<a href="{line}"{style}>{line}</a>'
-        else:
-            line = f'<span{style}>{line}</span>'
-        self.lines[index] = line
-        self.clear()
-        self.append('<br>'.join(self.lines))
+        css = self.css
+        self.config.setValue('css', css)
+        self.document().setDefaultStyleSheet(css)
+        self.setHtml(self.texts)
 
 
 class ResultBrowser(QTextBrowser):
