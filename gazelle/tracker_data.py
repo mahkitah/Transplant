@@ -97,9 +97,7 @@ class EncMeta(EnumMeta):
     alt_names_map = {}
 
     def __getitem__(cls, item):
-        if item in cls.alt_names_map:
-            return cls.alt_names_map[item]
-        return cls._member_map_['Other']
+        return cls.alt_names_map.get(item) or cls._member_map_['Other']
 
 
 class Encoding(Flag, metaclass=EncMeta):
