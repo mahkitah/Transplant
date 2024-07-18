@@ -14,7 +14,7 @@ from GUI.main_gui import MainWindow
 from GUI.settings_window import SettingsWindow
 
 from PyQt6.QtWidgets import QFileDialog, QMessageBox
-from PyQt6.QtGui import QKeyEvent, QDesktopServices
+from PyQt6.QtGui import QKeyEvent, QDesktopServices, QTextCursor
 from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread, QSize, QUrl, QModelIndex
 
 
@@ -146,6 +146,7 @@ def config_connections():
     wb.ple_error_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 2))
     wb.ple_success_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 3))
     wb.ple_link_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 4))
+    wb.color_examples.css_changed.connect(wb.result_view.document().setDefaultStyleSheet)
 
 
 def load_config():
@@ -210,53 +211,35 @@ def key_press(event: QKeyEvent):
                 pb_rem_tr.click()
 
 
-def splitlines(txt: str):
-    if txt in ('', '\n'):
-        return [txt]
-    if txt.endswith('\n'):
-        txt += '\n'
-    return txt.splitlines()
-
-
 LINK_REGEX = re.compile(r'(https?://)([^\s\n\r]+)')
-STUPID_3_11_TB = re.compile(r'[\s^~]+')
-LINK_STYLE = ' style="color: {}"'
 REPL_PATTERN = r'<a href="\1\2"{}>\2</a>'
 LEVEL_SETTING_NAME_MAP = {
-    40: 'ple_error_color',
-    30: 'ple_warning_color',
-    25: 'ple_success_color',
+    40: 'bad',
+    30: 'warning',
+    25: 'good',
+    20: 'normal'
 }
 
 
 def print_logs(record: logging.LogRecord):
     if wb.tabs.count() == 1:
         wb.tabs.addTab(gui_text.tab_results)
+    msg = LINK_REGEX.sub(r'<a href="\1\2">\2</a>', record.msg)
+    msg = msg.replace('\n', '<br>')
+    cl = LEVEL_SETTING_NAME_MAP.get(record.levelno, '')
 
-    color = wb.config.value(LEVEL_SETTING_NAME_MAP.get(record.levelno))
-    link_color = wb.config.value('ple_link_color')
-    link_style = LINK_STYLE.format(link_color) if link_color else ''
-    repl_pattern = REPL_PATTERN.format(link_style)
-
-    if not (not record.msg and record.exc_info):
-        for line in splitlines(record.msg):
-            print_log_line(line, repl_pattern, color=color)
+    msg = f'<span class={cl}>{msg}</span>'
+    wb.result_view.moveCursor(QTextCursor.MoveOperation.End)
+    wb.result_view.insertHtml(msg + '<br>')
 
     if record.exc_info:
         cls, ex, tb = record.exc_info
-        for line in utils.tb_line_gen(tb):
-            print_log_line(line, repl_pattern)
+        msg = f'{cls.__name__}: {ex}'
 
-        print_log_line(f'{cls.__name__}: {ex}', repl_pattern, color=color)
+        if logger.level < logging.INFO:
+            wb.result_view.insertPlainText('\n'.join(utils.tb_line_gen(tb)) + '\n')
 
-
-def print_log_line(line: str, repl_pattern: str, color: str = None):
-    line = LINK_REGEX.sub(repl_pattern, line)
-
-    if color:
-        line = f'<span style="color: {color}">{line}</span>'
-
-    wb.result_view.append(line)
+        wb.result_view.insertHtml(f'<span class={cl}>{msg}</span><br>')
 
 
 def trpl_settings():

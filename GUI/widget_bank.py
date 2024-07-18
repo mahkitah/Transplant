@@ -1,7 +1,8 @@
 from functools import partial
 
 from PyQt6.QtWidgets import (QApplication, QWidget, QTextEdit, QPushButton, QToolButton, QRadioButton, QButtonGroup,
-                             QSplitter, QSizePolicy, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox, QStackedLayout)
+                             QSplitter, QSizePolicy, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox, QStackedLayout,
+                             QTextBrowser)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 
@@ -9,7 +10,7 @@ from gazelle.tracker_data import TR
 from GUI import gui_text
 from lib.tp_text import version
 from lib.img_rehost import IH
-from GUI.misc_classes import (TPTextEdit, CyclingTabBar, FolderSelectBox, ResultBrowser, IniSettings, TempPopUp,
+from GUI.misc_classes import (TPTextEdit, CyclingTabBar, FolderSelectBox, IniSettings, TempPopUp,
                               ColorExample, PatientLineEdit, ThemeIcon, StyleSelecter, ClickableLabel)
 from GUI.mv_classes import JobModel, JobView, RehostModel, RehostTable
 
@@ -184,7 +185,8 @@ class WidgetBank:
         self.job_data = JobModel(self.config)
         self.job_view = JobView(self.job_data)
         self.selection = self.job_view.selectionModel()
-        self.result_view = ResultBrowser()
+        self.result_view = QTextBrowser()
+        self.result_view.setOpenExternalLinks(True)
 
         self.button_stack = QStackedLayout()
         self.go_stop_stack = QStackedLayout()

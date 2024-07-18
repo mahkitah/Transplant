@@ -105,6 +105,8 @@ class PatientLineEdit(QLineEdit):
 
 
 class ColorExample(QTextBrowser):
+    css_changed = pyqtSignal(str)
+
     texts = ('This is normal text<br>'
              '<span class=warning >This may require your attention</span><br>'
              '<span class=bad >Oops, something went bad</span><br>'
@@ -129,20 +131,9 @@ class ColorExample(QTextBrowser):
             return
         self.current_colors[index] = color
         css = self.css
-        self.config.setValue('css', css)
+        self.css_changed.emit(css)
         self.document().setDefaultStyleSheet(css)
         self.setHtml(self.texts)
-
-
-class ResultBrowser(QTextBrowser):
-    def __init__(self):
-        super().__init__()
-        self.setOpenExternalLinks(True)
-        self.def_format = self.currentCharFormat()
-
-    def append(self, text: str) -> None:
-        self.setCurrentCharFormat(self.def_format)
-        super().append(text)
 
 
 class StyleSelecter(QComboBox):
