@@ -257,7 +257,6 @@ class WidgetBank:
         # looks tab
         self.l_job_list = QLabel(gui_text.l_job_list)
         self.l_colors = QLabel(gui_text.l_colors)
-        self.l_colors.setTextFormat(Qt.TextFormat.RichText)
         self.l_colors.setOpenExternalLinks(True)
         self.color_examples = ColorExample(self.config)
         self.color_examples.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)

@@ -85,7 +85,8 @@ def_src_descr = "[quote=source description:]%src_descr%[/quote]"
 l_job_list = 'Job list:'
 l_colors = ('Set colours for text in the results pane.<br>'
             'Use colour names, hex values: #xxxxxx, or rgb values: rgb(xx,xx,xx)<br>'
-            'See <a href="https://en.wikipedia.org/wiki/Web_colors">wikipedia.org/wiki/Web_colors</a>,<br>'
+            'See <a href="https://en.wikipedia.org/wiki/Web_colors" style="color: {}">'
+            'wikipedia.org/wiki/Web_colors</a>,<br>'
             'or one of the thousand online html colour pickers<br>'
             'Leave empty for default text colour.')
 

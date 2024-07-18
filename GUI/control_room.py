@@ -146,6 +146,7 @@ def config_connections():
     wb.ple_error_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 2))
     wb.ple_success_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 3))
     wb.ple_link_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 4))
+    wb.ple_link_color.text_changed.connect(lambda c: wb.l_colors.setText(gui_text.l_colors.format(c)))
     wb.color_examples.css_changed.connect(wb.result_view.document().setDefaultStyleSheet)
 
 
