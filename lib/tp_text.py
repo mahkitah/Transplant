@@ -1,6 +1,7 @@
 version = (2, 5, 5)
 # progress report
-requesting = "Requesting torrent info"
+requesting = "Requesting torrent info:"
+done = '... Done'
 no_torfolder = 'Torrent has no folder'
 upl1 = 'Uploading to'
 upl2 = 'Upload successful:'

@@ -13,30 +13,52 @@ from lib.img_rehost import IH
 from gazelle.tracker_data import TR
 
 
-class ColorStreamHandler(logging.StreamHandler):
+class SlStreamHandler(logging.StreamHandler):
+    @staticmethod
+    def make_msg(msg: str):
+        return msg
+
+    def emit(self, record: logging.LogRecord):
+        same_line = record.levelno % 5
+        prefix = ' ' if same_line else '\n'
+        if record.msg:
+            msg = prefix + self.make_msg(record.msg)
+        else:
+            msg = prefix
+
+        self.stream.write(msg)
+
+        if record.exc_info and None not in record.exc_info:
+            cls, ex, tb = record.exc_info
+
+            if self.level < logging.INFO:
+                self.stream.write('\n' + 'Traceback (most recent call last):')
+                self.stream.write('\n' + '\n'.join(tb_line_gen(tb)))
+
+            self.stream.write('\n' + self.make_msg(f'{cls.__name__}: {ex}'))
+        self.stream.flush()
+
+
+class SLColorStreamHandler(SlStreamHandler):
     LEVEL_COLORS = {
         40: "\x1b[0;31m",  # Error
         30: "\x1b[0;33m",  # Warning
         25: "\x1b[0;32m",  # Success
     }
 
-    @staticmethod
-    def colored(text: str, color):
-        return color + text + "\x1b[0m"
+    def __init__(self, stream=None):
+        super().__init__(stream)
+        self.color = None
 
-    def emit(self, record: logging.LogRecord) -> None:
-        msg = record.msg
-        color = self.LEVEL_COLORS.get(record.levelno)
-        if color:
-            msg = self.colored(msg, color)
-        self.stream.write(msg + self.terminator)
+    def make_msg(self, msg):
+        if self.color:
+            msg = self.color + msg + "\x1b[0m"
+        return msg
 
-        if record.exc_info:
-            cls, ex, tb = record.exc_info
-            for line in tb_line_gen(tb):
-                self.stream.write(line + self.terminator)
-
-            self.stream.write(self.colored(f'{cls.__name__}: {ex}', color) + self.terminator)
+    def emit(self, record: logging.LogRecord):
+        level = (record.levelno // 5) * 5
+        self.color = self.LEVEL_COLORS.get(level)
+        super().emit(record)
 
 
 verb_map = {
@@ -49,10 +71,12 @@ verb_map = {
 report = logging.getLogger('tr')
 report.setLevel(verb_map[cli_config.verbosity])
 if cli_config.coloured_output:
-    handler = ColorStreamHandler(stream=sys.stdout)
+    handler = SLColorStreamHandler()
 else:
-    handler = logging.StreamHandler(stream=sys.stdout)
+    handler = SlStreamHandler()
+handler.setStream(sys.stdout)
 report.addHandler(handler)
+handler.setLevel(verb_map[cli_config.verbosity])
 
 
 def parse_input() -> Iterator[tuple[str, dict]]:

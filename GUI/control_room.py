@@ -225,22 +225,33 @@ LEVEL_SETTING_NAME_MAP = {
 def print_logs(record: logging.LogRecord):
     if wb.tabs.count() == 1:
         wb.tabs.addTab(gui_text.tab_results)
-    msg = LINK_REGEX.sub(r'<a href="\1\2">\2</a>', record.msg)
-    msg = msg.replace('\n', '<br>')
-    cl = LEVEL_SETTING_NAME_MAP.get(record.levelno, '')
 
-    msg = f'<span class={cl}>{msg}</span>'
+    cls_val_q, same_line = divmod(record.levelno, 5)
+    cls_name = LEVEL_SETTING_NAME_MAP.get(cls_val_q * 5)
+    prefix = '&nbsp;' if same_line else '<br>'
+    has_exc = bool(record.exc_info) and None not in record.exc_info
     wb.result_view.moveCursor(QTextCursor.MoveOperation.End)
-    wb.result_view.insertHtml(msg + '<br>')
 
-    if record.exc_info:
+    if record.msg or not has_exc:
+        if record.msg:
+            msg = LINK_REGEX.sub(REPL_PATTERN, record.msg)
+            msg = msg.replace('\n', '<br>')
+            msg = f"<span class={cls_name}>{prefix}{msg}</span>"
+        else:
+            msg = prefix
+
+        wb.result_view.insertHtml(msg)
+
+    if has_exc:
         cls, ex, tb = record.exc_info
         msg = f'{cls.__name__}: {ex}'
 
         if logger.level < logging.INFO:
-            wb.result_view.insertPlainText('\n'.join(utils.tb_line_gen(tb)) + '\n')
+            wb.result_view.insertHtml('<span>&zwnj;</span>')  # to prevent the following text taking previous color
+            wb.result_view.insertPlainText('\n' + 'Traceback (most recent call last):')
+            wb.result_view.insertPlainText('\n' + '\n'.join(utils.tb_line_gen(tb)))
 
-        wb.result_view.insertHtml(f'<span class={cl}>{msg}</span><br>')
+        wb.result_view.insertHtml(f'<br><span class={cls_name}>{msg}</span>')
 
 
 def trpl_settings():
