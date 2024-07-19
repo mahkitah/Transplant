@@ -1,13 +1,55 @@
 import html
 import re
 from pathlib import Path
-from typing import Iterator
+from typing import Iterator, Any
 
 from gazelle.tracker_data import TR, ReleaseType, ArtistType, Encoding
 
+FIELD_MAP = {
+    'group': {
+        'id': 'grp_id',
+        'wikiImage': 'img_url',
+        'name': 'title',
+        'year': 'o_year',
+        'vanityHouse': 'vanity',
+        'tags': 'tags',
+    },
+    'torrent': {
+        'id': 'tor_id',
+        'media': 'medium',
+        'format': 'format',
+        'remasterYear': 'rem_year',
+        'remasterTitle': 'rem_title',
+        'remasterRecordLabel': 'rem_label',
+        'remasterCatalogueNumber': 'rem_cat_nr',
+        'scene': 'scene',
+        'hasLog': 'haslog',
+        'logScore': 'log_score',
+        'description': 'rel_descr',
+        'filePath': 'folder_name',
+        'userId': 'uploader_id',
+        'username': 'uploader',
+    }
+}
+
+ARTTIST_STRIP_REGEX = re.compile(r'(.+)\s\(\d+\)$')
+
+
+def unexape(thing: Any) -> Any:
+    if isinstance(thing, list):
+        for i, x in enumerate(thing):
+            thing[i] = unexape(x)
+    elif isinstance(thing, dict):
+        for k, v in thing.items():
+            thing[k] = unexape(v)
+    try:
+        return html.unescape(thing)
+    except TypeError:
+        return thing
+
 
 class TorrentInfo:
-    def __init__(self):
+    def __init__(self, tr_resp: dict, src_tr: TR):
         self.grp_id: int | None = None
         self.img_url: str | None = None
         self.title: str | None = None
@@ -17,7 +59,7 @@ class TorrentInfo:
         self.artist_data: dict | None = None
         self.tags: list | None = None
         self.alb_descr: str | None = None
-    
+
         self.tor_id: int | None = None
         self.medium: str | None = None
         self.format: str | None = None
@@ -36,44 +78,18 @@ class TorrentInfo:
         self.folder_name: str | None = None
         self.uploader_id: int | None = None
         self.uploader: str | None = None
-    
+
         self.file_list: list | None = None
         self.unknown: bool = False
-        self.src_tr: TR | None = None
+        self.src_tr: TR | None = src_tr
 
+        if src_tr is TR.RED:
+            self.set_red_info(tr_resp)
+        elif src_tr is TR.OPS:
+            self.set_ops_info(tr_resp)
 
-class SharedInfo(TorrentInfo):
-    FIELD_MAP = {
-        'group': {
-            'id': 'grp_id',
-            'wikiImage': 'img_url',
-            'name': 'title',
-            'year': 'o_year',
-            'vanityHouse': 'vanity',
-            'tags': 'tags',
-        },
-        'torrent': {
-            'id': 'tor_id',
-            'media': 'medium',
-            'format': 'format',
-            'remasterYear': 'rem_year',
-            'remasterTitle': 'rem_title',
-            'remasterRecordLabel': 'rem_label',
-            'remasterCatalogueNumber': 'rem_cat_nr',
-            'scene': 'scene',
-            'hasLog': 'haslog',
-            'logScore': 'log_score',
-            'description': 'rel_descr',
-            'filePath': 'folder_name',
-            'userId': 'uploader_id',
-            'username': 'uploader',
-        }
-    }
-
-    def __init__(self, tr_resp: dict):
-        super().__init__()
-
-        for sub_name, sub_dict in self.FIELD_MAP.items():
+    def set_common_gazelle(self, tr_resp: dict):
+        for sub_name, sub_dict in FIELD_MAP.items():
             for gaz_name, torinfo_name in sub_dict.items():
                 value = tr_resp[sub_name][gaz_name]
                 if value:
@@ -98,23 +114,10 @@ class SharedInfo(TorrentInfo):
             artists[ArtistType(a_type)] = artist_list
         self.artist_data = artists
 
-    def file_paths(self) -> Iterator[Path]:
-        for fd in self.file_list:
-            yield fd['path']
+    def set_red_info(self, tr_resp: dict):
+        tr_resp: dict = unexape(tr_resp)
+        self.set_common_gazelle(tr_resp)
 
-    def glob(self, pattern: str) -> Iterator[Path]:
-        # todo 3.12: pattern = Path(pattern)
-        for p in self.file_paths():
-            if p.match(pattern):
-                yield p
-
-
-class REDTorrentInfo(SharedInfo):
-    def __init__(self, tr_resp: dict):
-        self.unexape(tr_resp)
-        super().__init__(tr_resp)
-
-        self.src_tr = TR.RED
         self.alb_descr = tr_resp['group']['bbBody']
 
         rel_type: int = tr_resp['group']['releaseType']
@@ -129,32 +132,12 @@ class REDTorrentInfo(SharedInfo):
                 self.rem_label = tr_resp['group']['recordLabel']
                 self.rem_cat_nr = tr_resp['group']['catalogueNumber']
 
-    def unexape(self, thing: str | list | dict | int):
-        if isinstance(thing, list):
-            for i, x in enumerate(thing):
-                thing[i] = self.unexape(x)
-        if isinstance(thing, dict):
-            for k, v in thing.items():
-                thing[k] = self.unexape(v)
-        try:
-            return html.unescape(thing)
-        except TypeError:
-            return thing
-
-
-class OPSTorrentInfo(SharedInfo):
-    artist_strip_regex = re.compile(r'(.+)\s\(\d+\)$')
-
-    def __init__(self, tr_resp: dict):
-        super().__init__(tr_resp)
-
-        self.src_tr = TR.OPS
+    def set_ops_info(self, tr_resp: dict):
+        self.set_common_gazelle(tr_resp)
         self.rel_type = ReleaseType[tr_resp['group']['releaseTypeName']]
         self.alb_descr = tr_resp['group']['wikiBBcode']
 
-        log_ids = tr_resp['torrent']['ripLogIds']
-        if log_ids:
-            self.log_ids = log_ids
+        self.log_ids = tr_resp['torrent'].get('ripLogIds')
 
         # strip disambiguation nr from artists
         self.strip_artists()
@@ -174,12 +157,16 @@ class OPSTorrentInfo(SharedInfo):
     def strip_artists(self):
         for a_type, artists in self.artist_data.items():
             for a in artists:
-                if match := self.artist_strip_regex.match(a['name']):
+                if match := ARTTIST_STRIP_REGEX.match(a['name']):
                     stripped = match.group(1)
                     a['name'] = stripped
 
+    def file_paths(self) -> Iterator[Path]:
+        for fd in self.file_list:
+            yield fd['path']
 
-tr_map = {
-    TR.RED: REDTorrentInfo,
-    TR.OPS: OPSTorrentInfo
-}
+    def glob(self, pattern: str) -> Iterator[Path]:
+        # todo 3.12: pattern = Path(pattern)
+        for p in self.file_paths():
+            if p.match(pattern):
+                yield p
