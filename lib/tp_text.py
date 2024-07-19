@@ -22,7 +22,7 @@ rehost_failed = "Image rehost failed. Using source url"
 
 # Job
 no_src_tr = 'No valid source tracker could be established'
-id_and_hash = 'Tor id AND hash'
+id_xor_hash = 'Tor id XOR hash fail'
 not_dtor = 'Not a proper .torrent file'
 
 # CLI
