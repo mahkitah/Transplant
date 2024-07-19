@@ -11,9 +11,7 @@ class SettingsWindow(QDialog):
         super().__init__(parent)
         self.setWindowTitle(gui_text.settings_window_title)
         self.setWindowIcon(QIcon(':/gear.svg'))
-        self.layout()
 
-    def layout(self):
         bottom_row = QHBoxLayout()
         bottom_row.addStretch()
         bottom_row.addWidget(wb.pb_cancel)
@@ -132,7 +130,7 @@ class SettingsWindow(QDialog):
 
         # Total
         total_layout = QVBoxLayout(self)
-        total_layout.setContentsMargins(0, 0, 10, 10)
+        total_layout.setContentsMargins(5, 5, 10, 10)
         total_layout.addWidget(wb.config_tabs)
         total_layout.addSpacing(20)
         total_layout.addLayout(bottom_row)
