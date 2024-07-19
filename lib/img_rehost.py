@@ -76,16 +76,3 @@ class IH(Enum):
     @classmethod
     def prioritised(cls) -> list:
         return sorted(cls, key=lambda m: m.prio)
-
-    @classmethod
-    def rehost(cls, img_link: str) -> str:
-        for host in cls.prioritised():
-            if not host.enabled:
-                continue
-            args = [img_link]
-            if host.key:
-                args.append(host.key)
-            try:
-                return host.func(*args)
-            except Exception:
-                continue

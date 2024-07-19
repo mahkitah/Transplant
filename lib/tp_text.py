@@ -19,8 +19,11 @@ log_count_wrong = 'Torrent has {} logs, {} found'
 new_tor = 'Generating new torrent'
 tor_downed = '.torrent downloaded from {}'
 f_checked = 'Files checked'
-img_rehosted = "Image rehosted:"
-rehost_failed = "Image rehost failed. Using source url"
+rehost = 'Img rehost:'
+no_img = 'No img in source'
+img_white = 'source img whitelisted'
+trying = 'trying'
+rehost_failed = "Failed. Using source url"
 
 # Job
 no_src_tr = 'No valid source tracker could be established'

@@ -107,13 +107,31 @@ class TorInfo2UplData:
     def do_img(self, tor_info, u_data):
         src_img_url = tor_info.img_url
 
-        if not src_img_url or any(w in src_img_url for w in self.whitelist):
-            u_data.upl_img_url = src_img_url
+        report.info(tp_text.rehost)
+        if not src_img_url:
+            report.log(32, tp_text.no_img)
             return
 
-        rehosted = IH.rehost(src_img_url)
-        u_data.upl_img_url = rehosted or src_img_url
-        if rehosted:
-            report.info(f"{tp_text.img_rehosted} {rehosted}")
-        else:
-            report.info(tp_text.rehost_failed)
+        if any(w in src_img_url for w in self.whitelist):
+            u_data.upl_img_url = src_img_url
+            report.log(22, tp_text.img_white)
+            return
+
+        u_data.upl_img_url = self.rehost(src_img_url) or src_img_url
+
+    @staticmethod
+    def rehost(src_img_url: str):
+        report.log(22, tp_text.trying)
+        for host in IH.prioritised():
+            if not host.enabled:
+                continue
+            report.log(22, f'{host.name}...')
+            try:
+                rehosted_img = host.func(src_img_url, host.key)
+            except Exception:
+                continue
+            else:
+                report.log(22, rehosted_img)
+                return rehosted_img
+
+        report.log(32, tp_text.rehost_failed)
