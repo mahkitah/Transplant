@@ -1,11 +1,12 @@
 version = (2, 5, 5)
 # progress report
 requesting = "Requesting torrent info:"
-done = '... Done'
+done = 'Done'
+fail = 'Fail'
 no_torfolder = 'Torrent has no folder'
-upl1 = 'Uploading to'
-upl2 = 'Upload successful:'
-upl3 = 'Upload failed:'
+uploading = 'Uploading to'
+upl_success = 'Upload successful:'
+upl_fail = 'Upload failed:'
 bad_bitr = 'bitrate too low for RED'
 split_warn = 'Split -> Unknown. Please edit on RED'
 dtor_saved = 'New .torrent saved to:'

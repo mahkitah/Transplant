@@ -36,7 +36,7 @@ class TransplantThread(QThread):
         self.trpl_settings = None
 
     def run(self):
-        logger.info(gui_text.start)
+        logger.log(22, gui_text.start)
         key_dict = {
             TR.RED: wb.config.value('le_key_1'),
             TR.OPS: wb.config.value('le_key_2')
