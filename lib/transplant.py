@@ -278,6 +278,8 @@ class Transplanter:
 
         if src_descr != dest_descr or self.tor_info.title != new_tor_info.title:
             report.warning(tp_text.merged)
+        if 'delete.this.tag' in new_tor_info.tags:
+            report.warning(tp_text.delete_this_tag)
 
     def get_dtor(self, files: upload.Files, src_api: BaseApi):
         if self.job.new_dtor:

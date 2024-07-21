@@ -90,6 +90,8 @@ class TorInfo2UplData:
     def tag_gen(self, tor_info):
         skip_decade = tor_info.rel_type in (ReleaseType.Album, ReleaseType.EP, ReleaseType.Single)
         for tag in tor_info.tags:
+            if tag == 'delete.this.tag':
+                continue
             if skip_decade and (m := self.DECADE_REX.fullmatch(tag)):
                 if m.group(1) == str(tor_info.o_year)[:3]:
                     continue

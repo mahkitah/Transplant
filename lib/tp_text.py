@@ -13,6 +13,7 @@ dtor_saved = 'New .torrent saved to:'
 dtor_deleted = '.torrent deleted from scan dir'
 log_score_dif = 'Log scores different: {} - {}'
 merged = 'Probably merged into an existing group'
+delete_this_tag = "Group has a 'delete.this.tag'"
 missing = "Can't find:"
 no_log = "No logs found"
 log_count_wrong = 'Torrent has {} logs, {} found'
