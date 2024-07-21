@@ -97,7 +97,7 @@ class TorrentInfo:
 
         enc_str = tr_resp['torrent']['encoding']
         self.encoding = Encoding[enc_str]
-        if self.encoding == Encoding.Other:
+        if self.encoding is Encoding.Other:
             bitr, vbr, _ = enc_str.partition(' (VBR)')
             self.other_bitrate = int(bitr)
             self.vbr = bool(vbr)

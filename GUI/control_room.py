@@ -102,9 +102,9 @@ def main_connections():
     wb.job_data.layout_changed.connect(lambda: wb.tb_go.setEnabled(bool(wb.job_data)))
     wb.job_data.layout_changed.connect(lambda: wb.pb_clear_j.setEnabled(bool(wb.job_data)))
     wb.job_data.layout_changed.connect(
-        lambda: wb.pb_rem_tr1.setEnabled(any(j.src_tr == TR.RED for j in wb.job_data)))
+        lambda: wb.pb_rem_tr1.setEnabled(any(j.src_tr is TR.RED for j in wb.job_data)))
     wb.job_data.layout_changed.connect(
-        lambda: wb.pb_rem_tr2.setEnabled(any(j.src_tr == TR.OPS for j in wb.job_data)))
+        lambda: wb.pb_rem_tr2.setEnabled(any(j.src_tr is TR.OPS for j in wb.job_data)))
     wb.result_view.textChanged.connect(
         lambda: wb.pb_clear_r.setEnabled(bool(wb.result_view.toPlainText())))
     wb.result_view.textChanged.connect(

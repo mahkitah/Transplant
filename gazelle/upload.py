@@ -104,17 +104,17 @@ class UploadData:
             if value:
                 upl_data[v] = value
 
-        if dest == TR.RED:
-            if self.rel_type == ReleaseType.Sampler:
+        if dest is TR.RED:
+            if self.rel_type is ReleaseType.Sampler:
                 upl_data['releasetype'] = 7
-            if self.rel_type == ReleaseType.Split:
+            if self.rel_type is ReleaseType.Split:
                 upl_data['releasetype'] = 21
                 report.warning(tp_text.split_warn)
             if self.unknown:
                 upl_data['remaster_year'] = '1990'
                 upl_data['remaster_title'] = 'Unknown release year'
 
-        elif dest == TR.OPS:
+        elif dest is TR.OPS:
             upl_data['workaround_broken_html_entities'] = 0
             if self.medium == 'Blu-Ray':
                 upl_data['media'] = 'BD'
