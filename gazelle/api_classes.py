@@ -51,7 +51,7 @@ class BaseApi:
 
     def get_account_info(self):
         r = self.request('index')
-        return {k: v for k, v in r.copy().items() if k in ('authkey', 'passkey', 'id', 'username')}
+        return {k: r[k] for k in ('authkey', 'passkey', 'id', 'username')}
 
     def request(self, url_suffix: str, data=None, files=None, **kwargs) -> dict | bytes:
         url = self.url + url_suffix + '.php'
