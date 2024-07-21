@@ -187,7 +187,7 @@ class RedApi(KeyApi):
                 self.request('torrentedit', id=torrent_id, data={'unknown': True})
                 report.info(tp_text.upl_to_unkn)
             except (RequestFailure, requests.HTTPError) as e:
-                report.error(f'{tp_text.edit_fail}{str(e)}')
+                report.warning(f'{tp_text.edit_fail}{str(e)}')
         return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
 
     def upl_response_handler(self, r: dict) -> (int, int):
