@@ -15,8 +15,6 @@ class IntRowItemSelectionModel(QItemSelectionModel):
 
 
 class JobView(QTableView):
-    key_override_sig = pyqtSignal(QKeyEvent)
-
     def __init__(self, model):
         super().__init__()
         self.setModel(model)
@@ -35,7 +33,7 @@ class JobView(QTableView):
 
     def keyPressEvent(self, event: QKeyEvent):
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.key() == Qt.Key.Key_Tab:
-            self.key_override_sig.emit(event)
+            event.ignore()
         else:
             super().keyPressEvent(event)
 
