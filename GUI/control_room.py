@@ -14,7 +14,7 @@ from GUI.main_gui import MainWindow
 from GUI.settings_window import SettingsWindow
 
 from PyQt6.QtWidgets import QFileDialog, QMessageBox
-from PyQt6.QtGui import QKeyEvent, QDesktopServices, QTextCursor
+from PyQt6.QtGui import QDesktopServices, QTextCursor, QShortcut
 from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread, QSize, QUrl, QModelIndex
 
 
@@ -64,7 +64,7 @@ class TransplantThread(QThread):
 
 def start_up():
     wb.main_window = MainWindow()
-    wb.main_window.keyPressEvent = key_press
+    set_shortcuts()
     wb.settings_window = SettingsWindow(wb.main_window)
     main_connections()
     config_connections()
@@ -179,36 +179,32 @@ def settings_accepted():
         fsb.consolidate()
 
 
-def key_press(event: QKeyEvent):
-    if not event.modifiers():
-        if event.key() == Qt.Key.Key_Backspace:
-            remove_selected()
-    elif event.modifiers() == Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier:
-        if event.key() == Qt.Key.Key_Return:
-            wb.tb_go.click()
-    elif event.modifiers() == Qt.KeyboardModifier.ControlModifier:
-        if event.key() == Qt.Key.Key_S:
-            wb.pb_scan.click()
-        if event.key() == Qt.Key.Key_Tab:
-            wb.tabs.next()
-        if event.key() == Qt.Key.Key_R:
-            crop()
-        if event.key() == Qt.Key.Key_W:
-            for clr_button in (wb.pb_clear_j, wb.pb_clear_r):
-                if clr_button.isVisible():
-                    clr_button.click()
-        if event.key() == Qt.Key.Key_O:
-            if wb.pb_open_upl_urls.isVisible():
-                wb.pb_open_upl_urls.click()
-        # number keys:
-        if 0x31 <= event.key() <= 0x39:
-            nr = event.key() - 0x30
-            try:
-                pb_rem_tr = getattr(wb, f'pb_rem_tr{nr}')
-            except AttributeError:
-                return
-            if pb_rem_tr.isVisible():
-                pb_rem_tr.click()
+SC_DATA = (
+    (('pb_go',), 'Ctrl+Shift+Return'),
+    (('tabs',), 'Ctrl+Tab'),
+    (('pb_scan',), 'Ctrl+S'),
+    (('pb_rem_sel',), 'Backspace'),
+    (('pb_crop',), 'Ctrl+R'),
+    (('pb_clear_j', 'pb_clear_r'), 'Ctrl+W'),
+    (('pb_open_upl_urls',), 'Ctrl+O'),
+    (('pb_rem_tr1',), 'Ctrl+1'),
+    (('pb_rem_tr2',), 'Ctrl+2'),
+)
+widg_sc_map = {}
+
+
+def set_shortcuts():
+    for w_names, default in SC_DATA:
+        sc = QShortcut(wb.main_window)
+        sc.setKey(default)
+        for w_name in w_names:
+            widg_sc_map[w_name] = sc
+            widg = getattr(wb, w_name)
+            if w_name == 'tabs':
+                slot = widg.next
+            else:
+                slot = widg.animateClick
+            sc.activated.connect(slot)
 
 
 LINK_REGEX = re.compile(r'(https?://)([^\s\n\r]+)')
