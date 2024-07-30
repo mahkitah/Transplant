@@ -117,57 +117,62 @@ l_error_color = 'Error'
 l_success_color = 'Sucess'
 l_link_color = 'link'
 
-# tooltips
-tt_l_key_1 = ("Get your API-key from the site's user settings\n"
-              "Please note that these keys are stored in plain text")
-tt_l_key_2 = tt_l_key_1
-tt_l_data_dir = "This should be the top level folder where the album folders can be found"
-tt_chb_deep_search = ("When checked, the data folder will be searched for torrent folders up til 'level' deep,\n"
-                      "level 1 is direct subfolder of data dir. Subfolder of that is level 2 etc.")
-tt_l_scan_dir = ("This folder will be scanned for .torrents when the 'Scan' button is pressed\n"
-                 "You can download the .torrents from the source tracker here")
-tt_l_save_dtors = ("Newly created .torrents from the destination tracker can be saved here\n"
-                   "A torrent client's watch folder would be a logical choice to select here")
-tt_fsb_data_dir = "Select data folder"
-tt_fsb_scan_dir = "Select scan folder"
-tt_fsb_dtor_save_dir = "Select save folder"
-tt_l_del_dtors = ("If checked, .torrents from the scan folder will be deleted after successful upload\n"
-                  "This setting does not apply to .torrents that were added with the 'Add .torrent files' button\n"
-                  "These will not be deleted")
-tt_l_file_check = ("if checked, Transplant will verify that the torrent content (~music files) can be found\n"
-                   "This will prevent transplanting torrents that you can't seed")
-tt_l_post_compare = "Check if the upload was merged into an existing group or if the log scores are different"
-tt_l_show_tips = "Tip the tools"
-tt_l_verbosity = ("Level of feedback.\n"
-                  "0: silent\n"
-                  "1: only errors\n"
-                  "2: normal\n"
-                  "3: debugging")
-tt_l_rehost = 'Rehost non-whitelisted cover images'
-tt_l_whitelist = ("Images hosted on these sites will not be rehosted\n"
-                  "Comma separated")
-tt_pb_def_descr = 'Restore default descriptions'
-tt_rb_tracker1 = ("Select source tracker for torrent id's entered in the paste box\n"
-                  "This setting does not apply to url's and .torrents")
-tt_rb_tracker2 = tt_rb_tracker1
-tt_tb_open_config = settings_window_title
-tt_tb_open_config2 = tt_tb_open_config
-tt_pb_add = ("Add content of the paste box to the job list\n"
-             "Only valid entries will be added")
-tt_pb_open_dtors = "Select .torrents to add to the job list"
-tt_pb_scan = ("Scan the 'scan folder' for .torrents and add them to the job list\n"
-              "Subfolders will not be scanned (ctrl-S)")
-tt_pb_clear_j = "Empty the job list (ctrl-W)"
-tt_pb_clear_r = "Empty the results pane (ctrl-W)"
-tt_pb_rem_sel = "Remove selected jobs (torrents) from the job list (Backspace)"
-tt_pb_crop = "Keep selection (ctrl-R)"
-tt_pb_del_sel = "Delete selected .torrent files from scan dir"
-tt_pb_rem_tr1 = f"Remove all {TR.RED.name} jobs from job list (ctrl-1)"
-tt_pb_rem_tr2 = f"Remove all {TR.OPS.name} jobs from job list (ctrl-2)"
-tt_pb_open_tsavedir = "Open torrent save location"
-tt_pb_open_upl_urls = "Open all uploads in browser (ctrl-O)"
-tt_tb_go = "Start Transplanting\n (ctrl-shift-Enter)"
+tooltips = {
+    'l_key_1': ("Get your API-key from the site's user settings\n"
+                "Please note that these keys are stored in plain text"),
+    'l_key_2': ("Get your API-key from the site's user settings\n"
+                "Please note that these keys are stored in plain text"),
+    'l_data_dir': "This should be the top level folder where the album folders can be found",
+    'chb_deep_search': ("When checked, the data folder will be searched for torrent folders up til 'level' deep,\n"
+                        "level 1 is direct subfolder of data dir. Subfolder of that is level 2 etc."),
+    'l_scan_dir': ("This folder will be scanned for .torrents when the 'Scan' button is pressed\n"
+                   "You can download the .torrents from the source tracker here"),
+    'l_save_dtors': ("Newly created .torrents from the destination tracker can be saved here\n"
+                     "A torrent client's watch folder would be a logical choice to select here"),
+    'fsb_data_dir': "Select data folder",
+    'fsb_scan_dir': "Select scan folder",
+    'fsb_dtor_save_dir': "Select save folder",
+    'l_del_dtors': ("If checked, .torrents from the scan folder will be deleted after successful upload\n"
+                    "This setting does not apply to .torrents that were added with the 'Add .torrent files' button\n"
+                    "These will not be deleted"),
+    'l_file_check': ("if checked, Transplant will verify that the torrent content (~music files) can be found\n"
+                     "This will prevent transplanting torrents that you can't seed"),
+    'l_post_compare': "Check if the upload was merged into an existing group or if the log scores are different",
+    'l_show_tips': "Tip the tools",
+    'l_verbosity': ("Level of feedback.\n"
+                    "0: silent\n"
+                    "1: only errors\n"
+                    "2: normal\n"
+                    "3: debugging"),
+    'l_rehost': 'Rehost non-whitelisted cover images',
+    'l_whitelist': ("Images hosted on these sites will not be rehosted\n"
+                    "Comma separated"),
+    'pb_def_descr': 'Restore default descriptions',
+    'rb_tracker1': ("Select source tracker for torrent id's entered in the paste box\n"
+                    "This setting does not apply to url's and .torrents"),
+    'rb_tracker2': ("Select source tracker for torrent id's entered in the paste box\n"
+                    "This setting does not apply to url's and .torrents"),
+    'tb_open_config': settings_window_title,
+    'tb_open_config2': settings_window_title,
+    'pb_add': ("Add content of the paste box to the job list\n"
+               "Only valid entries will be added"),
+    'pb_open_dtors': "Select .torrents to add to the job list",
+    'splitter_handle': 'Drag all the way up to hide top section',
+}
+tooltips_with_sc = {
+    'tb_go': "Start Transplanting\n (ctrl-shift-Enter)",
+    'pb_open_upl_urls': "Open all uploads in browser (ctrl-O)",
+    'pb_rem_tr1': f"Remove all {TR.RED.name} jobs from job list (ctrl-1)",
+    'pb_rem_tr2': f"Remove all {TR.OPS.name} jobs from job list (ctrl-2)",
+    'pb_scan': ("Scan the 'scan folder' for .torrents and add them to the job list\n"
+                "Subfolders will not be scanned"),
+    'pb_clear_j': "Empty the job list",
+    'pb_clear_r': "Empty the results pane",
+    'pb_rem_sel': "Remove selected jobs (torrents) from the job list",
+    'pb_crop': "Keep selection",
+    'pb_del_sel': "Delete selected .torrent files from scan dir",
+    'pb_open_tsavedir': "Open torrent save location",
+}
 ttm_header1 = "Upload to a specific group"
 ttm_header2 = ('Create new .torrent file\n'
-               'Instead of modifying source torrent')
-ttm_splitter = 'Drag all the way up to hide top section'
+               'instead of converting source torrent')

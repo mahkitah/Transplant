@@ -10,7 +10,7 @@ from gazelle.tracker_data import TR
 from GUI import gui_text
 from lib.tp_text import version
 from lib.img_rehost import IH
-from GUI.misc_classes import (TPTextEdit, CyclingTabBar, FolderSelectBox, IniSettings, TempPopUp,
+from GUI.misc_classes import (TPTextEdit, CyclingTabBar, FolderSelectBox, IniSettings, TempPopUp, TTfilter,
                               ColorExample, PatientLineEdit, ThemeIcon, StyleSelecter, ClickableLabel)
 from GUI.mv_classes import JobModel, JobView, RehostModel, RehostTable
 
@@ -79,6 +79,7 @@ class WidgetBank:
         self.user_input_elements()
         self.main_window = None
         self.settings_window = None
+        self.tt_filter = TTfilter()
         self.main_widgets()
         self.settings_window_widgets()
 
@@ -155,6 +156,7 @@ class WidgetBank:
         self.topwidget = QWidget()
         self.bottomwidget = QWidget()
         self.splitter = QSplitter(Qt.Orientation.Vertical)
+        self.splitter_handle = None
 
         self.tb_open_config = QToolButton()
         self.tb_open_config.setIcon(ThemeIcon('gear.svg'))
@@ -294,7 +296,7 @@ class WidgetBank:
                 setattr(self, label_name, lbl)
 
             if obj_type == FolderSelectBox:
-                obj.dialog_caption = getattr(gui_text, f'tt_{el_name}')
+                obj.dialog_caption = gui_text.tooltips[el_name]
                 self.fsbs.append(obj)
 
         self.le_key_1.setCursorPosition(0)

@@ -2,9 +2,23 @@ import os
 import re
 
 from PyQt6.QtWidgets import (QFrame, QTextEdit, QComboBox, QFileDialog, QLineEdit, QTabBar, QVBoxLayout, QLabel,
-                             QTextBrowser, QSizePolicy, QApplication, QStyleFactory)
+                             QTextBrowser, QSizePolicy, QApplication, QStyleFactory, QToolButton)
 from PyQt6.QtGui import QIcon, QAction, QIconEngine
-from PyQt6.QtCore import Qt, pyqtSignal, QSettings, QTimer
+from PyQt6.QtCore import Qt, QObject, QEvent, pyqtSignal, QSettings, QTimer
+
+
+class TTfilter(QObject):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.tt_enabled = False
+
+    def set_tt_enabled(self, enabled: int):
+        self.tt_enabled = bool(enabled)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.ToolTip and not self.tt_enabled:
+            return True
+        return False
 
 
 class ClickableLabel(QLabel):
@@ -177,10 +191,11 @@ class FolderSelectBox(HistoryBox):
         self.setMaxCount(8)
         self.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Preferred)
         self.setSizeAdjustPolicy(self.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
-        self.folder_button = QAction()
-        self.folder_button.setIcon(ThemeIcon('open-folder'))
-        self.folder_button.triggered.connect(self.select_folder)
-        self.lineEdit().addAction(self.folder_button, QLineEdit.ActionPosition.TrailingPosition)
+        self.folder_action = QAction()
+        self.folder_action.setIcon(ThemeIcon('open-folder'))
+        self.folder_action.triggered.connect(self.select_folder)
+        self.lineEdit().addAction(self.folder_action, QLineEdit.ActionPosition.TrailingPosition)
+        self.folder_button = self.lineEdit().findChild(QToolButton)
         self.dialog_caption = None
 
     def select_folder(self):
@@ -191,7 +206,10 @@ class FolderSelectBox(HistoryBox):
         self.add(selected)
 
     def setToolTip(self, txt):
-        self.folder_button.setToolTip(txt)
+        self.folder_action.setToolTip(txt)
+
+    def installEventFilter(self, f):
+        self.folder_button.installEventFilter(f)
 
 
 class IniSettings(QSettings):

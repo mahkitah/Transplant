@@ -65,6 +65,7 @@ class TransplantThread(QThread):
 def start_up():
     wb.main_window = MainWindow()
     set_shortcuts()
+    set_tooltips()
     wb.settings_window = SettingsWindow(wb.main_window)
     main_connections()
     config_connections()
@@ -125,7 +126,7 @@ def config_connections():
     wb.fsb_dtor_save_dir.list_changed.connect(
         lambda: wb.pb_open_tsavedir.setEnabled(bool(wb.fsb_dtor_save_dir.currentText())))
     wb.chb_deep_search.stateChanged.connect(lambda x: wb.spb_deep_search_level.setEnabled(bool(x)))
-    wb.chb_show_tips.stateChanged.connect(tooltips)
+    wb.chb_show_tips.stateChanged.connect(wb.tt_filter.set_tt_enabled)
     wb.spb_verbosity.valueChanged.connect(set_verbosity)
     wb.chb_rehost.stateChanged.connect(wb.rh_on_off_container.setEnabled)
     wb.pb_def_descr.clicked.connect(default_descr)
@@ -434,14 +435,21 @@ def settings_check():
         wb.settings_window.accept()
 
 
-def tooltips(flag):
-    for t_name, ttip in vars(gui_text).items():
-        if t_name.startswith('tt_'):
-            obj_name = t_name.split('_', maxsplit=1)[1]
-            obj = getattr(wb, obj_name)
-            obj.setToolTip(ttip if flag else '')
+def set_tooltip(name:  str, ttip: str):
+    obj = getattr(wb, name)
+    obj.installEventFilter(wb.tt_filter)
+    obj.setToolTip(ttip)
 
-    wb.splitter.handle(1).setToolTip(gui_text.ttm_splitter if flag else '')
+
+def set_tooltips():
+    wb.splitter_handle = wb.splitter.handle(1)
+    for name, ttip in gui_text.tooltips.items():
+        set_tooltip(name, ttip)
+    for name, ttip in gui_text.tooltips_with_sc.items():
+        sc = widg_sc_map.get(name)
+        if sc:
+            ttip = f'{ttip} ({sc.key().toString()})'
+        set_tooltip(name, ttip)
 
 
 def default_descr():
