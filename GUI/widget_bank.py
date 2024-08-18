@@ -1,7 +1,7 @@
 from functools import partial
 
 from PyQt6.QtWidgets import (QApplication, QWidget, QTextEdit, QPushButton, QToolButton, QRadioButton, QButtonGroup,
-                             QSplitter, QSizePolicy, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox, QStackedLayout,
+                             QSplitter, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox, QStackedLayout,
                              QTextBrowser)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
@@ -220,10 +220,9 @@ class WidgetBank:
         self.pb_open_tsavedir.setEnabled(False)
         self.pb_open_upl_urls = QPushButton(gui_text.pb_open_upl_urls)
         self.pb_open_upl_urls.setEnabled(False)
-        self.tb_go = QToolButton()
-        self.tb_go.setEnabled(False)
-        self.tb_go.setIcon(QIcon(':/switch.svg'))
-        self.tb_go.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+        self.pb_go = QPushButton()
+        self.pb_go.setEnabled(False)
+        self.pb_go.setIcon(QIcon(':/switch.svg'))
 
         self.pb_stop = QPushButton(gui_text.pb_stop)
         self.pb_stop.hide()

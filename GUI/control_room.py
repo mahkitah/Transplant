@@ -91,7 +91,7 @@ def main_connections():
     wb.pb_rem_tr2.clicked.connect(lambda: wb.job_data.filter_for_attr('src_tr', TR.OPS))
     wb.pb_open_tsavedir.clicked.connect(
         lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(wb.fsb_dtor_save_dir.currentText())))
-    wb.tb_go.clicked.connect(gogogo)
+    wb.pb_go.clicked.connect(gogogo)
     wb.pb_open_upl_urls.clicked.connect(open_tor_urls)
     wb.job_view.horizontalHeader().sectionDoubleClicked.connect(wb.job_data.header_double_clicked)
     wb.selection.selectionChanged.connect(lambda: wb.pb_rem_sel.setEnabled(wb.selection.hasSelection()))
@@ -99,7 +99,7 @@ def main_connections():
         lambda: wb.pb_crop.setEnabled(0 < len(wb.selection.selectedRows()) < len(wb.job_data.jobs)))
     wb.selection.selectionChanged.connect(lambda x: wb.pb_del_sel.setEnabled(wb.selection.hasSelection()))
     wb.job_view.doubleClicked.connect(open_torrent_page)
-    wb.job_data.layout_changed.connect(lambda: wb.tb_go.setEnabled(bool(wb.job_data)))
+    wb.job_data.layout_changed.connect(lambda: wb.pb_go.setEnabled(bool(wb.job_data)))
     wb.job_data.layout_changed.connect(lambda: wb.pb_clear_j.setEnabled(bool(wb.job_data)))
     wb.job_data.layout_changed.connect(
         lambda: wb.pb_rem_tr1.setEnabled(any(j.src_tr is TR.RED for j in wb.job_data)))

@@ -63,7 +63,7 @@ class MainWindow(QWidget):
         wb.button_stack.addWidget(wb.job_buttons)
         wb.button_stack.addWidget(wb.result_buttons)
 
-        wb.go_stop_stack.addWidget(wb.tb_go)
+        wb.go_stop_stack.addWidget(wb.pb_go)
         wb.go_stop_stack.addWidget(wb.pb_stop)
 
         control_buttons = QVBoxLayout()

@@ -160,10 +160,10 @@ tooltips = {
     'splitter_handle': 'Drag all the way up to hide top section',
 }
 tooltips_with_sc = {
-    'tb_go': "Start Transplanting\n (ctrl-shift-Enter)",
-    'pb_open_upl_urls': "Open all uploads in browser (ctrl-O)",
-    'pb_rem_tr1': f"Remove all {TR.RED.name} jobs from job list (ctrl-1)",
-    'pb_rem_tr2': f"Remove all {TR.OPS.name} jobs from job list (ctrl-2)",
+    'pb_go': "Start Transplanting",
+    'pb_open_upl_urls': "Open all uploads in browser",
+    'pb_rem_tr1': f"Remove all {TR.RED.name} jobs from job list",
+    'pb_rem_tr2': f"Remove all {TR.OPS.name} jobs from job list",
     'pb_scan': ("Scan the 'scan folder' for .torrents and add them to the job list\n"
                 "Subfolders will not be scanned"),
     'pb_clear_j': "Empty the job list",
