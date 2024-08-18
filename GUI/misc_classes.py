@@ -220,11 +220,11 @@ class IniSettings(QSettings):
         super().__init__(path, QSettings.Format.IniFormat)
 
     def setValue(self, key, value):
-        if type(value) == int:
+        if type(value) is int:
             value = f'#int({value})'
         # elif type(value) == bool:
         #     value = f'#bool({value})'
-        elif value == []:
+        elif isinstance(value, list) and not value:
             value = '#empty list'
 
         super().setValue(key, value)
