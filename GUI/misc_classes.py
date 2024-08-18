@@ -30,7 +30,7 @@ class ClickableLabel(QLabel):
 
 
 class Application(QApplication):
-    scheme_changed = pyqtSignal()
+    # scheme_changed = pyqtSignal()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -50,7 +50,7 @@ class Application(QApplication):
         else:
             scheme = Qt.ColorScheme.Dark
         if scheme != self.scheme:
-            self.scheme_changed.emit()
+            # self.scheme_changed.emit()
             self.scheme = scheme
 
 
