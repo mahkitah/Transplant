@@ -51,6 +51,7 @@ class SettingsWindow(QDialog):
         # rehost
         toprow = QFormLayout()
         toprow.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
+        toprow.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         toprow.addRow(wb.l_rehost, wb.chb_rehost)
 
         white_l_row = QFormLayout()
