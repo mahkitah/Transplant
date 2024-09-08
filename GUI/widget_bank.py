@@ -2,7 +2,7 @@ from functools import partial
 
 from PyQt6.QtWidgets import (QApplication, QWidget, QTextEdit, QPushButton, QToolButton, QRadioButton, QButtonGroup,
                              QSplitter, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox, QStackedLayout,
-                             QTextBrowser)
+                             QTextBrowser, QSizePolicy)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 
@@ -241,6 +241,14 @@ class WidgetBank:
 
         self.pb_cancel = QPushButton(gui_text.pb_cancel)
         self.pb_ok = QPushButton(gui_text.pb_ok)
+
+        # main tab
+        self.tb_key_test1 = QToolButton()
+        self.tb_key_test1.setText(gui_text.tb_test)
+        self.tb_key_test1.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+        self.tb_key_test2 = QToolButton()
+        self.tb_key_test2.setText(gui_text.tb_test)
+        self.tb_key_test2.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
 
         # rehost tab
         self.rh_on_off_container = QWidget()

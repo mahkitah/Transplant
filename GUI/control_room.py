@@ -121,6 +121,10 @@ def config_connections():
     wb.pb_ok.clicked.connect(settings_check)
     wb.pb_cancel.clicked.connect(wb.settings_window.reject)
     wb.settings_window.accepted.connect(settings_accepted)
+    wb.tb_key_test1.clicked.connect(lambda: api_key_test(TR.RED, wb.le_key_1.text()))
+    wb.tb_key_test2.clicked.connect(lambda: api_key_test(TR.OPS, wb.le_key_2.text()))
+    wb.le_key_1.textChanged.connect(lambda t: wb.tb_key_test1.setEnabled(bool(t)))
+    wb.le_key_2.textChanged.connect(lambda t: wb.tb_key_test2.setEnabled(bool(t)))
     wb.fsb_scan_dir.list_changed.connect(
         lambda: wb.pb_scan.setEnabled(bool(wb.fsb_scan_dir.currentText())))
     wb.fsb_dtor_save_dir.list_changed.connect(
@@ -417,12 +421,6 @@ def settings_check():
         sum_ting_wong.append(gui_text.sum_ting_wong_4)
     if add_src_descr and '%src_descr%' not in wb.te_src_descr_templ.toPlainText():
         sum_ting_wong.append(gui_text.sum_ting_wong_5)
-    for set_name in ('le_key_1', 'le_key_2'):
-        value = wb.config.value(set_name)
-        stripped = value.strip()
-        if value != stripped:
-            show_name = set_name.split('_', maxsplit=1)[1]
-            sum_ting_wong.append(gui_text.sum_ting_wong_6.format(show_name))
 
     if sum_ting_wong:
         warning = QMessageBox()
@@ -514,6 +512,44 @@ def open_torrent_page(index: QModelIndex):
     else:
         return
     QDesktopServices.openUrl(QUrl(url))
+
+
+def key_precheck(tracker: TR, key: str) -> str:
+    if key != key.strip():
+        return gui_text.keycheck_spaces
+
+    if tracker is TR.RED:
+        m = re.match(r'[0-9a-f]{8}\.[0-9a-f]{32}', key)
+        if not m:
+            return gui_text.keycheck_red_mismatch
+
+    elif tracker is TR.OPS:
+        if len(key) not in (116, 118):
+            return gui_text.keycheck_ops_mismatch
+
+    return ''
+
+
+def api_key_test(tracker: TR, key: str):
+    msg_box = QMessageBox(wb.settings_window)
+    msg_box.setWindowTitle(gui_text.msg_box_title.format(tracker.name))
+    precheck_msg = key_precheck(tracker, key)
+    if precheck_msg:
+        msg_box.setIcon(QMessageBox.Icon.Critical)
+        msg_box.setText(precheck_msg)
+        msg_box.show()
+    else:
+        from gazelle.api_classes import sleeve, RequestFailure
+        api = sleeve(tracker, key=key)
+        try:
+            account_info = api.account_info
+        except RequestFailure as e:
+            msg_box.setIcon(QMessageBox.Icon.Critical)
+            msg_box.setText(gui_text.keycheck_bad_key.format(tracker.name, e))
+        else:
+            msg_box.setIcon(QMessageBox.Icon.Information)
+            msg_box.setText(gui_text.keycheck_good_key.format(account_info['username']))
+        msg_box.show()
 
 
 def set_verbosity(lvl: int):

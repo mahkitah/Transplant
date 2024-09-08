@@ -55,6 +55,18 @@ rehost_tab = 'Rehost'
 desc_tab = 'Rel Descr'
 looks_tab = 'Looks'
 
+tb_test = 'test'
+msg_box_title = '{} API-key check'
+keycheck_spaces = 'Key has leading or trailing spaces'
+keycheck_red_mismatch = ('Key does not match the pattern for RED keys:\n'
+                         '8 chars . 32 chars\n'
+                         'xxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n')
+keycheck_ops_mismatch = ('An OPS key must be 116 character long\n'
+                         '(older keys can be 118 chars long)')
+keycheck_bad_key = ('Not a valid key\n'
+                    '{} says: {}')
+keycheck_good_key = 'Hello {}, this key is valid'
+
 chb_deep_search = 'Deep search to level:'
 
 default_whitelist = "ptpimg.me, thesungod.xyz"
