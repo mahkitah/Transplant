@@ -403,19 +403,20 @@ def scan_dtorrents():
 
 
 def settings_check():
-    data_dir = Path(wb.fsb_data_dir.currentText())
-    scan_dir = Path(wb.fsb_scan_dir.currentText())
-    dtor_save_dir = Path(wb.fsb_dtor_save_dir.currentText())
+    data_dir = wb.fsb_data_dir.currentText()
+    scan_dir = wb.fsb_scan_dir.currentText()
+    dtor_save_dir = wb.fsb_dtor_save_dir.currentText()
     save_dtors = wb.config.value('chb_save_dtors')
     rehost = wb.config.value('chb_rehost')
     add_src_descr = wb.config.value('chb_add_src_descr')
 
+    # Path('') exists and is_dir
     sum_ting_wong = []
-    if not data_dir.is_dir():
+    if not data_dir or not Path(data_dir).is_dir():
         sum_ting_wong.append(gui_text.sum_ting_wong_1)
-    if scan_dir and not scan_dir.is_dir():
+    if scan_dir and not Path(scan_dir).is_dir():
         sum_ting_wong.append(gui_text.sum_ting_wong_2)
-    if save_dtors and not dtor_save_dir.is_dir():
+    if save_dtors and (not dtor_save_dir or not Path(dtor_save_dir).is_dir()):
         sum_ting_wong.append(gui_text.sum_ting_wong_3)
     if rehost and not any(h.enabled for h in IH):
         sum_ting_wong.append(gui_text.sum_ting_wong_4)
@@ -423,7 +424,7 @@ def settings_check():
         sum_ting_wong.append(gui_text.sum_ting_wong_5)
 
     if sum_ting_wong:
-        warning = QMessageBox()
+        warning = QMessageBox(wb.settings_window)
         warning.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         warning.setIcon(QMessageBox.Icon.Warning)
         warning.setText("- " + "\n- ".join(sum_ting_wong))
