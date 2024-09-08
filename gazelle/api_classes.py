@@ -107,6 +107,13 @@ class KeyApi(BaseApi):
     def upl_response_handler(self, r):
         raise NotImplementedError
 
+    def get_riplog(self, tor_id: int, log_id: int):
+        r: dict = self.request('riplog', id=tor_id, logid=log_id)
+        log_bytes = base64.b64decode(r['log'])
+        log_checksum = sha256(log_bytes).hexdigest()
+        assert log_checksum == r['log_sha256']
+        return log_bytes
+
 
 class CookieApi(BaseApi):
 
@@ -203,14 +210,6 @@ class OpsApi(KeyApi):
         torrent_id = r.get('torrentId')
 
         return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
-
-    def get_riplog(self, tor_id: int, log_id: int):
-        r: dict = self.request('riplog', id=tor_id, logid=log_id)
-        log_bytes = base64.b64decode(r['log'])
-        log_checksum = sha256(log_bytes).hexdigest()
-        assert log_checksum == r['log_sha256']
-        return log_bytes
-
 
 def sleeve(trckr: TR, **kwargs) -> RedApi | OpsApi:
     api_map = {

@@ -211,7 +211,7 @@ class Transplanter:
                 report.error(f'{tp_text.bad_bitr}: {bad_bitrate}')
                 return True
 
-        folder_needed = self.file_check or self.job.new_dtor or self.tor_info.haslog and not self.tor_info.log_ids
+        folder_needed = self.file_check or self.job.new_dtor
         if folder_needed and self.torrent_folder_path is None:
             report.error(f"{tp_text.missing} {self.tor_info.folder_name}")
             return True

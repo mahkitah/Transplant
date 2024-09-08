@@ -25,6 +25,7 @@ FIELD_MAP = {
         'scene': 'scene',
         'hasLog': 'haslog',
         'logScore': 'log_score',
+        'ripLogIds': 'log_ids',
         'description': 'rel_descr',
         'filePath': 'folder_name',
         'userId': 'uploader_id',
@@ -136,8 +137,6 @@ class TorrentInfo:
         self.set_common_gazelle(tr_resp)
         self.rel_type = ReleaseType[tr_resp['group']['releaseTypeName']]
         self.alb_descr = tr_resp['group']['wikiBBcode']
-
-        self.log_ids = tr_resp['torrent'].get('ripLogIds')
 
         # strip disambiguation nr from artists
         self.strip_artists()
