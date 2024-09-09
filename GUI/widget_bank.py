@@ -239,7 +239,6 @@ class WidgetBank:
         self.config_tabs.addTab(self.cust_descr, gui_text.desc_tab)
         self.config_tabs.addTab(self.looks, gui_text.looks_tab)
 
-        self.pb_cancel = QPushButton(gui_text.pb_cancel)
         self.pb_ok = QPushButton(gui_text.pb_ok)
 
         # main tab

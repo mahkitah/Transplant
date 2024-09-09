@@ -119,7 +119,6 @@ def main_connections():
 
 def config_connections():
     wb.pb_ok.clicked.connect(settings_check)
-    wb.pb_cancel.clicked.connect(wb.settings_window.reject)
     wb.settings_window.accepted.connect(settings_accepted)
     wb.tb_key_test1.clicked.connect(lambda: api_key_test(TR.RED, wb.le_key_1.text()))
     wb.tb_key_test2.clicked.connect(lambda: api_key_test(TR.OPS, wb.le_key_2.text()))

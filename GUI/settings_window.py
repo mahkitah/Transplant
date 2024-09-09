@@ -14,7 +14,6 @@ class SettingsWindow(QDialog):
 
         bottom_row = QHBoxLayout()
         bottom_row.addStretch()
-        bottom_row.addWidget(wb.pb_cancel)
         bottom_row.addWidget(wb.pb_ok)
 
         # main
