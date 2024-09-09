@@ -25,6 +25,7 @@ no_img = 'No img in source'
 img_white = 'source img whitelisted'
 trying = 'trying'
 rehost_failed = "Failed. Using source url"
+permission_error = 'Permission error. Folder skipped: '
 
 # Job
 no_src_tr = 'No valid source tracker could be established'

@@ -1,6 +1,7 @@
-from pathlib import Path
 import logging
+from pathlib import Path
 from hashlib import sha1
+from typing import Iterator
 from urllib.parse import urlparse
 
 from bcoding import bencode, bdecode
@@ -14,6 +15,18 @@ from lib.info_2_upl import TorInfo2UplData
 from lib.lean_torrent import Torrent
 
 report = logging.getLogger('tr.core')
+
+
+def subdirs_gen(path: Path, maxlevel=1, level=1) -> Iterator[Path]:
+    for p in path.iterdir():
+        if p.is_dir():
+            yield p
+            if level < maxlevel:
+                try:
+                    yield from subdirs_gen(p, maxlevel=maxlevel, level=level + 1)
+                except PermissionError:
+                    report.debug(f'{tp_text.permission_error} {p}')
+                    continue
 
 
 class JobCreationError(Exception):
@@ -107,7 +120,7 @@ class Transplanter:
 
         if self.deep_search:
             self.subdir_store = {}
-            self.subdir_gen = utils.subdirs_gen(self.data_dir, maxlevel=self.deep_search_level)
+            self.subdir_gen = subdirs_gen(self.data_dir, maxlevel=self.deep_search_level)
 
         self.inf_2_upl = TorInfo2UplData(img_rehost, whitelist, rel_descr_templ, rel_descr_own_templ,
                                          add_src_descr, src_descr_templ)
