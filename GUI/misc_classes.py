@@ -30,8 +30,6 @@ class ClickableLabel(QLabel):
 
 
 class Application(QApplication):
-    # scheme_changed = pyqtSignal()
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.scheme = None
@@ -45,12 +43,11 @@ class Application(QApplication):
     def scheme_eval(self):
         style = self.style().name()
         cur_scheme = self.styleHints().colorScheme()
-        if not cur_scheme == Qt.ColorScheme.Dark or style == 'windowsvista':
+        if cur_scheme is not Qt.ColorScheme.Dark or style == 'windowsvista':
             scheme = Qt.ColorScheme.Light
         else:
             scheme = Qt.ColorScheme.Dark
         if scheme != self.scheme:
-            # self.scheme_changed.emit()
             self.scheme = scheme
 
 
