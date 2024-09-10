@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 from bcoding import bencode, bdecode
 
 from gazelle import upload
-from gazelle.tracker_data import TR, Encoding, BAD_RED_ENCODINGS
+from gazelle.tracker_data import TR, Encoding, BAD_RED_ENCODINGS, ArtistType
 from gazelle.api_classes import sleeve, BaseApi, OpsApi
 from gazelle.torrent_info import TorrentInfo
 from lib import utils, tp_text
@@ -293,6 +293,23 @@ class Transplanter:
             report.warning(tp_text.merged)
         if 'delete.this.tag' in new_tor_info.tags:
             report.warning(tp_text.delete_this_tag)
+
+        red_info = None
+        for i in (self.tor_info, new_tor_info):
+            if i.src_tr is TR.RED:
+                red_info = i
+                break
+        assert red_info
+
+        mismatch = []
+        for a_type in ArtistType:
+            if a_type is ArtistType.Arranger and ArtistType.Arranger not in red_info.artist_data:
+                continue
+            if len(self.tor_info.artist_data[a_type]) != len(new_tor_info.artist_data[a_type]):
+                mismatch.append(a_type.name)
+
+        if mismatch:
+            report.warning(f"{tp_text.artist_mism} {', '.join(mismatch)}")
 
     def get_dtor(self, files: upload.Files, src_api: BaseApi):
         if self.job.new_dtor:

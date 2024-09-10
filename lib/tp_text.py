@@ -11,9 +11,6 @@ bad_bitr = 'bitrate too low for RED'
 split_warn = 'Split -> Unknown. Please edit on RED'
 dtor_saved = 'New .torrent saved to:'
 dtor_deleted = '.torrent deleted from scan dir'
-log_score_dif = 'Log scores different: {} - {}'
-merged = 'Probably merged into an existing group'
-delete_this_tag = "Group has a 'delete.this.tag'"
 missing = "Can't find:"
 no_log = "No logs found"
 log_count_wrong = 'Torrent has {} logs, {} found'
@@ -26,6 +23,11 @@ img_white = 'source img whitelisted'
 trying = 'trying'
 rehost_failed = "Failed. Using source url"
 permission_error = 'Permission error. Folder skipped: '
+# post check
+log_score_dif = 'Log scores different: {} - {}'
+merged = 'Probably merged into an existing group'
+delete_this_tag = "Group has a 'delete.this.tag'"
+artist_mism = 'Artist count mismatch in'
 
 # Job
 no_src_tr = 'No valid source tracker could be established'
