@@ -70,7 +70,6 @@ class UploadData:
         self.src_tr: TR | None = None
 
     def _get_field(self, name: str, dest: TR):
-
         if name == 'rel_type':
             return self.rel_type.tracker_value(dest)
         if name == 'encoding':
@@ -81,7 +80,6 @@ class UploadData:
         return getattr(self, name)
 
     def upl_dict(self, dest: TR, dest_group=None):
-
         field_map = FIELD_MAPPING['edition'].copy()
         upl_data = {'type': 0}
 
