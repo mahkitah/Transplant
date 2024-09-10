@@ -11,7 +11,7 @@ from GUI import gui_text
 from lib.tp_text import version
 from lib.img_rehost import IH
 from GUI.misc_classes import (TPTextEdit, CyclingTabBar, FolderSelectBox, IniSettings, TempPopUp, TTfilter,
-                              ColorExample, PatientLineEdit, ThemeIcon, StyleSelecter, ClickableLabel)
+                              ColorExample, PatientLineEdit, ThemeIcon, StyleSelecter, ClickableLabel, PButton)
 from GUI.mv_classes import JobModel, JobView, RehostModel, RehostTable
 
 TYPE_MAP = {
@@ -202,23 +202,23 @@ class WidgetBank:
         self.job_buttons = QWidget()
         self.result_buttons = QWidget()
         self.result_buttons.hide()
-        self.pb_clear_j = QPushButton(gui_text.pb_clear)
+        self.pb_clear_j = PButton(gui_text.pb_clear)
         self.pb_clear_j.setEnabled(False)
-        self.pb_clear_r = QPushButton(gui_text.pb_clear)
+        self.pb_clear_r = PButton(gui_text.pb_clear)
         self.pb_clear_r.setEnabled(False)
-        self.pb_rem_sel = QPushButton(gui_text.pb_rem_sel)
+        self.pb_rem_sel = PButton(gui_text.pb_rem_sel)
         self.pb_rem_sel.setEnabled(False)
-        self.pb_crop = QPushButton(gui_text.pb_crop)
+        self.pb_crop = PButton(gui_text.pb_crop)
         self.pb_crop.setEnabled(False)
-        self.pb_del_sel = QPushButton(gui_text.pb_del_sel)
+        self.pb_del_sel = PButton(gui_text.pb_del_sel)
         self.pb_del_sel.setEnabled(False)
-        self.pb_rem_tr1 = QPushButton(gui_text.pb_rem_tr1)
+        self.pb_rem_tr1 = PButton(gui_text.pb_rem_tr1)
         self.pb_rem_tr1.setEnabled(False)
-        self.pb_rem_tr2 = QPushButton(gui_text.pb_rem_tr2)
+        self.pb_rem_tr2 = PButton(gui_text.pb_rem_tr2)
         self.pb_rem_tr2.setEnabled(False)
-        self.pb_open_tsavedir = QPushButton(gui_text.pb_open_tsavedir)
+        self.pb_open_tsavedir = PButton(gui_text.pb_open_tsavedir)
         self.pb_open_tsavedir.setEnabled(False)
-        self.pb_open_upl_urls = QPushButton(gui_text.pb_open_upl_urls)
+        self.pb_open_upl_urls = PButton(gui_text.pb_open_upl_urls)
         self.pb_open_upl_urls.setEnabled(False)
         self.pb_go = QPushButton()
         self.pb_go.setEnabled(False)

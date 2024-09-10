@@ -2,7 +2,7 @@ import os
 import re
 
 from PyQt6.QtWidgets import (QFrame, QTextEdit, QComboBox, QFileDialog, QLineEdit, QTabBar, QVBoxLayout, QLabel,
-                             QTextBrowser, QSizePolicy, QApplication, QStyleFactory, QToolButton)
+                             QTextBrowser, QSizePolicy, QApplication, QStyleFactory, QToolButton, QPushButton)
 from PyQt6.QtGui import QIcon, QAction, QIconEngine
 from PyQt6.QtCore import Qt, QObject, QEvent, pyqtSignal, QSettings, QTimer
 
@@ -19,6 +19,12 @@ class TTfilter(QObject):
         if event.type() == QEvent.Type.ToolTip and not self.tt_enabled:
             return True
         return False
+
+
+class PButton(QPushButton):
+    def animateClick(self):
+        if self.isVisible():
+            super().animateClick()
 
 
 class ClickableLabel(QLabel):
