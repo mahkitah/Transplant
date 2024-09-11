@@ -211,7 +211,8 @@ class OpsApi(KeyApi):
 
         return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
 
-def sleeve(trckr: TR, **kwargs) -> RedApi | OpsApi:
+
+def sleeve(trckr: TR, **kwargs):
     api_map = {
         TR.RED: RedApi,
         TR.OPS: OpsApi

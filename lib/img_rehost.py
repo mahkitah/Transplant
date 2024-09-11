@@ -28,9 +28,9 @@ def imgbb_rehost(img_link, key):
 
 
 class IH(Enum):
-    Ra = member(ra_rehost)
-    PTPimg = member(ptpimg_rehost)
-    ImgBB = member(imgbb_rehost)
+    Ra = (ra_rehost,)
+    PTPimg = (ptpimg_rehost,)
+    ImgBB = (imgbb_rehost,)
 
     def __new__(cls, func):
         obj = object.__new__(cls)

@@ -9,7 +9,6 @@ from bcoding import bencode, bdecode
 from gazelle import upload
 from gazelle.tracker_data import TR, Encoding, BAD_RED_ENCODINGS, ArtistType
 from gazelle.api_classes import sleeve, BaseApi, OpsApi
-from gazelle.torrent_info import TorrentInfo
 from lib import utils, tp_text
 from lib.info_2_upl import TorInfo2UplData
 from lib.lean_torrent import Torrent
@@ -112,7 +111,7 @@ class Transplanter:
         self.data_dir: Path = data_dir
         self.deep_search = deep_search
         self.deep_search_level = deep_search_level
-        self.dtor_save_dir: Path | None = dtor_save_dir
+        self.dtor_save_dir = dtor_save_dir
         self.save_dtors = save_dtors
         self.del_dtors = del_dtors
         self.file_check = file_check
@@ -125,7 +124,7 @@ class Transplanter:
         self.inf_2_upl = TorInfo2UplData(img_rehost, whitelist, rel_descr_templ, rel_descr_own_templ,
                                          add_src_descr, src_descr_templ)
         self.job = None
-        self.tor_info: TorrentInfo | None = None
+        self.tor_info = None
         self._torrent_folder_path = None
         self.lrm = False
         self.local_is_stripped = False
@@ -138,11 +137,6 @@ class Transplanter:
 
         src_api = self.api_map[self.job.src_tr]
         if not self.get_torinfo(src_api):
-            return False
-        self.tor_info: TorrentInfo = src_api.torrent_info(**info_kwarg)
-
-        if not self.tor_info.folder_name:
-            report.error(tp_text.no_torfolder)
             return False
 
         if not self.job.display_name:
@@ -159,22 +153,19 @@ class Transplanter:
         upl_data = self.inf_2_upl.translate(self.tor_info, src_api.account_info['id'], self.job.dest_group)
         self.get_dtor(upl_files, src_api)
 
-        saul_goodman = True
-        for dest_tr in self.job.dest_trs:
+        dest_tr = self.job.dest_trs
+        dest_api = self.api_map[dest_tr]
+        data_dict = upl_data.upl_dict(dest_tr, self.job.dest_group)
 
-            dest_api = self.api_map[dest_tr]
-            data_dict = upl_data.upl_dict(dest_tr, self.job.dest_group)
+        files_list = upl_files.files_list(dest_api.announce, dest_tr.name, u_strip=self.strip_tor)
 
-            files_list = upl_files.files_list(dest_api.announce, dest_tr.name, u_strip=self.strip_tor)
-
-            report.info(f"{tp_text.uploading} {dest_tr.name}")
-            try:
-                new_id, new_group, new_url = dest_api.upload(data_dict, files_list)
-                report.log(25, f"{tp_text.upl_success} {new_url}")
-            except Exception:
-                saul_goodman = False
-                report.exception(f"{tp_text.upl_fail}")
-                continue
+        report.info(f"{tp_text.uploading} {dest_tr.name}")
+        try:
+            new_id, new_group, new_url = dest_api.upload(data_dict, files_list)
+            report.log(25, f"{tp_text.upl_success} {new_url}")
+        except Exception:
+            report.exception(f"{tp_text.upl_fail}")
+            return False
 
         if self.post_compare:
             self.compare_upl_info(src_api, dest_api, new_id)
@@ -182,9 +173,6 @@ class Transplanter:
         if self.save_dtors:
             self.save_dtorrent(upl_files, new_url)
             report.info(f"{tp_text.dtor_saved} {self.dtor_save_dir}")
-
-        if not saul_goodman:
-            return False
 
         if self.del_dtors and self.job.scanned:
             self.job.dtor_path.unlink()
@@ -374,7 +362,7 @@ class Transplanter:
 
         return t.data
 
-    def check_path(self, rel_path: Path) -> Path | None:
+    def check_path(self, rel_path: Path):
         stripped = Path(str(rel_path).translate(utils.uni_t_table))
 
         has_lrm = rel_path != stripped
