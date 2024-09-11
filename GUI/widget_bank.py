@@ -1,7 +1,8 @@
 from functools import partial
 
 from PyQt6.QtWidgets import (QApplication, QWidget, QTextEdit, QPushButton, QToolButton, QRadioButton, QButtonGroup,
-                             QSplitter, QSizePolicy, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox, QStackedLayout)
+                             QSplitter, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox, QStackedLayout,
+                             QTextBrowser, QSizePolicy)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 
@@ -9,8 +10,8 @@ from gazelle.tracker_data import TR
 from GUI import gui_text
 from lib.tp_text import version
 from lib.img_rehost import IH
-from GUI.misc_classes import (TPTextEdit, CyclingTabBar, FolderSelectBox, ResultBrowser, IniSettings, TempPopUp,
-                              ColorExample, PatientLineEdit, ThemeIcon, StyleSelecter, ClickableLabel)
+from GUI.misc_classes import (TPTextEdit, CyclingTabBar, FolderSelectBox, IniSettings, TempPopUp, TTfilter,
+                              ColorExample, PatientLineEdit, ThemeIcon, StyleSelecter, ClickableLabel, PButton)
 from GUI.mv_classes import JobModel, JobView, RehostModel, RehostTable
 
 TYPE_MAP = {
@@ -78,6 +79,7 @@ class WidgetBank:
         self.user_input_elements()
         self.main_window = None
         self.settings_window = None
+        self.tt_filter = TTfilter()
         self.main_widgets()
         self.settings_window_widgets()
 
@@ -154,6 +156,7 @@ class WidgetBank:
         self.topwidget = QWidget()
         self.bottomwidget = QWidget()
         self.splitter = QSplitter(Qt.Orientation.Vertical)
+        self.splitter_handle = None
 
         self.tb_open_config = QToolButton()
         self.tb_open_config.setIcon(ThemeIcon('gear.svg'))
@@ -184,7 +187,8 @@ class WidgetBank:
         self.job_data = JobModel(self.config)
         self.job_view = JobView(self.job_data)
         self.selection = self.job_view.selectionModel()
-        self.result_view = ResultBrowser()
+        self.result_view = QTextBrowser()
+        self.result_view.setOpenExternalLinks(True)
 
         self.button_stack = QStackedLayout()
         self.go_stop_stack = QStackedLayout()
@@ -198,28 +202,27 @@ class WidgetBank:
         self.job_buttons = QWidget()
         self.result_buttons = QWidget()
         self.result_buttons.hide()
-        self.pb_clear_j = QPushButton(gui_text.pb_clear)
+        self.pb_clear_j = PButton(gui_text.pb_clear)
         self.pb_clear_j.setEnabled(False)
-        self.pb_clear_r = QPushButton(gui_text.pb_clear)
+        self.pb_clear_r = PButton(gui_text.pb_clear)
         self.pb_clear_r.setEnabled(False)
-        self.pb_rem_sel = QPushButton(gui_text.pb_rem_sel)
+        self.pb_rem_sel = PButton(gui_text.pb_rem_sel)
         self.pb_rem_sel.setEnabled(False)
-        self.pb_crop = QPushButton(gui_text.pb_crop)
+        self.pb_crop = PButton(gui_text.pb_crop)
         self.pb_crop.setEnabled(False)
-        self.pb_del_sel = QPushButton(gui_text.pb_del_sel)
+        self.pb_del_sel = PButton(gui_text.pb_del_sel)
         self.pb_del_sel.setEnabled(False)
-        self.pb_rem_tr1 = QPushButton(gui_text.pb_del_tr1)
+        self.pb_rem_tr1 = PButton(gui_text.pb_rem_tr1)
         self.pb_rem_tr1.setEnabled(False)
-        self.pb_rem_tr2 = QPushButton(gui_text.pb_del_tr2)
+        self.pb_rem_tr2 = PButton(gui_text.pb_rem_tr2)
         self.pb_rem_tr2.setEnabled(False)
-        self.pb_open_tsavedir = QPushButton(gui_text.pb_open_tsavedir)
+        self.pb_open_tsavedir = PButton(gui_text.pb_open_tsavedir)
         self.pb_open_tsavedir.setEnabled(False)
-        self.pb_open_upl_urls = QPushButton(gui_text.pb_open_upl_urls)
+        self.pb_open_upl_urls = PButton(gui_text.pb_open_upl_urls)
         self.pb_open_upl_urls.setEnabled(False)
-        self.tb_go = QToolButton()
-        self.tb_go.setEnabled(False)
-        self.tb_go.setIcon(QIcon(':/switch.svg'))
-        self.tb_go.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+        self.pb_go = QPushButton()
+        self.pb_go.setEnabled(False)
+        self.pb_go.setIcon(QIcon(':/switch.svg'))
 
         self.pb_stop = QPushButton(gui_text.pb_stop)
         self.pb_stop.hide()
@@ -236,8 +239,15 @@ class WidgetBank:
         self.config_tabs.addTab(self.cust_descr, gui_text.desc_tab)
         self.config_tabs.addTab(self.looks, gui_text.looks_tab)
 
-        self.pb_cancel = QPushButton(gui_text.pb_cancel)
         self.pb_ok = QPushButton(gui_text.pb_ok)
+
+        # main tab
+        self.tb_key_test1 = QToolButton()
+        self.tb_key_test1.setText(gui_text.tb_test)
+        self.tb_key_test1.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+        self.tb_key_test2 = QToolButton()
+        self.tb_key_test2.setText(gui_text.tb_test)
+        self.tb_key_test2.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
 
         # rehost tab
         self.rh_on_off_container = QWidget()
@@ -255,9 +265,8 @@ class WidgetBank:
         # looks tab
         self.l_job_list = QLabel(gui_text.l_job_list)
         self.l_colors = QLabel(gui_text.l_colors)
-        self.l_colors.setTextFormat(Qt.TextFormat.RichText)
         self.l_colors.setOpenExternalLinks(True)
-        self.color_examples = ColorExample()
+        self.color_examples = ColorExample(self.config)
         self.color_examples.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
         self.color_examples.setSizeAdjustPolicy(QTextEdit.SizeAdjustPolicy.AdjustToContents)
 
@@ -293,7 +302,7 @@ class WidgetBank:
                 setattr(self, label_name, lbl)
 
             if obj_type == FolderSelectBox:
-                obj.dialog_caption = getattr(gui_text, f'tt_{el_name}')
+                obj.dialog_caption = gui_text.tooltips[el_name]
                 self.fsbs.append(obj)
 
         self.le_key_1.setCursorPosition(0)

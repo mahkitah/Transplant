@@ -15,8 +15,6 @@ class IntRowItemSelectionModel(QItemSelectionModel):
 
 
 class JobView(QTableView):
-    key_override_sig = pyqtSignal(QKeyEvent)
-
     def __init__(self, model):
         super().__init__()
         self.setModel(model)
@@ -35,7 +33,7 @@ class JobView(QTableView):
 
     def keyPressEvent(self, event: QKeyEvent):
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.key() == Qt.Key.Key_Tab:
-            self.key_override_sig.emit(event)
+            event.ignore()
         else:
             super().keyPressEvent(event)
 
@@ -140,7 +138,7 @@ class JobModel(QAbstractTableModel):
                 return job.dest_group
 
         if role == Qt.ItemDataRole.CheckStateRole and column == 2:
-            return Qt.CheckState.Checked if job.new_dtor else Qt.CheckState.Unchecked
+            return Qt.CheckState(job.new_dtor * 2)
 
         if role == Qt.ItemDataRole.DecorationRole and column == 0 and not no_icon:
             return self.icons[job.src_tr]
@@ -186,23 +184,25 @@ class JobModel(QAbstractTableModel):
             job.dest_group = value or None
 
         if column == 2 and role == Qt.ItemDataRole.CheckStateRole:
-            job.new_dtor = Qt.CheckState(value) == Qt.CheckState.Checked
+            value: int
+            job.new_dtor = Qt.CheckState(value) is Qt.CheckState.Checked
 
         return True
 
     def header_double_clicked(self, column: int):
-        if column == 2:
-            allchecked = all(j.new_dtor for j in self.jobs)
+        if column != 2:
+            return
+        allchecked = all(j.new_dtor for j in self.jobs)
 
-            for i, job in enumerate(self.jobs):
-                index = self.index(i, column)
-                if not allchecked:
-                    if not job.new_dtor:
-                        job.new_dtor = True
-                        self.dataChanged.emit(index, index, [])
-                else:
-                    job.new_dtor = False
+        for i, job in enumerate(self.jobs):
+            index = self.index(i, column)
+            if not allchecked:
+                if not job.new_dtor:
+                    job.new_dtor = True
                     self.dataChanged.emit(index, index, [])
+            else:
+                job.new_dtor = False
+                self.dataChanged.emit(index, index, [])
 
     def append_jobs(self, new_jobs: list):
         if not new_jobs:
@@ -226,7 +226,7 @@ class JobModel(QAbstractTableModel):
         yield numbers[-1], numbers[start_idx]
 
     def clear(self):
-        self.remove_jobs(0, self.rowCount(None) - 1)
+        self.remove_jobs(0, self.rowCount() - 1)
 
     def remove_jobs(self, first, last):
         self.beginRemoveRows(QModelIndex(), first, last)
@@ -285,9 +285,9 @@ class RehostModel(QAbstractTableModel):
             return super().flags(index)
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = 0):
-        if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
+        if role == Qt.ItemDataRole.DisplayRole and orientation is Qt.Orientation.Horizontal:
             return self.column_names[section]
-        if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Vertical:
+        if role == Qt.ItemDataRole.DisplayRole and orientation is Qt.Orientation.Vertical:
             return IH(section).prio + 1
         else:
             return super().headerData(section, orientation, role)
@@ -301,7 +301,9 @@ class RehostModel(QAbstractTableModel):
                 return False
             host.key = value
         if column == 0 and role == Qt.ItemDataRole.CheckStateRole:
-            host.enabled = True if value == Qt.CheckState.Checked.value else False
+            value: int
+            host.enabled = Qt.CheckState(value) is Qt.CheckState.Checked
+
         self.dataChanged.emit(index, index, [role])
         return True
 

@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 from bcoding import bencode, bdecode
-from gazelle.tracker_data import TR, ReleaseType, Encoding, BAD_RED_ENCODINGS
+from gazelle.tracker_data import TR, ReleaseType
 from lib import tp_text
 from lib .utils import uni_t_table
 
@@ -70,7 +70,6 @@ class UploadData:
         self.src_tr = None
 
     def _get_field(self, name: str, dest: TR):
-
         if name == 'rel_type':
             return self.rel_type.tracker_value(dest)
         if name == 'encoding':
@@ -81,7 +80,6 @@ class UploadData:
         return getattr(self, name)
 
     def upl_dict(self, dest: TR, dest_group=None):
-
         field_map = FIELD_MAPPING['edition'].copy()
         upl_data = {'type': 0}
 
@@ -104,20 +102,17 @@ class UploadData:
             if value:
                 upl_data[v] = value
 
-        if dest == TR.RED:
-            if (self.encoding in BAD_RED_ENCODINGS or
-                    (self.encoding == Encoding.Other and self.other_bitrate < 192)):
-                raise ValueError(tp_text.bad_bitr)
-            if self.rel_type == ReleaseType.Sampler:
+        if dest is TR.RED:
+            if self.rel_type is ReleaseType.Sampler:
                 upl_data['releasetype'] = 7
-            if self.rel_type == ReleaseType.Split:
+            if self.rel_type is ReleaseType.Split:
                 upl_data['releasetype'] = 21
                 report.warning(tp_text.split_warn)
             if self.unknown:
                 upl_data['remaster_year'] = '1990'
                 upl_data['remaster_title'] = 'Unknown release year'
 
-        elif dest == TR.OPS:
+        elif dest is TR.OPS:
             upl_data['workaround_broken_html_entities'] = 0
             if self.medium == 'Blu-Ray':
                 upl_data['media'] = 'BD'

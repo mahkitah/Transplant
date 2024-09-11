@@ -1,28 +1,37 @@
 version = (2, 5, 5)
 # progress report
-requesting = "Requesting torrent info"
+requesting = "Requesting torrent info:"
+done = 'Done'
+fail = 'Fail'
 no_torfolder = 'Torrent has no folder'
-upl1 = 'Uploading to'
-upl2 = 'Upload successful:'
-upl3 = 'Upload failed:'
-bad_bitr = 'bitrate not allowed on RED'
+uploading = 'Uploading to'
+upl_success = 'Upload successful:'
+upl_fail = 'Upload failed:'
+bad_bitr = 'bitrate too low for RED'
 split_warn = 'Split -> Unknown. Please edit on RED'
 dtor_saved = 'New .torrent saved to:'
 dtor_deleted = '.torrent deleted from scan dir'
-log_score_dif = 'Log scores different: {} - {}'
-merged = 'Probably merged into an existing group'
 missing = "Can't find:"
 no_log = "No logs found"
 log_count_wrong = 'Torrent has {} logs, {} found'
 new_tor = 'Generating new torrent'
 tor_downed = '.torrent downloaded from {}'
 f_checked = 'Files checked'
-img_rehosted = "Image rehosted:"
-rehost_failed = "Image rehost failed. Using source url"
+rehost = 'Img rehost:'
+no_img = 'No img in source'
+img_white = 'source img whitelisted'
+trying = 'trying'
+rehost_failed = "Failed. Using source url"
+permission_error = 'Permission error. Folder skipped: '
+# post check
+log_score_dif = 'Log scores different: {} - {}'
+merged = 'Probably merged into an existing group'
+delete_this_tag = "Group has a 'delete.this.tag'"
+artist_mism = 'Artist count mismatch in'
 
 # Job
 no_src_tr = 'No valid source tracker could be established'
-id_and_hash = 'Tor id AND hash'
+id_xor_hash = 'Tor id XOR hash fail'
 not_dtor = 'Not a proper .torrent file'
 
 # CLI

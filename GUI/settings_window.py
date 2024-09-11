@@ -11,12 +11,9 @@ class SettingsWindow(QDialog):
         super().__init__(parent)
         self.setWindowTitle(gui_text.settings_window_title)
         self.setWindowIcon(QIcon(':/gear.svg'))
-        self.layout()
 
-    def layout(self):
         bottom_row = QHBoxLayout()
         bottom_row.addStretch()
-        bottom_row.addWidget(wb.pb_cancel)
         bottom_row.addWidget(wb.pb_ok)
 
         # main
@@ -39,8 +36,16 @@ class SettingsWindow(QDialog):
         settings_form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         settings_form.setVerticalSpacing(15)
         settings_form.setHorizontalSpacing(15)
-        settings_form.addRow(wb.l_key_1, wb.le_key_1)
-        settings_form.addRow(wb.l_key_2, wb.le_key_2)
+        key_1 = QHBoxLayout()
+        key_1.setSpacing(5)
+        key_1.addWidget(wb.le_key_1)
+        key_1.addWidget(wb.tb_key_test1)
+        key_2 = QHBoxLayout()
+        key_2.setSpacing(5)
+        key_2.addWidget(wb.le_key_2)
+        key_2.addWidget(wb.tb_key_test2)
+        settings_form.addRow(wb.l_key_1, key_1)
+        settings_form.addRow(wb.l_key_2, key_2)
         settings_form.addRow(wb.l_data_dir, data_dir)
         settings_form.addRow(wb.l_scan_dir, wb.fsb_scan_dir)
         settings_form.addRow(wb.l_save_dtors, save_dtor)
@@ -53,6 +58,7 @@ class SettingsWindow(QDialog):
         # rehost
         toprow = QFormLayout()
         toprow.setLabelAlignment(Qt.AlignmentFlag.AlignRight)
+        toprow.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         toprow.addRow(wb.l_rehost, wb.chb_rehost)
 
         white_l_row = QFormLayout()
@@ -132,7 +138,7 @@ class SettingsWindow(QDialog):
 
         # Total
         total_layout = QVBoxLayout(self)
-        total_layout.setContentsMargins(0, 0, 10, 10)
+        total_layout.setContentsMargins(5, 5, 10, 10)
         total_layout.addWidget(wb.config_tabs)
         total_layout.addSpacing(20)
         total_layout.addLayout(bottom_row)

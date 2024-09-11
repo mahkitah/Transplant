@@ -28,15 +28,20 @@ def imgbb_rehost(img_link, key):
 
 
 class IH(Enum):
-    Ra = 0
-    PTPimg = 1
-    ImgBB = 2
+    Ra = member(ra_rehost)
+    PTPimg = member(ptpimg_rehost)
+    ImgBB = member(imgbb_rehost)
 
-    def __init__(self, value):
+    def __new__(cls, func):
+        obj = object.__new__(cls)
+        obj._value_ = len(cls.__members__)
+        return obj
+
+    def __init__(self, func):
         self.key = ''
         self.enabled = False
-        self.prio = value
-        self.func = globals()[f'{self.name.lower()}_rehost']
+        self.prio = self.value
+        self.func = func
 
     @property
     def key(self):
@@ -71,16 +76,3 @@ class IH(Enum):
     @classmethod
     def prioritised(cls) -> list:
         return sorted(cls, key=lambda m: m.prio)
-
-    @classmethod
-    def rehost(cls, img_link: str) -> str:
-        for host in cls.prioritised():
-            if not host.enabled:
-                continue
-            args = [img_link]
-            if host.key:
-                args.append(host.key)
-            try:
-                return host.func(*args)
-            except Exception:
-                continue

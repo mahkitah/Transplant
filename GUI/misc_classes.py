@@ -2,9 +2,29 @@ import os
 import re
 
 from PyQt6.QtWidgets import (QFrame, QTextEdit, QComboBox, QFileDialog, QLineEdit, QTabBar, QVBoxLayout, QLabel,
-                             QTextBrowser, QSizePolicy, QApplication, QStyleFactory)
+                             QTextBrowser, QSizePolicy, QApplication, QStyleFactory, QToolButton, QPushButton)
 from PyQt6.QtGui import QIcon, QAction, QIconEngine
-from PyQt6.QtCore import Qt, pyqtSignal, QSettings, QTimer
+from PyQt6.QtCore import Qt, QObject, QEvent, pyqtSignal, QSettings, QTimer
+
+
+class TTfilter(QObject):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.tt_enabled = False
+
+    def set_tt_enabled(self, enabled: int):
+        self.tt_enabled = bool(enabled)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.ToolTip and not self.tt_enabled:
+            return True
+        return False
+
+
+class PButton(QPushButton):
+    def animateClick(self):
+        if self.isVisible():
+            super().animateClick()
 
 
 class ClickableLabel(QLabel):
@@ -16,8 +36,6 @@ class ClickableLabel(QLabel):
 
 
 class Application(QApplication):
-    scheme_changed = pyqtSignal()
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.scheme = None
@@ -31,12 +49,11 @@ class Application(QApplication):
     def scheme_eval(self):
         style = self.style().name()
         cur_scheme = self.styleHints().colorScheme()
-        if not cur_scheme == Qt.ColorScheme.Dark or style == 'windowsvista':
+        if cur_scheme is not Qt.ColorScheme.Dark or style == 'windowsvista':
             scheme = Qt.ColorScheme.Light
         else:
             scheme = Qt.ColorScheme.Dark
         if scheme != self.scheme:
-            self.scheme_changed.emit()
             self.scheme = scheme
 
 
@@ -105,48 +122,35 @@ class PatientLineEdit(QLineEdit):
 
 
 class ColorExample(QTextBrowser):
-    texts = (
-        'This is normal text',
-        'This may require your attention',
-        'Oops, something went bad',
-        'That went well',
-        'http://example.com/'
-    )
+    css_changed = pyqtSignal(str)
 
-    def __init__(self):
+    texts = ('This is normal text<br>'
+             '<span class=warning >This may require your attention</span><br>'
+             '<span class=bad >Oops, something went bad</span><br>'
+             '<span class=good >That went well</span><br>'
+             '<a href="https://example.com">example.com</a>')
+
+    def __init__(self, config: QSettings):
         super().__init__()
-        self.lines = list(self.texts)
-        link = self.lines[4]
-        self.lines[4] = f'<a href="{link}">{link}</a>'
+        self.config = config
         self.current_colors = {i: '_' for i in range(1, 5)}
+
+    @property
+    def css(self):
+        return (f'.warning {{color: {self.current_colors[1]}}}'
+                f'.bad {{color: {self.current_colors[2]}}}'
+                f'.good {{color: {self.current_colors[3]}}}'
+                f'a {{color: {self.current_colors[4]}}}')
 
     def update_colors(self, color: str, index):
         color = ''.join(color.split())
         if color == self.current_colors[index]:
             return
         self.current_colors[index] = color
-
-        style = f' style="color: {color}"'  # if color else ''
-
-        line = self.texts[index]
-        if index == 4:
-            line = f'<a href="{line}"{style}>{line}</a>'
-        else:
-            line = f'<span{style}>{line}</span>'
-        self.lines[index] = line
-        self.clear()
-        self.append('<br>'.join(self.lines))
-
-
-class ResultBrowser(QTextBrowser):
-    def __init__(self):
-        super().__init__()
-        self.setOpenExternalLinks(True)
-        self.def_format = self.currentCharFormat()
-
-    def append(self, text: str) -> None:
-        self.setCurrentCharFormat(self.def_format)
-        super().append(text)
+        css = self.css
+        self.css_changed.emit(css)
+        self.document().setDefaultStyleSheet(css)
+        self.setHtml(self.texts)
 
 
 class StyleSelecter(QComboBox):
@@ -190,10 +194,11 @@ class FolderSelectBox(HistoryBox):
         self.setMaxCount(8)
         self.setSizePolicy(QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Preferred)
         self.setSizeAdjustPolicy(self.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
-        self.folder_button = QAction()
-        self.folder_button.setIcon(ThemeIcon('open-folder'))
-        self.folder_button.triggered.connect(self.select_folder)
-        self.lineEdit().addAction(self.folder_button, QLineEdit.ActionPosition.TrailingPosition)
+        self.folder_action = QAction()
+        self.folder_action.setIcon(ThemeIcon('open-folder'))
+        self.folder_action.triggered.connect(self.select_folder)
+        self.lineEdit().addAction(self.folder_action, QLineEdit.ActionPosition.TrailingPosition)
+        self.folder_button = self.lineEdit().findChild(QToolButton)
         self.dialog_caption = None
 
     def select_folder(self):
@@ -204,7 +209,10 @@ class FolderSelectBox(HistoryBox):
         self.add(selected)
 
     def setToolTip(self, txt):
-        self.folder_button.setToolTip(txt)
+        self.folder_action.setToolTip(txt)
+
+    def installEventFilter(self, f):
+        self.folder_button.installEventFilter(f)
 
 
 class IniSettings(QSettings):
@@ -215,11 +223,11 @@ class IniSettings(QSettings):
         super().__init__(path, QSettings.Format.IniFormat)
 
     def setValue(self, key, value):
-        if type(value) == int:
+        if type(value) is int:
             value = f'#int({value})'
         # elif type(value) == bool:
         #     value = f'#bool({value})'
-        elif value == []:
+        elif isinstance(value, list) and not value:
             value = '#empty list'
 
         super().setValue(key, value)

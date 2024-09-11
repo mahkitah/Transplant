@@ -10,7 +10,7 @@ import requests
 from requests.exceptions import JSONDecodeError
 
 from lib import tp_text
-from gazelle import torrent_info
+from gazelle.torrent_info import TorrentInfo
 from gazelle.tracker_data import TR
 
 
@@ -51,7 +51,7 @@ class BaseApi:
 
     def get_account_info(self):
         r = self.request('index')
-        return {k: v for k, v in r.copy().items() if k in ('authkey', 'passkey', 'id', 'username')}
+        return {k: r[k] for k in ('authkey', 'passkey', 'id', 'username')}
 
     def request(self, url_suffix: str, data=None, files=None, **kwargs):
         url = self.url + url_suffix + '.php'
@@ -78,10 +78,9 @@ class BaseApi:
 
             raise RequestFailure(r_dict)
 
-    def torrent_info(self, **kwargs) -> torrent_info.TorrentInfo:
+    def torrent_info(self, **kwargs) -> TorrentInfo:
         r = self.request('torrent', **kwargs)
-
-        return torrent_info.tr_map[self.tr](r)
+        return TorrentInfo(r, self.tr)
 
     def upload(self, upl_data: dict, files: list):
         return self._uploader(upl_data, files)
@@ -107,6 +106,13 @@ class KeyApi(BaseApi):
 
     def upl_response_handler(self, r):
         raise NotImplementedError
+
+    def get_riplog(self, tor_id: int, log_id: int):
+        r: dict = self.request('riplog', id=tor_id, logid=log_id)
+        log_bytes = base64.b64decode(r['log'])
+        log_checksum = sha256(log_bytes).hexdigest()
+        assert log_checksum == r['log_sha256']
+        return log_bytes
 
 
 class CookieApi(BaseApi):
@@ -176,20 +182,22 @@ class RedApi(KeyApi):
         super().__init__(TR.RED, key=key)
 
     def _uploader(self, data: dict, files: list) -> (int, int, str):
-        unknown = False
-        if data.get('unknown'):
-            del data['unknown']
-            unknown = True
+        try:
+            unknown = data.pop('unknown')
+        except KeyError:
+            unknown = False
+
         torrent_id, group_id = super()._uploader(data, files)
+
         if unknown:
             try:
                 self.request('torrentedit', id=torrent_id, data={'unknown': True})
                 report.info(tp_text.upl_to_unkn)
             except (RequestFailure, requests.HTTPError) as e:
-                report.error(f'{tp_text.edit_fail}{str(e)}')
+                report.warning(f'{tp_text.edit_fail}{str(e)}')
         return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
 
-    def upl_response_handler(self, r: requests.Response) -> (int, int):
+    def upl_response_handler(self, r: dict) -> (int, int):
         return r.get('torrentid'), r.get('groupid')
 
 
@@ -203,15 +211,7 @@ class OpsApi(KeyApi):
 
         return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
 
-    def get_riplog(self, tor_id: int, log_id: int):
-        r: dict = self.request('riplog', id=tor_id, logid=log_id)
-        log_bytes = base64.b64decode(r['log'])
-        log_checksum = sha256(log_bytes).hexdigest()
-        assert log_checksum == r['log_sha256']
-        return log_bytes
-
-
-def sleeve(trckr: TR, **kwargs) -> BaseApi:
+def sleeve(trckr: TR, **kwargs) -> RedApi | OpsApi:
     api_map = {
         TR.RED: RedApi,
         TR.OPS: OpsApi
