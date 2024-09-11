@@ -338,6 +338,7 @@ class JobCollector:
             wb.job_data.append_jobs(self.jobs)
         elif empty_msg:
             wb.pop_up.pop_up(empty_msg)
+        wb.job_view.setFocus()
 
 
 def parse_paste_input():
