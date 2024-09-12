@@ -1,3 +1,11 @@
+2.5.6
+- New: Can use RED's new log download
+- New: Buttons for testing API-keys
+- New: delete.this.tag is not transplanted + warning if new upload has it
+- New: Improvements to progress messages
+- New: Warning for artist count mismatch
+- Old: Settings window cancel button retired
+- Fix: Deep search crashed on folders without access permission (they are skipped now)
 2.5.5
 - New: Deal with unicode directional markers in folder and file names
 - New: Warning if log count doesn't match site log count (OPS > RED only)

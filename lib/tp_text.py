@@ -1,4 +1,4 @@
-version = (2, 5, 5)
+version = (2, 5, 6)
 # progress report
 requesting = "Requesting torrent info:"
 done = 'Done'
