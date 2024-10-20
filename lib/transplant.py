@@ -401,5 +401,5 @@ class Transplanter:
         dtor = files.dtors[0].as_dict(u_strip=self.strip_tor)
         if comment:
             dtor['comment'] = comment
-        file_path = (self.dtor_save_dir / self.tor_info.folder_name).with_suffix('.torrent')
+        file_path = self.dtor_save_dir / (self.tor_info.folder_name + '.torrent')
         file_path.write_bytes(bencode(dtor))
