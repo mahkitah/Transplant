@@ -1,4 +1,5 @@
 from functools import partial
+from typing import Iterable
 
 from PyQt6.QtWidgets import QHeaderView, QTableView
 from PyQt6.QtGui import QIcon, QKeyEvent, QAction
@@ -7,6 +8,17 @@ from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex, QItem
 from GUI import gui_text
 from lib.img_rehost import IH
 from gazelle.tracker_data import TR
+
+try:
+    # pairwise = 3.10+
+    from itertools import pairwise
+except ImportError:
+    def pairwise(it: Iterable):
+        iterator = iter(it)
+        a = next(iterator, None)
+        for b in iterator:
+            yield a, b
+            a = b
 
 
 class IntRowItemSelectionModel(QItemSelectionModel):
@@ -214,16 +226,16 @@ class JobModel(QAbstractTableModel):
         self.endInsertRows()
 
     @staticmethod
-    def continuous_slices(numbers):
+    def continuous_slices(numbers: Iterable[int], reverse=False) -> list[int, int]:
+        numbers = sorted(numbers, reverse=reverse)
         if not numbers:
             return
-        numbers.sort(reverse=True)
-        start_idx = 0
-        for idx in range(1, len(numbers)):
-            if numbers[idx - 1] > (numbers[idx] + 1):
-                yield numbers[idx - 1], numbers[start_idx]
-                start_idx = idx
-        yield numbers[-1], numbers[start_idx]
+        start = numbers[0]
+        for a, b in pairwise(numbers):
+            if abs(a - b) > 1:
+                yield sorted((start, a))
+                start = b
+        yield sorted((start, numbers[-1]))
 
     def clear(self):
         self.remove_jobs(0, self.rowCount() - 1)
@@ -238,7 +250,7 @@ class JobModel(QAbstractTableModel):
         self.remove_jobs(i, i)
 
     def del_multi(self, indices):
-        for first, last in self.continuous_slices(indices):
+        for first, last in self.continuous_slices(indices, reverse=True):
             self.remove_jobs(first, last)
 
     def filter_for_attr(self, attr, value):
