@@ -93,7 +93,7 @@ def main_connections():
         lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(wb.fsb_dtor_save_dir.currentText())))
     wb.pb_go.clicked.connect(gogogo)
     wb.pb_open_upl_urls.clicked.connect(open_tor_urls)
-    wb.job_view.horizontalHeader().sectionDoubleClicked.connect(wb.job_data.header_double_clicked)
+    wb.job_view.horizontalHeader().sectionDoubleClicked.connect(job_view_header_double_clicked)
     wb.selection.selectionChanged.connect(lambda: wb.pb_rem_sel.setEnabled(wb.selection.hasSelection()))
     wb.selection.selectionChanged.connect(
         lambda: wb.pb_crop.setEnabled(0 < len(wb.selection.selectedRows()) < len(wb.job_data.jobs)))
@@ -499,6 +499,11 @@ def delete_selected():
         wb.pop_up.pop_up(gui_text.pop4.format(non_scanned, 's' if non_scanned > 1 else ''))
 
     wb.job_data.del_multi(row_list)
+
+
+def job_view_header_double_clicked(section: int):
+    if section == 2:
+        wb.job_data.nt_check_uncheck_all()
 
 
 def open_torrent_page(index: QModelIndex):
