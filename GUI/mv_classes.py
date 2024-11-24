@@ -201,20 +201,22 @@ class JobModel(QAbstractTableModel):
 
         return True
 
-    def header_double_clicked(self, column: int):
-        if column != 2:
+    def nt_check_uncheck_all(self):
+        if not self.jobs:
             return
-        allchecked = all(j.new_dtor for j in self.jobs)
-
+        column = 2
+        was_unchecked = []
         for i, job in enumerate(self.jobs):
-            index = self.index(i, column)
-            if not allchecked:
-                if not job.new_dtor:
-                    job.new_dtor = True
-                    self.dataChanged.emit(index, index, [])
-            else:
+            if job.new_dtor is False:
+                was_unchecked.append(i)
+                job.new_dtor = True
+        if was_unchecked:
+            for first, last in self.continuous_slices(was_unchecked):
+                self.dataChanged.emit(self.index(first, column), self.index(last, column), [])
+        else:  # all are checked
+            for job in self.jobs:
                 job.new_dtor = False
-                self.dataChanged.emit(index, index, [])
+            self.dataChanged.emit(self.index(0, column), self.index(len(self.jobs) - 1, column), [])
 
     def append_jobs(self, new_jobs: list):
         if not new_jobs:
