@@ -3,7 +3,7 @@ from enum import Enum, Flag, EnumMeta
 
 class TR(Flag):
     RED = {
-        'site': 'https://redacted.ch/',
+        'site': 'https://redacted.sh/',
         'tracker': 'https://flacsfor.me/{passkey}/announce',
         'favicon': 'pth.ico',
         'req_limit': 10
