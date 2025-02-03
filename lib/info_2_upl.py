@@ -48,8 +48,7 @@ class TorInfo2UplData:
         if not dest_group:
             self.parse_artists(tor_info, u_data)
             self.tags_to_string(tor_info, u_data)
-            if self.rehost_img:
-                self.do_img(tor_info, u_data)
+            self.do_img(tor_info, u_data)
 
         return u_data
 
@@ -108,6 +107,9 @@ class TorInfo2UplData:
 
     def do_img(self, tor_info, u_data):
         src_img_url = tor_info.img_url
+        if not self.rehost_img:
+            u_data.upl_img_url = src_img_url
+            return
 
         report.info(tp_text.rehost)
         if not src_img_url:
