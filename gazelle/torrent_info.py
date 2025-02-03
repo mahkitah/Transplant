@@ -53,6 +53,7 @@ class TorrentInfo:
     def __init__(self, tr_resp: dict, src_tr: TR):
         self.grp_id = None
         self.img_url = None
+        self.proxy_img = None
         self.title = None
         self.o_year = None
         self.rel_type = None
@@ -137,6 +138,7 @@ class TorrentInfo:
         self.set_common_gazelle(tr_resp)
         self.rel_type = ReleaseType[tr_resp['group']['releaseTypeName']]
         self.alb_descr = tr_resp['group']['wikiBBcode']
+        self.proxy_img = tr_resp['group']['proxyImage']
 
         # strip disambiguation nr from artists
         self.strip_artists()

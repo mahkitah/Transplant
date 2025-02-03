@@ -112,7 +112,8 @@ class TorInfo2UplData:
             return
 
         report.info(tp_text.rehost)
-        if not src_img_url:
+        proxy = tor_info.proxy_img
+        if not src_img_url and not proxy:
             report.log(32, tp_text.no_img)
             return
 
@@ -121,7 +122,8 @@ class TorInfo2UplData:
             report.log(22, tp_text.img_white)
             return
 
-        u_data.upl_img_url = self.rehost(src_img_url) or src_img_url
+        rehost_url = proxy or src_img_url
+        u_data.upl_img_url = self.rehost(rehost_url) or src_img_url
 
     @staticmethod
     def rehost(src_img_url: str):
