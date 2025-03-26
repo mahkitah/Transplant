@@ -19,7 +19,9 @@ if __name__ == "__main__":
     else:
         logger.addHandler(logging.StreamHandler(stream=sys.stdout))
 
+    Application.setStyle('Fusion')  # prevent windows11 default style which leads to blank button bug on pyqt 6.8
     app = Application(sys.argv)
+
     from GUI.control_room import start_up, save_state
 
     start_up()
