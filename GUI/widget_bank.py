@@ -11,7 +11,8 @@ from GUI import gui_text
 from lib.tp_text import version
 from lib.img_rehost import IH
 from GUI.misc_classes import (TPTextEdit, CyclingTabBar, FolderSelectBox, IniSettings, TempPopUp, TTfilter,
-                              ColorExample, PatientLineEdit, ThemeIcon, StyleSelector, ClickableLabel, PButton)
+                              ColorExample, PatientLineEdit, ThemeIcon, StyleSelector, ThemeSelector, ClickableLabel,
+                              PButton)
 from GUI.mv_classes import JobModel, JobView, RehostModel, RehostTable
 
 TYPE_MAP = {
@@ -32,6 +33,7 @@ ACTION_MAP = {
     QSpinBox: (lambda x: x.valueChanged, lambda x, y: x.setValue(y)),
     FolderSelectBox: (lambda x: x.list_changed, lambda x, y: x.set_list(y)),
     StyleSelector: (lambda x: x.currentTextChanged, lambda x, y: x.setCurrentText(y)),
+    ThemeSelector: (lambda x: x.currentTextChanged, lambda x, y: x.setCurrentText(y)),
 }
 # name: (default value, make label)
 CONFIG_NAMES = {
@@ -55,6 +57,7 @@ CONFIG_NAMES = {
     'te_src_descr_templ': (gui_text.def_src_descr, False),
     'chb_add_src_descr': (2, False),
     'sty_style_selector': ('Fusion', True),
+    'thm_theme_selector': ('System', True),
     'chb_show_add_dtors': (2, True),
     'chb_show_rem_tr1': (0, True),
     'chb_show_rem_tr2': (0, True),
@@ -77,6 +80,7 @@ class WidgetBank:
         self.config = IniSettings("Transplant.ini")
         self.config_update()
         self.fsbs = []
+        self.theme_writable = hasattr(self.app.styleHints(), 'setColorScheme')
         self.user_input_elements()
         self.main_window = None
         self.settings_window = None
@@ -305,6 +309,9 @@ class WidgetBank:
             if obj_type == FolderSelectBox:
                 obj.dialog_caption = gui_text.tooltips[el_name]
                 self.fsbs.append(obj)
+
+        if not self.theme_writable:
+            self.thm_theme_selector.setEnabled(False)
 
         self.le_key_1.setCursorPosition(0)
         self.le_key_2.setCursorPosition(0)
