@@ -42,7 +42,7 @@ class Application(QApplication):
         self.scheme_eval()
         self.styleHints().colorSchemeChanged.connect(self.scheme_eval)
 
-    def setStyle(self, style):
+    def set_style(self, style):
         super().setStyle(style)
         self.scheme_eval()
 
@@ -53,8 +53,8 @@ class Application(QApplication):
             scheme = Qt.ColorScheme.Light
         else:
             scheme = Qt.ColorScheme.Dark
-        if scheme != self.scheme:
-            self.scheme = scheme
+
+        self.scheme = scheme
 
 
 class ThemeEngine(QIconEngine):
@@ -153,7 +153,7 @@ class ColorExample(QTextBrowser):
         self.setHtml(self.texts)
 
 
-class StyleSelecter(QComboBox):
+class StyleSelector(QComboBox):
     def __init__(self):
         super().__init__()
         self.addItems(QStyleFactory.keys())

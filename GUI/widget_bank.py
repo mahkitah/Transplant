@@ -11,7 +11,7 @@ from GUI import gui_text
 from lib.tp_text import version
 from lib.img_rehost import IH
 from GUI.misc_classes import (TPTextEdit, CyclingTabBar, FolderSelectBox, IniSettings, TempPopUp, TTfilter,
-                              ColorExample, PatientLineEdit, ThemeIcon, StyleSelecter, ClickableLabel, PButton)
+                              ColorExample, PatientLineEdit, ThemeIcon, StyleSelector, ClickableLabel, PButton)
 from GUI.mv_classes import JobModel, JobView, RehostModel, RehostTable
 
 TYPE_MAP = {
@@ -21,7 +21,8 @@ TYPE_MAP = {
     'chb': QCheckBox,
     'spb': QSpinBox,
     'fsb': FolderSelectBox,
-    'sty': StyleSelecter
+    'sty': StyleSelector,
+    'thm': ThemeSelector,
 }
 ACTION_MAP = {
     QLineEdit: (lambda x: x.textChanged, lambda x, y: x.setText(y)),
@@ -30,7 +31,7 @@ ACTION_MAP = {
     QCheckBox: (lambda x: x.stateChanged, lambda x, y: x.setCheckState(Qt.CheckState(y))),
     QSpinBox: (lambda x: x.valueChanged, lambda x, y: x.setValue(y)),
     FolderSelectBox: (lambda x: x.list_changed, lambda x, y: x.set_list(y)),
-    StyleSelecter: (lambda x: x.currentTextChanged, lambda x, y: x.setCurrentText(y)),
+    StyleSelector: (lambda x: x.currentTextChanged, lambda x, y: x.setCurrentText(y)),
 }
 # name: (default value, make label)
 CONFIG_NAMES = {
