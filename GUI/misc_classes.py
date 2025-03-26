@@ -4,7 +4,7 @@ import re
 from PyQt6.QtWidgets import (QFrame, QTextEdit, QComboBox, QFileDialog, QLineEdit, QTabBar, QVBoxLayout, QLabel,
                              QTextBrowser, QSizePolicy, QApplication, QStyleFactory, QToolButton, QPushButton)
 from PyQt6.QtGui import QIcon, QAction, QIconEngine
-from PyQt6.QtCore import Qt, QObject, QEvent, pyqtSignal, QSettings, QTimer
+from PyQt6.QtCore import Qt, QObject, QEvent, pyqtSignal, QSettings, QTimer, QAbstractListModel, QModelIndex
 
 
 class TTfilter(QObject):
@@ -157,6 +157,30 @@ class StyleSelector(QComboBox):
     def __init__(self):
         super().__init__()
         self.addItems(QStyleFactory.keys())
+
+
+class ThemeSelector(QComboBox):
+    current_data_changed = pyqtSignal(Qt.ColorScheme)
+
+    def __init__(self):
+        super().__init__()
+        self.setModel(ThemeModel())
+        self.currentTextChanged.connect(lambda x: self.current_data_changed.emit(self.currentData()))
+
+class ThemeModel(QAbstractListModel):
+    def __init__(self):
+        super().__init__()
+        self.themes = Qt.ColorScheme
+        self.th_names = tuple(t.name.replace('Unknown', 'System') for t in self.themes)
+
+    def rowCount(self, parent=None):
+        return len(self.themes)
+
+    def data(self, index: QModelIndex, role: int = 1):
+        if role == Qt.ItemDataRole.DisplayRole:
+            return self.th_names[index.row()]
+        if role == Qt.ItemDataRole.UserRole:
+            return self.themes(index.row())
 
 
 class HistoryBox(QComboBox):

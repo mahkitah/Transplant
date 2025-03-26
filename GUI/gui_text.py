@@ -115,6 +115,7 @@ l_verbosity = 'Verbosity'
 l_rehost = 'Rehost cover art'
 l_whitelist = 'Image host whitelist'
 l_style_selector = 'GUI Style'
+l_theme_selector = 'Light/Dark theme'
 l_show_add_dtors = "Show 'Add torrent files' button"
 l_show_rem_tr1 = f"Show '{pb_rem_tr1}' button"
 l_show_rem_tr2 = f"Show '{pb_rem_tr2}' button"
@@ -159,6 +160,7 @@ tooltips = {
     'l_whitelist': ("Images hosted on these sites will not be rehosted\n"
                     "Comma separated"),
     'pb_def_descr': 'Restore default descriptions',
+    'l_theme_selector': 'Enabled for PyQt versions 6.8+',
     'rb_tracker1': ("Select source tracker for torrent id's entered in the paste box\n"
                     "This setting does not apply to url's and .torrents"),
     'rb_tracker2': ("Select source tracker for torrent id's entered in the paste box\n"
