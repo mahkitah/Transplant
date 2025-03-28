@@ -1,19 +1,28 @@
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout
-from PyQt6.QtGui import QIcon, QKeyEvent
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QMainWindow
+from PyQt6.QtGui import QIcon
+from PyQt6.QtCore import QSize
 
 from lib.tp_text import version
 from GUI import gui_text
 from GUI.widget_bank import wb
 
 
-class MainWindow(QWidget):
-    key_pressed = pyqtSignal(QKeyEvent)
-
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(gui_text.main_window_title.format('.'.join(map(str, version))))
         self.setWindowIcon(QIcon(':/switch.svg'))
+        self.setCentralWidget(CentralWidget())
+        self.addToolBar(wb.toolbar)
+        wb.toolbar.addWidget(wb.profiles)
+        wb.toolbar.addWidget(wb.tb_spacer)
+        wb.toolbar.addWidget(wb.tb_open_config)
+        wb.toolbar.setIconSize(QSize(16, 16))
+
+
+class CentralWidget(QWidget):
+    def __init__(self):
+        super().__init__()
         self.layout()
 
     def layout(self):
@@ -34,16 +43,11 @@ class MainWindow(QWidget):
         source_buttons.addWidget(wb.rb_tracker1)
         source_buttons.addWidget(wb.rb_tracker2)
         source_buttons.addStretch(1)
+        source_buttons.addWidget(wb.pb_add)
 
-        settings_button = QVBoxLayout()
-        settings_button.addWidget(wb.tb_open_config)
-        settings_button.addStretch()
-
-        top_layout = QGridLayout(wb.topwidget)
-        top_layout.addWidget(wb.te_paste_box, 0, 0, 2, 1)
-        top_layout.addLayout(source_buttons, 0, 1)
-        top_layout.addLayout(settings_button, 0, 2)
-        top_layout.addWidget(wb.pb_add, 1, 1, 1, 2)
+        top_layout = QHBoxLayout(wb.topwidget)
+        top_layout.addWidget(wb.te_paste_box)
+        top_layout.addLayout(source_buttons, stretch=0)
 
         # Bottom
         buttons_job = QVBoxLayout(wb.job_buttons)
@@ -82,7 +86,6 @@ class MainWindow(QWidget):
         add_n_scan.addStretch()
         add_n_scan.addWidget(wb.pb_open_dtors)
         add_n_scan.addWidget(wb.pb_scan)
-        add_n_scan.addWidget(wb.tb_open_config2)
 
         right_side = QVBoxLayout()
         right_side.addLayout(add_n_scan)

@@ -30,6 +30,17 @@ pb_open_tsavedir = "Save dir"
 pb_open_upl_urls = "Open urls"
 pb_stop = 'Stop'
 
+profile_buttons = ('Load', 'Save', 'New', 'Delete')
+profiles = 'Profiles: '
+prof_action_new = 'create new'
+prof_action_save = 'overwrite'
+prof_action_del = 'delete'
+prof_conf = 'Are you sure you want to {action} profile "{profile}"?'
+prof_placeholder = 'Enter new profile name'
+prof_bad_filename = 'Could not create file:\n{}'
+prof_file_gone = 'Could not find file:\n{}'
+
+
 sum_ting_wong_1 = 'Invalid data folder'
 sum_ting_wong_2 = 'Invalid scan folder'
 sum_ting_wong_3 = 'Invalid torrent save folder'
@@ -166,7 +177,6 @@ tooltips = {
     'rb_tracker2': ("Select source tracker for torrent id's entered in the paste box\n"
                     "This setting does not apply to url's and .torrents"),
     'tb_open_config': settings_window_title,
-    'tb_open_config2': settings_window_title,
     'pb_add': ("Add content of the paste box to the job list\n"
                "Only valid entries will be added"),
     'pb_open_dtors': "Select .torrents to add to the job list",

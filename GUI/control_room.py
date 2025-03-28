@@ -9,9 +9,10 @@ from lib.img_rehost import IH
 from lib.transplant import Job, Transplanter, JobCreationError
 from gazelle.tracker_data import TR
 from GUI import gui_text
-from GUI.widget_bank import wb
 from GUI.main_gui import MainWindow
+from GUI.misc_classes import IniSettings
 from GUI.settings_window import SettingsWindow
+from GUI.widget_bank import wb, CONFIG_NAMES, ACTION_MAP
 
 from PyQt6.QtWidgets import QFileDialog, QMessageBox
 from PyQt6.QtGui import QDesktopServices, QTextCursor, QShortcut
@@ -77,6 +78,8 @@ def start_up():
 
 def main_connections():
     handler.log_forward.connect(print_logs)
+    wb.profiles.load_profile.connect(load_profile)
+    wb.profiles.save_profile.connect(save_profile)
     wb.te_paste_box.plain_text_changed.connect(lambda x: wb.pb_add.setEnabled(bool(x)))
     wb.bg_source.idClicked.connect(lambda x: wb.config.setValue('bg_source', x))
     wb.pb_add.clicked.connect(parse_paste_input)
@@ -110,8 +113,6 @@ def main_connections():
     wb.result_view.textChanged.connect(
         lambda: wb.pb_open_upl_urls.setEnabled('torrentid' in wb.result_view.toPlainText()))
     wb.tb_open_config.clicked.connect(wb.settings_window.open)
-    wb.tb_open_config2.clicked.connect(wb.tb_open_config.click)
-    wb.splitter.splitterMoved.connect(lambda x, y: wb.tb_open_config2.setHidden(bool(x)))
     wb.tabs.currentChanged.connect(wb.view_stack.setCurrentIndex)
     wb.view_stack.currentChanged.connect(wb.tabs.setCurrentIndex)
     wb.view_stack.currentChanged.connect(wb.button_stack.setCurrentIndex)
@@ -522,6 +523,46 @@ def open_torrent_page(index: QModelIndex):
     else:
         return
     QDesktopServices.openUrl(QUrl(url))
+
+
+def save_profile(profile_name: str):
+    profile_name = f'{profile_name.strip()}.tpp'
+    try:
+        Path(profile_name).touch()
+    except (OSError, PermissionError) as e:
+        wb.pop_up.pop_up(gui_text.prof_bad_filename.format(e), 4000)
+        return
+
+    profile = IniSettings(profile_name)
+    for el_name in CONFIG_NAMES:
+        val = wb.config.value(el_name)
+        profile.setValue(el_name, val)
+    profile.setValue('rehost_data', IH.get_attrs())
+    profile.sync()
+    wb.profiles.combo.refresh()
+
+
+def load_profile(profile_name: str):
+    profile_name = f'{profile_name}.tpp'
+    if not os.path.isfile(profile_name):
+        wb.pop_up.pop_up(gui_text.prof_file_gone.format(profile_name))
+        wb.profiles.combo.refresh()
+        return
+    profile = IniSettings(profile_name)
+    for key in profile.allKeys():
+        current_value = wb.config.value(key)
+        new_value = profile.value(key)
+        if current_value == new_value:
+            continue
+        if key == 'rehost_data':
+            IH.set_attrs(new_value)
+            wb.rehost_table.move_to_priority()
+            continue
+
+        obj = getattr(wb, key)
+        signal_func, set_value_func = ACTION_MAP[type(obj)]
+        set_value_func(obj, new_value)
+        signal_func(obj).emit(new_value)
 
 
 def key_precheck(tracker: TR, key: str) -> str:
