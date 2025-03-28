@@ -219,7 +219,6 @@ class ColorExample(QTextBrowser):
 
     def __init__(self, config: QSettings):
         super().__init__()
-        self.config = config
         self.current_colors = {i: '_' for i in range(1, 5)}
 
     @property
@@ -253,6 +252,7 @@ class ThemeSelector(QComboBox):
         super().__init__()
         self.setModel(ThemeModel())
         self.currentTextChanged.connect(lambda x: self.current_data_changed.emit(self.currentData()))
+
 
 class ThemeModel(QAbstractListModel):
     def __init__(self):

@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Iterable
+from typing import Iterable, Iterator
 
 from PyQt6.QtWidgets import QHeaderView, QTableView
 from PyQt6.QtGui import QIcon, QKeyEvent, QAction
@@ -83,7 +83,7 @@ class ContextHeaderView(QHeaderView):
         ac_restore_all.triggered.connect(self.set_all_sections_visible)
         ac_restore_all.setEnabled(bool(self.hiddenSectionCount()))
 
-        for i in range(self.model().columnCount(None)):
+        for i in range(self.model().columnCount()):
             action = QAction(self)
             action.setText(self.text(i))
             action.setCheckable(True)
@@ -228,7 +228,7 @@ class JobModel(QAbstractTableModel):
         self.endInsertRows()
 
     @staticmethod
-    def continuous_slices(numbers: Iterable[int], reverse=False) -> list[int, int]:
+    def continuous_slices(numbers: Iterable[int], reverse=False) -> Iterator[list[int]]:
         numbers = sorted(numbers, reverse=reverse)
         if not numbers:
             return
@@ -299,10 +299,11 @@ class RehostModel(QAbstractTableModel):
             return super().flags(index)
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = 0):
-        if role == Qt.ItemDataRole.DisplayRole and orientation is Qt.Orientation.Horizontal:
-            return self.column_names[section]
-        if role == Qt.ItemDataRole.DisplayRole and orientation is Qt.Orientation.Vertical:
-            return IH(section).prio + 1
+        if role == Qt.ItemDataRole.DisplayRole:
+            if orientation is Qt.Orientation.Horizontal:
+                return self.column_names[section]
+            elif orientation is Qt.Orientation.Vertical:
+                return IH(section).prio + 1
         else:
             return super().headerData(section, orientation, role)
 

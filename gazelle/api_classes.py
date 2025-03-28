@@ -69,14 +69,14 @@ class BaseApi:
                 return r.content
             else:
                 raise RequestFailure(f'no json, no torrent. {r.status_code}')
-        else:
-            status = r_dict.get('status')
-            if status == 'success':
-                return r_dict['response']
-            elif status == 'failure':
-                raise RequestFailure(r_dict['error'])
 
-            raise RequestFailure(r_dict)
+        status = r_dict.get('status')
+        if status == 'success':
+            return r_dict['response']
+        elif status == 'failure':
+            raise RequestFailure(r_dict['error'])
+
+        raise RequestFailure(r_dict)
 
     def torrent_info(self, **kwargs) -> TorrentInfo:
         r = self.request('torrent', **kwargs)

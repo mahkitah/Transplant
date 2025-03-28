@@ -40,7 +40,8 @@ class IH(Enum):
     def __init__(self, func):
         self.key = ''
         self.enabled = False
-        self.prio = self.value
+        self.value: int
+        self.prio: int = self.value
         self.func = func
 
     @property
