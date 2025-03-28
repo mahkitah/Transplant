@@ -58,6 +58,7 @@ CONFIG_NAMES = {
     'chb_add_src_descr': (2, False),
     'sty_style_selector': ('Fusion', True),
     'thm_theme_selector': ('System', True),
+    'chb_toolbar_loc': (0, True),
     'chb_show_add_dtors': (2, True),
     'chb_show_rem_tr1': (0, True),
     'chb_show_rem_tr2': (0, True),

@@ -126,6 +126,7 @@ l_rehost = 'Rehost cover art'
 l_whitelist = 'Image host whitelist'
 l_style_selector = 'GUI Style'
 l_theme_selector = 'Light/Dark theme'
+l_toolbar_loc = 'Toolbar at bottom'
 l_show_add_dtors = "Show 'Add torrent files' button"
 l_show_rem_tr1 = f"Show '{pb_rem_tr1}' button"
 l_show_rem_tr2 = f"Show '{pb_rem_tr2}' button"

@@ -150,6 +150,9 @@ def config_connections():
     wb.chb_show_tor_folder.stateChanged.connect(wb.job_data.layoutChanged.emit)
     wb.chb_alt_row_colour.stateChanged.connect(wb.job_view.setAlternatingRowColors)
     wb.chb_show_grid.stateChanged.connect(wb.job_view.setShowGrid)
+    wb.chb_toolbar_loc.toggled.connect(
+        lambda checked: wb.main_window.addToolBar(Qt.ToolBarArea.BottomToolBarArea if checked
+                                                  else Qt.ToolBarArea.TopToolBarArea, wb.toolbar))
     wb.spb_row_height.valueChanged.connect(wb.job_view.verticalHeader().setDefaultSectionSize)
     wb.ple_warning_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 1))
     wb.ple_error_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 2))
