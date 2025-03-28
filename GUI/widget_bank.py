@@ -2,17 +2,17 @@ from functools import partial
 
 from PyQt6.QtWidgets import (QApplication, QWidget, QTextEdit, QPushButton, QToolButton, QRadioButton, QButtonGroup,
                              QSplitter, QLabel, QTabWidget, QLineEdit, QSpinBox, QCheckBox, QStackedLayout,
-                             QTextBrowser, QSizePolicy)
+                             QTextBrowser, QSizePolicy, QToolBar)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 
 from gazelle.tracker_data import TR
-from GUI import gui_text
 from lib.tp_text import version
 from lib.img_rehost import IH
+from GUI import gui_text
 from GUI.misc_classes import (TPTextEdit, CyclingTabBar, FolderSelectBox, IniSettings, TempPopUp, TTfilter,
                               ColorExample, PatientLineEdit, ThemeIcon, StyleSelector, ThemeSelector, ClickableLabel,
-                              PButton)
+                              PButton, Profiles)
 from GUI.mv_classes import JobModel, JobView, RehostModel, RehostTable
 
 TYPE_MAP = {
@@ -163,12 +163,15 @@ class WidgetBank:
         self.splitter = QSplitter(Qt.Orientation.Vertical)
         self.splitter_handle = None
 
+        self.toolbar = QToolBar()
+        self.toolbar.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
+        self.toolbar.setMovable(False)
+        self.profiles = Profiles()
+        self.tb_spacer = QWidget()
+        self.tb_spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+
         self.tb_open_config = QToolButton()
         self.tb_open_config.setIcon(ThemeIcon('gear.svg'))
-        self.tb_open_config.setAutoRaise(True)
-        self.tb_open_config2 = QToolButton()
-        self.tb_open_config2.setIcon(ThemeIcon('gear.svg'))
-        self.tb_open_config2.setAutoRaise(True)
 
         self.te_paste_box = TPTextEdit()
         self.te_paste_box.setAcceptDrops(False)

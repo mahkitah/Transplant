@@ -1,10 +1,14 @@
 import os
 import re
+from pathlib import Path
 
 from PyQt6.QtWidgets import (QFrame, QTextEdit, QComboBox, QFileDialog, QLineEdit, QTabBar, QVBoxLayout, QLabel,
-                             QTextBrowser, QSizePolicy, QApplication, QStyleFactory, QToolButton, QPushButton)
+                             QTextBrowser, QSizePolicy, QApplication, QStyleFactory, QToolButton, QPushButton, QWidget,
+                             QHBoxLayout, QMessageBox)
 from PyQt6.QtGui import QIcon, QAction, QIconEngine
 from PyQt6.QtCore import Qt, QObject, QEvent, pyqtSignal, QSettings, QTimer, QAbstractListModel, QModelIndex
+
+from GUI import gui_text
 
 
 class TTfilter(QObject):
@@ -55,6 +59,89 @@ class Application(QApplication):
             scheme = Qt.ColorScheme.Dark
 
         self.scheme = scheme
+
+
+class Profiles(QWidget):
+    save_profile = pyqtSignal(str)
+    load_profile = pyqtSignal(str)
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setMaximumHeight(20)
+        self.combo = ProfileCombo()
+        lay = QHBoxLayout(self)
+        lay.setContentsMargins(5, 0, 0, 0)
+        lay.setSpacing(3)
+        lay.addWidget(QLabel(gui_text.profiles))
+        lay.addWidget(self.combo)
+
+        btn_txts = gui_text.profile_buttons
+        button_slots = (self.load, self.save, self.new, self.delete)
+        for txt, slot in zip(btn_txts, button_slots):
+            btn = QToolButton()
+            btn.setText(txt)
+            btn.clicked.connect(slot)
+            lay.addWidget(btn)
+
+    def load(self):
+        self.load_profile.emit(self.combo.currentText())
+
+    def save(self):
+        cur_prof = self.combo.currentText()
+        if self.combo.isEditable():
+            self.combo.setEditable(False)
+        if not cur_prof:
+            return
+
+        new = self.combo.findText(cur_prof) == -1
+        action = gui_text.prof_action_new if new else gui_text.prof_action_save
+        if self.confirm(cur_prof, action):
+            self.save_profile.emit(cur_prof)
+
+    def new(self):
+        self.combo.setEditable(True)
+        self.combo.lineEdit().editingFinished.connect(lambda: self.save())
+
+    def delete(self):
+        cur_prof = self.combo.currentText()
+        if self.confirm(cur_prof, gui_text.prof_action_del):
+            file = Path(f'{cur_prof}.tpp')
+            if file.is_file():
+                file.unlink()
+            self.combo.removeItem(self.combo.findText(cur_prof))
+
+    def confirm(self, profile: str, action: str):
+        buts = QMessageBox.StandardButton
+        conf_diag = QMessageBox(self)
+        conf_diag.setStandardButtons(buts.Ok | buts.Cancel)
+        conf_diag.setIcon(QMessageBox.Icon.Warning)
+        conf_diag.setText(gui_text.prof_conf.format(profile=profile, action=action))
+        return conf_diag.exec() == buts.Ok
+
+
+class ProfileCombo(QComboBox):
+    def __init__(self):
+        super().__init__()
+        self.setSizeAdjustPolicy(self.SizeAdjustPolicy.AdjustToContents)
+        self.setInsertPolicy(self.InsertPolicy.NoInsert)
+        self.refresh()
+
+    def refresh(self):
+        if self.count():
+            self.clear()
+        self.addItems(map(lambda p: p.stem, Path.cwd().glob('*.tpp')))
+
+    def setEditable(self, editable: bool):
+        super().setEditable(editable)
+        if editable:
+            le = self.lineEdit()
+            le.setPlaceholderText(gui_text.prof_placeholder)
+            le.clear()
+            le.setFocus()
+            bw = self.width() - le.width()
+            self.setMinimumWidth(le.fontMetrics().boundingRect(gui_text.prof_placeholder).width() + bw + 10)
+        else:
+            self.setMinimumWidth(10)
 
 
 class ThemeEngine(QIconEngine):
