@@ -40,7 +40,6 @@ prof_placeholder = 'Enter new profile name'
 prof_bad_filename = 'Could not create file:\n{}'
 prof_file_gone = 'Could not find file:\n{}'
 
-
 sum_ting_wong_1 = 'Invalid data folder'
 sum_ting_wong_2 = 'Invalid scan folder'
 sum_ting_wong_3 = 'Invalid torrent save folder'
@@ -50,7 +49,7 @@ sum_ting_wong_5 = 'Source description text must contain %src_descr%'
 dupe_add = ': Torrent already added'
 
 # Pop-ups
-pop1 = 'Nothing to add in'
+pop1 = 'No (suitable) .torrents in'
 pop2 = 'Nothing new found in'
 pop3 = 'Nothing useful in pastebox'
 pop4 = ('{} torrent{} not deleted.\n'
@@ -137,7 +136,7 @@ l_show_grid = 'Show grid'
 l_row_height = 'Row height'
 l_warning_color = 'Warning'
 l_error_color = 'Error'
-l_success_color = 'Sucess'
+l_success_color = 'Success'
 l_link_color = 'link'
 
 tooltips = {

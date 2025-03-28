@@ -25,6 +25,7 @@ class LogForward(QObject, logging.Handler):
     def emit(self, record):
         self.log_forward.emit(record)
 
+
 logger = logging.getLogger('tr')
 logger.setLevel(logging.INFO)
 handler = LogForward()
@@ -138,7 +139,7 @@ def config_connections():
     wb.sty_style_selector.currentTextChanged.connect(wb.app.set_style)
     if wb.theme_writable:
         wb.sty_style_selector.currentTextChanged.connect(
-        lambda t: wb.thm_theme_selector.setEnabled(t.lower() != 'windowsvista'))
+            lambda t: wb.thm_theme_selector.setEnabled(t.lower() != 'windowsvista'))
         wb.thm_theme_selector.current_data_changed.connect(lambda x: wb.app.styleHints().setColorScheme(x))
     wb.chb_rehost.stateChanged.connect(wb.rh_on_off_container.setEnabled)
     wb.pb_def_descr.clicked.connect(default_descr)
