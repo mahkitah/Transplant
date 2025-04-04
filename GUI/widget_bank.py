@@ -29,7 +29,7 @@ ACTION_MAP = {
     QLineEdit: (lambda x: x.textChanged, lambda x, y: x.setText(y)),
     PatientLineEdit: (lambda x: x.text_changed, lambda x, y: x.setText(y)),
     TPTextEdit: (lambda x: x.plain_text_changed, lambda x, y: x.setText(y)),
-    QCheckBox: (lambda x: x.stateChanged, lambda x, y: x.setCheckState(Qt.CheckState(y))),
+    QCheckBox: (lambda x: x.toggled, lambda x, y: x.setChecked(y)),
     QSpinBox: (lambda x: x.valueChanged, lambda x, y: x.setValue(y)),
     FolderSelectBox: (lambda x: x.list_changed, lambda x, y: x.set_list(y)),
     StyleSelector: (lambda x: x.currentTextChanged, lambda x, y: x.setCurrentText(y)),
@@ -40,32 +40,35 @@ CONFIG_NAMES = {
     'le_key_1': (None, True),
     'le_key_2': (None, True),
     'fsb_data_dir': ([], True),
-    'chb_deep_search': (0, False),
+    'chb_deep_search': (False, False),
     'spb_deep_search_level': (2, False),
     'fsb_scan_dir': ([], True),
     'fsb_dtor_save_dir': ([], False),
-    'chb_save_dtors': (0, True),
-    'chb_del_dtors': (0, True),
-    'chb_file_check': (2, True),
-    'chb_post_compare': (0, True),
-    'chb_show_tips': (2, True),
+    'chb_save_dtors': (False, True),
+    'chb_del_dtors': (False, True),
+    'chb_file_check': (True, True),
+    'chb_post_compare': (False, True),
+    'chb_show_tips': (True, True),
     'spb_verbosity': (2, True),
-    'chb_rehost': (0, True),
+
+    'chb_rehost': (False, True),
     'le_whitelist': (gui_text.default_whitelist, True),
+
     'te_rel_descr_templ': (gui_text.def_rel_descr, False),
     'te_rel_descr_own_templ': (gui_text.def_rel_descr_own, False),
     'te_src_descr_templ': (gui_text.def_src_descr, False),
-    'chb_add_src_descr': (2, False),
+    'chb_add_src_descr': (True, False),
+
     'sty_style_selector': ('Fusion', True),
     'thm_theme_selector': ('System', True),
-    'chb_toolbar_loc': (0, True),
-    'chb_show_add_dtors': (2, True),
-    'chb_show_rem_tr1': (0, True),
-    'chb_show_rem_tr2': (0, True),
-    'chb_no_icon': (0, True),
-    'chb_show_tor_folder': (0, True),
-    'chb_alt_row_colour': (2, True),
-    'chb_show_grid': (0, True),
+    'chb_toolbar_loc': (False, True),
+    'chb_show_add_dtors': (True, True),
+    'chb_show_rem_tr1': (False, True),
+    'chb_show_rem_tr2': (False, True),
+    'chb_no_icon': (False, True),
+    'chb_show_tor_folder': (False, True),
+    'chb_alt_row_colour': (True, True),
+    'chb_show_grid': (False, True),
     'spb_row_height': (20, True),
     'ple_warning_color': ('orange', True),
     'ple_error_color': ('crimson', True),
@@ -130,8 +133,8 @@ class WidgetBank:
         for key in self.config.allKeys():
             if key.startswith('chb_'):
                 value = self.config.value(key)
-                if value not in (0, 1, 2):
-                    value = 2 if bool(int(value)) else 0
+                if value in (0, 1, 2):
+                    value = bool(value)
                     self.config.setValue(key, value)
             elif key.startswith('spb_'):
                 value = self.config.value(key)
@@ -145,7 +148,7 @@ class WidgetBank:
                 value = self.config.value(key)
                 if value:
                     IH.PTPimg.key = value
-                    if self.config.value('chb_rehost'):
+                    if self.config.value('chb_rehost') is True:
                         IH.PTPimg.enabled = True
                 self.config.remove(key)
             if key.startswith('te_rel_descr'):
