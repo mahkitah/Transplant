@@ -130,29 +130,26 @@ def config_connections():
         lambda: wb.pb_scan.setEnabled(bool(wb.fsb_scan_dir.currentText())))
     wb.fsb_dtor_save_dir.list_changed.connect(
         lambda: wb.pb_open_tsavedir.setEnabled(bool(wb.fsb_dtor_save_dir.currentText())))
-    wb.chb_deep_search.stateChanged.connect(lambda x: wb.spb_deep_search_level.setEnabled(bool(x)))
-    wb.chb_show_tips.stateChanged.connect(wb.tt_filter.set_tt_enabled)
+    wb.chb_deep_search.toggled.connect(wb.spb_deep_search_level.setEnabled)
+    wb.chb_show_tips.toggled.connect(wb.tt_filter.set_tt_enabled)
     wb.spb_verbosity.valueChanged.connect(set_verbosity)
-    wb.chb_rehost.stateChanged.connect(wb.rh_on_off_container.setEnabled)
-    wb.pb_def_descr.clicked.connect(default_descr)
+    wb.chb_rehost.toggled.connect(wb.rh_on_off_container.setEnabled)
     wb.pb_def_descr.clicked.connect(default_descr)
     wb.sty_style_selector.currentTextChanged.connect(wb.app.set_style)
     if wb.theme_writable:
         wb.sty_style_selector.currentTextChanged.connect(
             lambda t: wb.thm_theme_selector.setEnabled(t.lower() != 'windowsvista'))
         wb.thm_theme_selector.current_data_changed.connect(lambda x: wb.app.styleHints().setColorScheme(x))
-    wb.chb_rehost.stateChanged.connect(wb.rh_on_off_container.setEnabled)
-    wb.pb_def_descr.clicked.connect(default_descr)
-    wb.chb_show_add_dtors.stateChanged.connect(lambda x: wb.pb_open_dtors.setVisible(x)),
-    wb.chb_show_rem_tr1.stateChanged.connect(lambda x: wb.pb_rem_tr1.setVisible(x)),
-    wb.chb_show_rem_tr2.stateChanged.connect(lambda x: wb.pb_rem_tr2.setVisible(x)),
-    wb.chb_no_icon.stateChanged.connect(wb.job_data.layoutChanged.emit)
-    wb.chb_show_tor_folder.stateChanged.connect(wb.job_data.layoutChanged.emit)
-    wb.chb_alt_row_colour.stateChanged.connect(wb.job_view.setAlternatingRowColors)
-    wb.chb_show_grid.stateChanged.connect(wb.job_view.setShowGrid)
     wb.chb_toolbar_loc.toggled.connect(
         lambda checked: wb.main_window.addToolBar(Qt.ToolBarArea.BottomToolBarArea if checked
                                                   else Qt.ToolBarArea.TopToolBarArea, wb.toolbar))
+    wb.chb_show_add_dtors.toggled.connect(wb.pb_open_dtors.setVisible),
+    wb.chb_show_rem_tr1.toggled.connect(wb.pb_rem_tr1.setVisible),
+    wb.chb_show_rem_tr2.toggled.connect(wb.pb_rem_tr2.setVisible),
+    wb.chb_no_icon.toggled.connect(wb.job_data.layoutChanged.emit)
+    wb.chb_show_tor_folder.toggled.connect(wb.job_data.layoutChanged.emit)
+    wb.chb_alt_row_colour.toggled.connect(wb.job_view.setAlternatingRowColors)
+    wb.chb_show_grid.toggled.connect(wb.job_view.setShowGrid)
     wb.spb_row_height.valueChanged.connect(wb.job_view.verticalHeader().setDefaultSectionSize)
     wb.ple_warning_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 1))
     wb.ple_error_color.text_changed.connect(lambda t: wb.color_examples.update_colors(t, 2))
@@ -282,8 +279,6 @@ def trpl_settings():
     for s in user_settings:
         typ, arg_name = s.split('_', maxsplit=1)
         val = wb.config.value(s)
-        if typ == 'chb':
-            val = bool(val)
         settings_dict[arg_name] = val
 
     if wb.config.value('chb_rehost'):

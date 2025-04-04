@@ -134,8 +134,8 @@ class JobModel(QAbstractTableModel):
     def data(self, index: QModelIndex, role: int = 0):
         column = index.column()
         job = self.jobs[index.row()]
-        no_icon = self.config.value('chb_no_icon') == 2
-        torrent_folder = self.config.value('chb_show_tor_folder') == 2
+        no_icon = self.config.value('chb_no_icon')
+        torrent_folder = self.config.value('chb_show_tor_folder')
 
         if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
             if column == 0:
@@ -173,13 +173,11 @@ class JobModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.DisplayRole and orientation == Qt.Orientation.Horizontal:
             return self.headers[section]
 
-        if role == Qt.ItemDataRole.ToolTipRole and orientation == Qt.Orientation.Horizontal:
-            if section == 1:
-                if bool(int(self.config.value('chb_show_tips'))):
-                    return gui_text.ttm_header1
-            if section == 2:
-                if bool(int(self.config.value('chb_show_tips'))):
-                    return gui_text.ttm_header2
+        if (role == Qt.ItemDataRole.ToolTipRole
+                and self.config.value('chb_show_tips')
+                and orientation == Qt.Orientation.Horizontal
+                and section in (1, 2)):
+            return getattr(gui_text, f'ttm_header{section}')
         else:
             return super().headerData(section, orientation, role)
 
@@ -197,7 +195,7 @@ class JobModel(QAbstractTableModel):
 
         if column == 2 and role == Qt.ItemDataRole.CheckStateRole:
             value: int
-            job.new_dtor = Qt.CheckState(value) is Qt.CheckState.Checked
+            job.new_dtor = value == 2
 
         return True
 

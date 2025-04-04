@@ -16,8 +16,8 @@ class TTfilter(QObject):
         super().__init__(*args)
         self.tt_enabled = False
 
-    def set_tt_enabled(self, enabled: int):
-        self.tt_enabled = bool(enabled)
+    def set_tt_enabled(self, enabled: bool):
+        self.tt_enabled = enabled
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.ToolTip and not self.tt_enabled:
@@ -328,7 +328,7 @@ class FolderSelectBox(HistoryBox):
 
 class IniSettings(QSettings):
     int_regex = re.compile(r'#int\((\d+)\)')
-    # bool_regex = re.compile(r'#bool\((True|False)\)')
+    bool_regex = re.compile(r'#bool\((True|False)\)')
 
     def __init__(self, path):
         super().__init__(path, QSettings.Format.IniFormat)
@@ -336,11 +336,10 @@ class IniSettings(QSettings):
     def setValue(self, key, value):
         if type(value) is int:
             value = f'#int({value})'
-        # elif type(value) == bool:
-        #     value = f'#bool({value})'
+        elif type(value) is bool:
+            value = f'#bool({value})'
         elif isinstance(value, list) and not value:
             value = '#empty list'
-
         super().setValue(key, value)
 
     def value(self, key, **kwargs):
@@ -348,8 +347,8 @@ class IniSettings(QSettings):
         if isinstance(value, str):
             if int_match := self.int_regex.match(value):
                 value = int(int_match.group(1))
-            # elif bool_match := self.bool_regex.match(value):
-            #     value = bool_match.group(1) == 'True'
+            elif bool_match := self.bool_regex.match(value):
+                value = bool_match.group(1) == 'True'
             elif value == '#empty list':
                 value = []
 
