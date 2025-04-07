@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QMai
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import QSize
 
-from lib.tp_text import version
+from lib.tp_text import tp_version
 from GUI import gui_text
 from GUI.widget_bank import wb
 
@@ -10,7 +10,7 @@ from GUI.widget_bank import wb
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle(gui_text.main_window_title.format('.'.join(map(str, version))))
+        self.setWindowTitle(gui_text.main_window_title.format('.'.join(map(str, tp_version))))
         self.setWindowIcon(QIcon(':/switch.svg'))
         self.setCentralWidget(CentralWidget())
         self.addToolBar(wb.toolbar)

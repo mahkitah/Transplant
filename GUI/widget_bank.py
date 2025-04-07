@@ -7,13 +7,14 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 
 from gazelle.tracker_data import TR
-from lib.tp_text import version
+from lib.tp_text import tp_version
 from lib.img_rehost import IH
 from GUI import gui_text
 from GUI.misc_classes import (TPTextEdit, CyclingTabBar, FolderSelectBox, IniSettings, TempPopUp, TTfilter,
                               ColorExample, PatientLineEdit, ThemeIcon, StyleSelector, ThemeSelector, ClickableLabel,
-                              PButton, Profiles)
-from GUI.mv_classes import JobModel, JobView, RehostModel, RehostTable
+                              PButton)
+from GUI.mv_classes import JobModel, JobView, RehostTable
+from GUI.profiles import Profiles, STab
 
 TYPE_MAP = {
     'le': QLineEdit,
@@ -24,6 +25,7 @@ TYPE_MAP = {
     'fsb': FolderSelectBox,
     'sty': StyleSelector,
     'thm': ThemeSelector,
+    'rht': RehostTable,
 }
 ACTION_MAP = {
     QLineEdit: (lambda x: x.textChanged, lambda x, y: x.setText(y)),
@@ -34,46 +36,53 @@ ACTION_MAP = {
     FolderSelectBox: (lambda x: x.list_changed, lambda x, y: x.set_list(y)),
     StyleSelector: (lambda x: x.currentTextChanged, lambda x, y: x.setCurrentText(y)),
     ThemeSelector: (lambda x: x.currentTextChanged, lambda x, y: x.setCurrentText(y)),
+    RehostTable: (lambda x: x.rh_data_changed, lambda x, y: x.set_rh_data(y))
 }
 # name: (default value, make label)
 CONFIG_NAMES = {
-    'le_key_1': (None, True),
-    'le_key_2': (None, True),
-    'fsb_data_dir': ([], True),
-    'chb_deep_search': (False, False),
-    'spb_deep_search_level': (2, False),
-    'fsb_scan_dir': ([], True),
-    'fsb_dtor_save_dir': ([], False),
-    'chb_save_dtors': (False, True),
-    'chb_del_dtors': (False, True),
-    'chb_file_check': (True, True),
-    'chb_post_compare': (False, True),
-    'chb_show_tips': (True, True),
-    'spb_verbosity': (2, True),
-
-    'chb_rehost': (False, True),
-    'le_whitelist': (gui_text.default_whitelist, True),
-
-    'te_rel_descr_templ': (gui_text.def_rel_descr, False),
-    'te_rel_descr_own_templ': (gui_text.def_rel_descr_own, False),
-    'te_src_descr_templ': (gui_text.def_src_descr, False),
-    'chb_add_src_descr': (True, False),
-
-    'sty_style_selector': ('Fusion', True),
-    'thm_theme_selector': ('System', True),
-    'chb_toolbar_loc': (False, True),
-    'chb_show_add_dtors': (True, True),
-    'chb_show_rem_tr1': (False, True),
-    'chb_show_rem_tr2': (False, True),
-    'chb_no_icon': (False, True),
-    'chb_show_tor_folder': (False, True),
-    'chb_alt_row_colour': (True, True),
-    'chb_show_grid': (False, True),
-    'spb_row_height': (20, True),
-    'ple_warning_color': ('orange', True),
-    'ple_error_color': ('crimson', True),
-    'ple_success_color': ('forestgreen', True),
-    'ple_link_color': ('dodgerblue', True),
+    STab.main: {
+        'le_key_1': (None, True),
+        'le_key_2': (None, True),
+        'fsb_data_dir': ([], True),
+        'chb_deep_search': (False, False),
+        'spb_deep_search_level': (2, False),
+        'fsb_scan_dir': ([], True),
+        'fsb_dtor_save_dir': ([], False),
+        'chb_save_dtors': (False, True),
+        'chb_del_dtors': (False, True),
+        'chb_file_check': (True, True),
+        'chb_post_compare': (False, True),
+        'chb_show_tips': (True, True),
+        'spb_verbosity': (2, True),
+    },
+    STab.rehost: {
+        'chb_rehost': (False, True),
+        'le_whitelist': (gui_text.default_whitelist, True),
+        'rht_rehost_table': ({}, True),
+    },
+    STab.descriptions: {
+        'te_rel_descr_templ': (gui_text.def_rel_descr, False),
+        'te_rel_descr_own_templ': (gui_text.def_rel_descr_own, False),
+        'te_src_descr_templ': (gui_text.def_src_descr, False),
+        'chb_add_src_descr': (True, False),
+    },
+    STab.looks: {
+        'sty_style_selector': ('Fusion', True),
+        'thm_theme_selector': ('System', True),
+        'chb_toolbar_loc': (False, True),
+        'chb_show_add_dtors': (True, True),
+        'chb_show_rem_tr1': (False, True),
+        'chb_show_rem_tr2': (False, True),
+        'chb_no_icon': (False, True),
+        'chb_show_tor_folder': (False, True),
+        'chb_alt_row_colour': (True, True),
+        'chb_show_grid': (False, True),
+        'spb_row_height': (20, True),
+        'ple_warning_color': ('orange', True),
+        'ple_error_color': ('crimson', True),
+        'ple_success_color': ('forestgreen', True),
+        'ple_link_color': ('dodgerblue', True),
+    },
 }
 
 
@@ -104,10 +113,10 @@ class WidgetBank:
 
     def config_update(self):
         config_version = self.config.value('config_version')
-        if config_version == version:
+        if config_version == tp_version:
             return
         if config_version is None:
-            self.config.setValue('config_version', version)
+            self.config.setValue('config_version', tp_version)
             return
         if isinstance(config_version, str):
             config_version = tuple(map(int, config_version.split('.')))
@@ -120,7 +129,8 @@ class WidgetBank:
             ('le_data_dir', 'fsb_data_dir', lambda x: [x]),
             ('le_scan_dir', 'fsb_scan_dir', lambda x: [x]),
             ('le_dtor_save_dir', 'fsb_dtor_save_dir', lambda x: [x]),
-            ('sty_style_selecter', 'sty_style_selector', None)
+            ('sty_style_selecter', 'sty_style_selector', None),
+            ('rehost_data', 'rht_rehost_table', None),
         )
         for old, new, conversion in changes:
             if self.config.contains(old):
@@ -156,10 +166,22 @@ class WidgetBank:
                                                        '[url=%src_url%torrents.php?torrentid=%tor_id%]')
                 self.config.setValue(key, value)
 
-        if config_version < (2, 5, 2) <= version:
+        if (g := {'main', 'rehost', 'looks'}) & set(self.config.childGroups()) != g:
+            for tab, sd in CONFIG_NAMES.items():
+                for el_name in sd:
+                    if not self.config.contains(el_name):
+                        print('not in config', el_name)
+                        continue
+                    value = self.config.value(el_name)
+                    self.config.setValue(f'{tab.name}/{el_name}', value)
+                    self.config.remove(el_name)
+                    if self.config.contains(el_name):
+                        print('not removed', el_name)
+
+        if config_version < (2, 5, 2) <= tp_version:
             self.config.remove('geometry/job_view_header')
 
-        self.config.setValue('config_version', version)
+        self.config.setValue('config_version', tp_version)
 
     def main_widgets(self):
         self.topwidget = QWidget()
@@ -263,9 +285,6 @@ class WidgetBank:
 
         # rehost tab
         self.rh_on_off_container = QWidget()
-        self.rehost_model = RehostModel()
-        self.rehost_table = RehostTable(self.rehost_model)
-        self.l_rehost_table = QLabel(gui_text.l_rehost_table)
 
         # descr tab
         self.l_variables = QLabel(gui_text.l_placeholders)
@@ -283,39 +302,39 @@ class WidgetBank:
         self.color_examples.setSizeAdjustPolicy(QTextEdit.SizeAdjustPolicy.AdjustToContents)
 
     def user_input_elements(self):
+        for tab, sd in CONFIG_NAMES.items():
+            self.config.beginGroup(tab.name)
+            for el_name, (df, mk_lbl) in sd.items():
+                typ_str, name = el_name.split('_', maxsplit=1)
 
-        for el_name, (df, mk_lbl) in CONFIG_NAMES.items():
-            typ_str, name = el_name.split('_', maxsplit=1)
+                # instantiate
+                obj_type = TYPE_MAP[typ_str]
+                obj = obj_type()
+                setattr(self, el_name, obj)
 
-            # instantiate
-            obj_type = TYPE_MAP[typ_str]
-            obj = obj_type()
-            setattr(self, el_name, obj)
+                # set values from config
+                if not self.config.contains(el_name):
+                    self.config.setValue(el_name, df)
 
-            # set values from config
-            if not self.config.contains(el_name):
-                self.config.setValue(el_name, df)
+                change_sig, set_value_func = ACTION_MAP[obj_type]
+                set_value_func(obj, self.config.value(el_name))
 
-            change_sig, set_value_func = ACTION_MAP[obj_type]
-            set_value_func(obj, self.config.value(el_name))
+                # make Label
+                if mk_lbl:
+                    label_name = 'l_' + name
+                    if obj_type == QCheckBox:
+                        lbl = ClickableLabel()
+                        lbl.clicked.connect(obj.click)
+                    else:
+                        lbl = QLabel()
+                    lbl.setText(getattr(gui_text, label_name))
+                    setattr(self, label_name, lbl)
 
-            # connection to ini
-            change_sig(obj).connect(partial(self.config.setValue, el_name))
+                if obj_type == FolderSelectBox:
+                    obj.dialog_caption = gui_text.tooltips[el_name]
+                    self.fsbs.append(obj)
 
-            # make Label
-            if mk_lbl:
-                label_name = 'l_' + name
-                if obj_type == QCheckBox:
-                    lbl = ClickableLabel()
-                    lbl.clicked.connect(obj.click)
-                else:
-                    lbl = QLabel()
-                lbl.setText(getattr(gui_text, label_name))
-                setattr(self, label_name, lbl)
-
-            if obj_type == FolderSelectBox:
-                obj.dialog_caption = gui_text.tooltips[el_name]
-                self.fsbs.append(obj)
+            self.config.endGroup()
 
         if not self.theme_writable:
             self.thm_theme_selector.setEnabled(False)
@@ -335,10 +354,16 @@ class WidgetBank:
         self.spb_row_height.setMaximumWidth(40)
 
     def emit_state(self):
-        for el_name in CONFIG_NAMES:
-            obj = getattr(self, el_name)
-            signal_func, _ = ACTION_MAP[type(obj)]
-            value = self.config.value(el_name)
-            signal_func(obj).emit(value)
+        for tab, sd in CONFIG_NAMES.items():
+            self.config.beginGroup(tab.name)
+            for el_name in sd:
+                obj = getattr(self, el_name)
+                signal_func, _ = ACTION_MAP[type(obj)]
+                value = self.config.value(el_name)
+                signal_func(obj).emit(value)
+                signal_func(obj).connect(partial(self.config.setValue, f'{tab.name}/{el_name}'))
+
+            self.config.endGroup()
+
 
 wb = WidgetBank()

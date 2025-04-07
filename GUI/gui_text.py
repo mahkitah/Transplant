@@ -39,6 +39,8 @@ prof_conf = 'Are you sure you want to {action} profile "{profile}"?'
 prof_placeholder = 'Enter new profile name'
 prof_bad_filename = 'Could not create file:\n{}'
 prof_file_gone = 'Could not find file:\n{}'
+newprof_window = 'New Profile'
+newprof_name_label = 'New profile name:'
 
 sum_ting_wong_1 = 'Invalid data folder'
 sum_ting_wong_2 = 'Invalid scan folder'
@@ -79,10 +81,6 @@ keycheck_good_key = 'Hello {}, this key is valid'
 chb_deep_search = 'Deep search to level:'
 
 default_whitelist = "ptpimg.me, thesungod.xyz"
-l_rehost_table = ('Enable image hosts with the checkbox.\n'
-                  'Change priority by dragging rows up or down. (drag row header)\n'
-                  'Enabled host will be tried from the top down.\n'
-                  'If the first one fails the next will be tried and so forth.')
 rehost_columns = ('Host', 'API key')
 
 l_placeholders = ("Set a custom release description.\n\n"
@@ -124,6 +122,10 @@ l_show_tips = "Show tooltips"
 l_verbosity = 'Verbosity'
 l_rehost = 'Rehost cover art'
 l_whitelist = 'Image host whitelist'
+l_rehost_table = ('Enable image hosts with the checkbox.\n'
+                  'Change priority by dragging rows up or down. (drag row header)\n'
+                  'Enabled hosts will be tried from the top down.\n'
+                  'If the first one fails the next will be tried and so forth.')
 l_style_selector = 'GUI Style'
 l_theme_selector = 'Light/Dark theme'
 l_toolbar_loc = 'Toolbar at bottom'

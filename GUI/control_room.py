@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
+from GUI.profiles import STab
 from lib import utils, tp_text
 from lib.img_rehost import IH
 from lib.transplant import Job, Transplanter, JobCreationError
@@ -40,8 +41,8 @@ class TransplantThread(QThread):
     def run(self):
         logger.log(22, gui_text.start)
         key_dict = {
-            TR.RED: wb.config.value('le_key_1'),
-            TR.OPS: wb.config.value('le_key_2')
+            TR.RED: wb.config.value('main/le_key_1'),
+            TR.OPS: wb.config.value('main/le_key_2')
         }
         transplanter = Transplanter(key_dict, **self.trpl_settings)
 
@@ -80,6 +81,7 @@ def start_up():
 def main_connections():
     handler.log_forward.connect(print_logs)
     wb.profiles.load_profile.connect(load_profile)
+    wb.profiles.new_profile.connect(new_profile)
     wb.profiles.save_profile.connect(save_profile)
     wb.te_paste_box.plain_text_changed.connect(lambda x: wb.pb_add.setEnabled(bool(x)))
     wb.bg_source.idClicked.connect(lambda x: wb.config.setValue('bg_source', x))
@@ -176,15 +178,9 @@ def load_config():
 
     wb.settings_window.resize(wb.config.value('geometry/config_window_size', defaultValue=QSize(400, 450)))
 
-    hostdata = wb.config.value('rehost_data')
-    if hostdata:
-        IH.set_attrs(hostdata)
-    wb.rehost_table.move_to_priority()
-
 
 def settings_accepted():
     wb.config.setValue('geometry/config_window_size', wb.settings_window.size())
-    wb.config.setValue('rehost_data', IH.get_attrs())
     for fsb in wb.fsbs:
         fsb.consolidate()
 
@@ -261,16 +257,16 @@ def print_logs(record: logging.LogRecord):
 
 def trpl_settings():
     user_settings = (
-        'chb_deep_search',
-        'spb_deep_search_level',
-        'chb_save_dtors',
-        'chb_del_dtors',
-        'chb_file_check',
-        'chb_post_compare',
-        'te_rel_descr_templ',
-        'te_rel_descr_own_templ',
-        'chb_add_src_descr',
-        'te_src_descr_templ'
+        'main/chb_deep_search',
+        'main/spb_deep_search_level',
+        'main/chb_save_dtors',
+        'main/chb_del_dtors',
+        'main/chb_file_check',
+        'main/chb_post_compare',
+        'descriptions/te_rel_descr_templ',
+        'descriptions/te_rel_descr_own_templ',
+        'descriptions/chb_add_src_descr',
+        'descriptions/te_src_descr_templ'
     )
     settings_dict = {
         'data_dir': Path(wb.fsb_data_dir.currentText()),
@@ -281,8 +277,8 @@ def trpl_settings():
         val = wb.config.value(s)
         settings_dict[arg_name] = val
 
-    if wb.config.value('chb_rehost'):
-        white_str_nospace = ''.join(wb.config.value('le_whitelist').split())
+    if wb.config.value('rehost/chb_rehost'):
+        white_str_nospace = ''.join(wb.config.value('rehost/le_whitelist').split())
 
         whitelist = white_str_nospace.split(',')
         if '' in whitelist:
@@ -296,7 +292,7 @@ def gogogo():
     if not wb.job_data:
         return
 
-    min_req_config = ("le_key_1", "le_key_2", "fsb_data_dir")
+    min_req_config = ("main/le_key_1", "main/le_key_2", "main/fsb_data_dir")
     if not all(wb.config.value(x) for x in min_req_config):
         wb.settings_window.open()
         return
@@ -407,12 +403,12 @@ def scan_dtorrents():
 
 
 def settings_check():
-    data_dir = Path(wb.fsb_data_dir.currentText())
-    scan_dir = Path(wb.fsb_scan_dir.currentText())
-    dtor_save_dir = Path(wb.fsb_dtor_save_dir.currentText())
-    save_dtors = wb.config.value('chb_save_dtors')
-    rehost = wb.config.value('chb_rehost')
-    add_src_descr = wb.config.value('chb_add_src_descr')
+    data_dir = wb.fsb_data_dir.currentText()
+    scan_dir = wb.fsb_scan_dir.currentText()
+    dtor_save_dir = wb.fsb_dtor_save_dir.currentText()
+    save_dtors = wb.config.value('main/chb_save_dtors')
+    rehost = wb.config.value('rehost/chb_rehost')
+    add_src_descr = wb.config.value('descriptions/chb_add_src_descr')
 
     # Path('') exists and is_dir
     sum_ting_wong = []
@@ -524,28 +520,55 @@ def open_torrent_page(index: QModelIndex):
     QDesktopServices.openUrl(QUrl(url))
 
 
-def save_profile(profile_name: str):
-    profile_name = f'{profile_name.strip()}.tpp'
+def new_profile(profile_name: str, tabs: STab):
+    if not hasattr(tabs, '__iter__'):  # Flag members are not iterable in py 3.10-
+        tabs = tuple(t for t in STab if t in tabs)
+    suffix = f"({','.join(t.name[0] for t in tabs)})"
+    profile_name = f'{profile_name.strip()} {suffix}.tpp'
     try:
-        Path(profile_name).touch()
-    except (OSError, PermissionError) as e:
+        Path(profile_name).touch(exist_ok=False)
+    except OSError as e:
         wb.pop_up.pop_up(gui_text.prof_bad_filename.format(e), 4000)
         return
+    save_profile(profile_name, tabs)
 
+
+def check_file_exists(profile_name: str) -> bool:
+    if not os.path.isfile(profile_name):
+        wb.pop_up.pop_up(gui_text.prof_file_gone.format(profile_name))
+        wb.profiles.refresh()
+        return False
+    return True
+
+
+def save_profile(profile_name: str, tabs: STab = None):
     profile = IniSettings(profile_name)
-    for el_name in CONFIG_NAMES:
-        val = wb.config.value(el_name)
-        profile.setValue(el_name, val)
-    profile.setValue('rehost_data', IH.get_attrs())
+    if not tabs:
+        if not check_file_exists(profile_name):
+            return
+        tabs = STab(0)
+        for tab_name in profile.childGroups():
+            tabs |= STab[tab_name]
+
+    for tab, sd in CONFIG_NAMES.items():
+        if tab not in tabs:
+            continue
+
+        wb.config.beginGroup(tab.name)
+        profile.beginGroup(tab.name)
+        for el_name in sd:
+            val = wb.config.value(el_name)
+            profile.setValue(el_name, val)
+
+        wb.config.endGroup()
+        profile.endGroup()
+
     profile.sync()
-    wb.profiles.combo.refresh()
+    wb.profiles.refresh()
 
 
 def load_profile(profile_name: str):
-    profile_name = f'{profile_name}.tpp'
-    if not os.path.isfile(profile_name):
-        wb.pop_up.pop_up(gui_text.prof_file_gone.format(profile_name))
-        wb.profiles.combo.refresh()
+    if not check_file_exists(profile_name):
         return
     profile = IniSettings(profile_name)
     for key in profile.allKeys():
@@ -553,15 +576,10 @@ def load_profile(profile_name: str):
         new_value = profile.value(key)
         if current_value == new_value:
             continue
-        if key == 'rehost_data':
-            IH.set_attrs(new_value)
-            wb.rehost_table.move_to_priority()
-            continue
 
-        obj = getattr(wb, key)
+        obj = getattr(wb, key.partition('/')[2])
         signal_func, set_value_func = ACTION_MAP[type(obj)]
         set_value_func(obj, new_value)
-        signal_func(obj).emit(new_value)
 
 
 def key_precheck(tracker: TR, key: str) -> str:
@@ -612,7 +630,6 @@ def set_verbosity(lvl: int):
 
 
 def save_state():
-    wb.config.setValue('rehost_data', IH.get_attrs())
     wb.config.setValue('geometry/size', wb.main_window.size())
     wb.config.setValue('geometry/position', wb.main_window.pos())
     wb.config.setValue('geometry/splitter_pos', wb.splitter.sizes())

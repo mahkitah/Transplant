@@ -69,7 +69,7 @@ class SettingsWindow(QDialog):
         on_off.addLayout(white_l_row)
         on_off.addSpacing(15 - on_off.spacing())
         on_off.addWidget(wb.l_rehost_table)
-        on_off.addWidget(wb.rehost_table)
+        on_off.addWidget(wb.rht_rehost_table)
 
         rh_layout = QVBoxLayout(wb.rehost)
         rh_layout.setSpacing(15)

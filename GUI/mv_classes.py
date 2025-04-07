@@ -3,7 +3,7 @@ from typing import Iterable, Iterator
 
 from PyQt6.QtWidgets import QHeaderView, QTableView
 from PyQt6.QtGui import QIcon, QKeyEvent, QAction
-from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex, QItemSelectionModel
+from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex, QItemSelectionModel, QSignalBlocker
 
 from GUI import gui_text
 from lib.img_rehost import IH
@@ -134,8 +134,8 @@ class JobModel(QAbstractTableModel):
     def data(self, index: QModelIndex, role: int = 0):
         column = index.column()
         job = self.jobs[index.row()]
-        no_icon = self.config.value('chb_no_icon')
-        torrent_folder = self.config.value('chb_show_tor_folder')
+        no_icon = self.config.value('looks/chb_no_icon')
+        torrent_folder = self.config.value('looks/chb_show_tor_folder')
 
         if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
             if column == 0:
@@ -174,7 +174,7 @@ class JobModel(QAbstractTableModel):
             return self.headers[section]
 
         if (role == Qt.ItemDataRole.ToolTipRole
-                and self.config.value('chb_show_tips')
+                and self.config.value('main/chb_show_tips')
                 and orientation == Qt.Orientation.Horizontal
                 and section in (1, 2)):
             return getattr(gui_text, f'ttm_header{section}')
@@ -322,9 +322,11 @@ class RehostModel(QAbstractTableModel):
 
 
 class RehostTable(QTableView):
-    def __init__(self, model: RehostModel):
+    rh_data_changed = pyqtSignal(dict)
+
+    def __init__(self):
         super().__init__()
-        self.setModel(model)
+        self.setModel(RehostModel())
         self.setSelectionMode(QTableView.SelectionMode.NoSelection)
         self.verticalHeader().setSectionsMovable(True)
         self.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
@@ -334,16 +336,26 @@ class RehostTable(QTableView):
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         self.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
 
-    def move_to_priority(self):
-        for h in IH.prioritised():
-            v_index = self.verticalHeader().visualIndex(h.value)
-            if h.prio != v_index:
-                self.verticalHeader().moveSection(v_index, h.prio)
         self.verticalHeader().sectionMoved.connect(self.update_priorities)
+        self.verticalHeader().sectionMoved.connect(lambda: self.rh_data_changed.emit(IH.get_attrs()))
+        self.model().dataChanged.connect(lambda: self.rh_data_changed.emit(IH.get_attrs()))
+
+    def move_to_priority(self):
+        with QSignalBlocker(self.verticalHeader()):
+            for h in IH.prioritised():
+                v_index = self.verticalHeader().visualIndex(h.value)
+                if h.prio != v_index:
+                    self.verticalHeader().moveSection(v_index, h.prio)
 
     def update_priorities(self):
         for host in IH:
             host.prio = self.verticalHeader().visualIndex(host.value)
+
+    def set_rh_data(self, rh_data: dict):
+        if not rh_data:
+            return
+        IH.set_attrs(rh_data)
+        self.move_to_priority()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
