@@ -6,7 +6,7 @@ from PyQt6.QtGui import QIcon, QKeyEvent, QAction
 from PyQt6.QtCore import Qt, pyqtSignal, QAbstractTableModel, QModelIndex, QItemSelectionModel, QSignalBlocker
 
 from GUI import gui_text
-from lib.img_rehost import IH
+from core.img_rehost import IH
 from gazelle.tracker_data import TR
 
 try:

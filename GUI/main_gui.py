@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QMai
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import QSize
 
-from lib.tp_text import tp_version
+from core.tp_text import tp_version
 from GUI import gui_text
 from GUI.widget_bank import wb
 

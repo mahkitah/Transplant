@@ -9,7 +9,7 @@ from http.cookiejar import LWPCookieJar, LoadError
 import requests
 from requests.exceptions import JSONDecodeError
 
-from lib import tp_text
+from core import tp_text
 from gazelle.torrent_info import TorrentInfo
 from gazelle.tracker_data import TR
 

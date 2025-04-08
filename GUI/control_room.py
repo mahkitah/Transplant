@@ -5,9 +5,9 @@ from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
 from GUI.profiles import STab
-from lib import utils, tp_text
-from lib.img_rehost import IH
-from lib.transplant import Job, Transplanter, JobCreationError
+from core import utils, tp_text
+from core.img_rehost import IH
+from core.transplant import Job, Transplanter, JobCreationError
 from gazelle.tracker_data import TR
 from GUI import gui_text
 from GUI.main_gui import MainWindow

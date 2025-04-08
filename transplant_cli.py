@@ -5,11 +5,11 @@ from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 from typing import Iterator
 
-from lib.transplant import Transplanter, Job, JobCreationError
-from lib import tp_text
+from core.transplant import Transplanter, Job, JobCreationError
+from core import tp_text
 from cli_config import cli_config
-from lib.utils import tb_line_gen
-from lib.img_rehost import IH
+from core.utils import tb_line_gen
+from core.img_rehost import IH
 from gazelle.tracker_data import TR
 
 
