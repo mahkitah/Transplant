@@ -162,14 +162,14 @@ def config_connections():
 def load_config():
     source_id = wb.config.value('bg_source', defaultValue=1)
     wb.bg_source.button(source_id).click()
-    wb.main_window.resize(wb.config.value('geometry/size', defaultValue=QSize(730, 440)))
+    wb.main_window.resize(wb.config.value('geometry/size', defaultValue=QSize(850, 550)))
 
     try:
         wb.main_window.move(wb.config.value('geometry/position'))
     except TypeError:
         pass
 
-    splittersizes = wb.config.value('geometry/splitter_pos', defaultValue=[100, 336], type=int)
+    splittersizes = wb.config.value('geometry/splitter_pos', defaultValue=[100, 415], type=int)
     wb.splitter.setSizes(splittersizes)
     wb.splitter.splitterMoved.emit(splittersizes[0], 1)
     wb.job_view.horizontalHeader().restoreState(wb.config.value('geometry/job_view_header'))
