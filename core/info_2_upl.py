@@ -3,8 +3,8 @@ import logging
 from typing import Iterable
 from collections import defaultdict
 
-from lib.img_rehost import IH
-from lib import utils, tp_text
+from core.img_rehost import IH
+from core import utils, tp_text
 from gazelle.upload import UploadData
 from gazelle.tracker_data import ReleaseType
 from gazelle.torrent_info import TorrentInfo

@@ -7,8 +7,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
 
 from gazelle.tracker_data import TR
-from lib.tp_text import tp_version
-from lib.img_rehost import IH
+from core.tp_text import tp_version
+from core.img_rehost import IH
 from GUI import gui_text
 from GUI.misc_classes import (TPTextEdit, CyclingTabBar, FolderSelectBox, IniSettings, TempPopUp, TTfilter,
                               ColorExample, PatientLineEdit, ThemeIcon, StyleSelector, ThemeSelector, ClickableLabel,

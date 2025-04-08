@@ -2,8 +2,8 @@ import logging
 from pathlib import Path
 from bcoding import bencode, bdecode
 from gazelle.tracker_data import TR, ReleaseType
-from lib import tp_text
-from lib .utils import uni_t_table
+from core import tp_text
+from core .utils import uni_t_table
 
 report = logging.getLogger('tr.upl')
 

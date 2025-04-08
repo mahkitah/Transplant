@@ -9,9 +9,10 @@ from bcoding import bencode, bdecode
 from gazelle import upload
 from gazelle.tracker_data import TR, Encoding, BAD_RED_ENCODINGS, ArtistType
 from gazelle.api_classes import sleeve, BaseApi, OpsApi
-from lib import utils, tp_text
-from lib.info_2_upl import TorInfo2UplData
-from lib.lean_torrent import Torrent
+from gazelle.torrent_info import TorrentInfo
+from core import utils, tp_text
+from core.info_2_upl import TorInfo2UplData
+from core.lean_torrent import Torrent
 
 report = logging.getLogger('tr.core')
 

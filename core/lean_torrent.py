@@ -3,7 +3,7 @@ from hashlib import sha1
 from pathlib import Path
 from multiprocessing import pool
 
-from lib.utils import scantree
+from core.utils import scantree
 
 
 class Torrent:
