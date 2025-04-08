@@ -1,3 +1,10 @@
+2.6.0
+- Minimum PyQt version = 6.7
+- RED domain updated
+- New: OPS image proxy is used for rehosting
+- New: Set Dark/Light theme independent from OS (requires PyQt 6.8+)
+- New: Profiles
+- Fix: cover image was not transplanted when rehosting was not selected
 2.5.6
 - New: Can use RED's new log download
 - New: Buttons for testing API-keys
