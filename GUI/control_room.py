@@ -254,6 +254,8 @@ def print_logs(record: logging.LogRecord):
 
         wb.result_view.insertHtml(f'<br><span class={cls_name}>{msg}</span>')
 
+    wb.result_view.ensureCursorVisible()
+
 
 def trpl_settings():
     user_settings = (
