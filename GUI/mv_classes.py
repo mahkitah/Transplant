@@ -137,7 +137,7 @@ class JobModel(QAbstractTableModel):
         no_icon = self.config.value('looks/chb_no_icon')
         torrent_folder = self.config.value('looks/chb_show_tor_folder')
 
-        if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             if column == 0:
                 if job.dtor_dict and torrent_folder:
                     show_name = job.dtor_dict['info']['name']
@@ -148,6 +148,9 @@ class JobModel(QAbstractTableModel):
                 return show_name
             if column == 1:
                 return job.dest_group
+
+        if role == Qt.ItemDataRole.EditRole:
+            return job.dest_group and str(job.dest_group)
 
         if role == Qt.ItemDataRole.CheckStateRole and column == 2:
             return Qt.CheckState(job.new_dtor * 2)
@@ -188,7 +191,7 @@ class JobModel(QAbstractTableModel):
         if column == 1:
             if value:
                 try:
-                    value = str(int(value))
+                    value = int(value)
                 except ValueError:
                     return False
             job.dest_group = value or None
