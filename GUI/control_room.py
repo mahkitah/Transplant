@@ -22,6 +22,7 @@ from PyQt6.QtCore import Qt, QObject, pyqtSignal, QThread, QSize, QUrl, QModelIn
 
 class LogForward(QObject, logging.Handler):
     log_forward = pyqtSignal(logging.LogRecord)
+    flushOnClose = True  # logging looks for this attribute on shutdown: https://stackoverflow.com/questions/79588998
 
     def emit(self, record):
         self.log_forward.emit(record)
