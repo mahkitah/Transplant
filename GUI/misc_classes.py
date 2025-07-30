@@ -188,6 +188,7 @@ class HistoryBox(QComboBox):
 
     def set_list(self, item_list):
         if item_list:
+            self.clear()
             self.addItems(item_list)
             self.list_changed.emit(item_list)
 
