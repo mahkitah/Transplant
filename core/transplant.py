@@ -162,17 +162,19 @@ class Transplanter:
 
         report.info(f"{tp_text.uploading} {dest_tr.name}")
         try:
-            new_id, new_group, new_url = dest_api.upload(data_dict, files_list)
-            report.log(25, f"{tp_text.upl_success} {new_url}")
+            torrent_id = dest_api.upload(data_dict, files_list)
         except Exception:
             report.exception(f"{tp_text.upl_fail}")
             return False
+        else:
+            new_tor_url = dest_tr.site + f"torrents.php?torrentid={torrent_id}"
+            report.log(25, f"{tp_text.upl_success} {new_tor_url}")
 
         if self.post_compare:
-            self.compare_upl_info(src_api, dest_api, new_id)
+            self.compare_upl_info(src_api, dest_api, torrent_id)
 
         if self.save_dtors:
-            self.save_dtorrent(upl_files, new_url)
+            self.save_dtorrent(upl_files, new_tor_url)
             report.info(f"{tp_text.dtor_saved} {self.dtor_save_dir}")
 
         if self.del_dtors and self.job.scanned:

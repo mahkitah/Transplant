@@ -17,6 +17,7 @@ from gazelle.tracker_data import TR
 class RequestFailure(Exception):
     pass
 
+
 report = logging.getLogger('tr.api')
 
 
@@ -85,12 +86,12 @@ class BaseApi:
     def upload(self, upl_data: dict, files: list):
         return self._uploader(upl_data, files)
 
-    def _uploader(self, data: dict, files: list) -> dict:
+    def _uploader(self, data: dict, files: list):
         r = self.request('upload', data=data, files=files)
 
         return self.upl_response_handler(r)
 
-    def upl_response_handler(self, r):
+    def upl_response_handler(self, r) -> int:
         raise NotImplementedError
 
 
@@ -103,9 +104,6 @@ class KeyApi(BaseApi):
     def request(self, action: str, data=None, files=None, **kwargs):
         kwargs.update(action=action)
         return super().request('ajax', data=data, files=files, **kwargs)
-
-    def upl_response_handler(self, r):
-        raise NotImplementedError
 
     def get_riplog(self, tor_id: int, log_id: int):
         r: dict = self.request('riplog', id=tor_id, logid=log_id)
@@ -181,13 +179,13 @@ class RedApi(KeyApi):
     def __init__(self, key=None):
         super().__init__(TR.RED, key=key)
 
-    def _uploader(self, data: dict, files: list) -> (int, int, str):
+    def _uploader(self, data: dict, files: list):
         try:
             unknown = data.pop('unknown')
         except KeyError:
             unknown = False
 
-        torrent_id, group_id = super()._uploader(data, files)
+        torrent_id = super()._uploader(data, files)
 
         if unknown:
             try:
@@ -195,10 +193,10 @@ class RedApi(KeyApi):
                 report.info(tp_text.upl_to_unkn)
             except (RequestFailure, requests.HTTPError) as e:
                 report.warning(f'{tp_text.edit_fail}{str(e)}')
-        return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
+        return torrent_id
 
-    def upl_response_handler(self, r: dict) -> (int, int):
-        return r.get('torrentid'), r.get('groupid')
+    def upl_response_handler(self, r: dict):
+        return r.get('torrentid')
 
 
 class OpsApi(KeyApi):
@@ -206,10 +204,7 @@ class OpsApi(KeyApi):
         super().__init__(TR.OPS, key=f"token {key}")
 
     def upl_response_handler(self, r):
-        group_id = r.get('groupId')
-        torrent_id = r.get('torrentId')
-
-        return torrent_id, group_id, self.url + f"torrents.php?id={group_id}&torrentid={torrent_id}"
+        return r.get('torrentId')
 
 
 def sleeve(trckr: TR, **kwargs):
