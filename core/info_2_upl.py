@@ -123,17 +123,24 @@ class TorInfo2UplData:
             return
 
         rehost_url = proxy or src_img_url
-        u_data.upl_img_url = self.rehost(rehost_url) or src_img_url
+        u_data.upl_img_url = self.rehost(rehost_url, proxy is not None) or src_img_url
 
     @staticmethod
-    def rehost(src_img_url: str):
+    def rehost(src_img_url: str, is_proxy: bool):
         report.log(22, tp_text.trying)
+        proxy_dl = None
         for host in IH.prioritised():
             if not host.enabled:
                 continue
             report.log(22, f'{host.name}...')
+            img_input = src_img_url
+            if host is not host.Ra and is_proxy:
+                if not proxy_dl:
+                    import requests
+                    proxy_dl = requests.get(src_img_url)
+                img_input = proxy_dl
             try:
-                rehosted_img = host.func(src_img_url, host.key)
+                rehosted_img = host.func(img_input, host.key)
             except Exception:
                 continue
             else:
@@ -141,3 +148,4 @@ class TorInfo2UplData:
                 return rehosted_img
 
         report.log(32, tp_text.rehost_failed)
+        return None

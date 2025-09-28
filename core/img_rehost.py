@@ -1,5 +1,6 @@
-from enum import Enum
 import requests
+from base64 import b64encode
+from enum import Enum
 
 
 def ra_rehost(img_link, key):
@@ -10,19 +11,26 @@ def ra_rehost(img_link, key):
     return r.json()['link']
 
 
-def ptpimg_rehost(img_link, key):
+def ptpimg_rehost(img_input, key):
     url = "https://ptpimg.me/"
-    data = {'api_key': key,
-            'link-upload': img_link}
-    r = requests.post(url + 'upload.php', data=data)
+    data = {'api_key': key}
+    files = {}
+    if isinstance(img_input, str):
+        data['link-upload'] = img_input
+    else:
+        files['file-upload'] = ('bla.jpg', img_input.content, img_input.headers['content-type'])
+
+    r = requests.post(url + 'upload.php', data=data, files=files)
     rj = r.json()[0]
     return f"{url}{rj['code']}.{rj['ext']}"
 
 
-def imgbb_rehost(img_link, key):
+def imgbb_rehost(img_input, key):
     url = 'https://api.imgbb.com/1/upload'
+    if isinstance(img_input, requests.Response):
+        img_input = b64encode(img_input.content)
     data = {'key': key,
-            'image': img_link}
+            'image': img_input}
     r = requests.post(url, data=data)
     return r.json()['data']['url']
 
