@@ -1,3 +1,7 @@
+2.6.1
+- Fix: Loading profile did not set folder boxes correctly
+- Fix: rehosting OPS proxy images failes on ptpimg and imgbb
+- Torrent link in comment of saved .torrents no longer has groupid
 2.6.0
 - Minimum PyQt version = 6.7
 - RED domain updated
