@@ -189,18 +189,19 @@ class Transplanter:
         self.lrm = False
         self.local_is_stripped = False
 
-    def get_torinfo(self, src_api):
+    def get_torinfo(self, src_api) -> bool:
         report.info(tp_text.requesting)
         if self.job.tor_id:
             info_kwarg = {'id': self.job.tor_id}
         elif self.job.info_hash:
             info_kwarg = {'hash': self.job.info_hash}
         else:
-            return
+            return False
         try:
             self.tor_info = src_api.torrent_info(**info_kwarg)
         except Exception:
             report.log(42, tp_text.fail, exc_info=True)
+            return False
         else:
             report.log(22, tp_text.done)
             return True
@@ -380,6 +381,7 @@ class Transplanter:
             if fp_stripped.exists():
                 self.local_is_stripped = True
                 return fp_stripped
+        return None
 
     def check_files(self) -> bool:
         if self.job.new_dtor:

@@ -148,7 +148,7 @@ class WidgetBank:
                     self.config.setValue(key, value)
             elif key.startswith('spb_'):
                 value = self.config.value(key)
-                if not type(value) == int:
+                if not type(value) is int:
                     self.config.setValue(key, int(value))
             if key == 'spb_splitter_weight':
                 self.config.remove(key)

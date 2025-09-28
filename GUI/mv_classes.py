@@ -158,6 +158,8 @@ class JobModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.DecorationRole and column == 0 and not no_icon:
             return self.icons[job.src_tr]
 
+        return None
+
     def rowCount(self, parent: QModelIndex = None) -> int:
         return len(self.jobs)
 
@@ -208,7 +210,7 @@ class JobModel(QAbstractTableModel):
         column = 2
         was_unchecked = []
         for i, job in enumerate(self.jobs):
-            if job.new_dtor is False:
+            if not job.new_dtor:
                 was_unchecked.append(i)
                 job.new_dtor = True
         if was_unchecked:
@@ -291,6 +293,8 @@ class RehostModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.CheckStateRole and column == 0:
             return Qt.CheckState(host.enabled * 2)
 
+        return None
+
     def flags(self, index: QModelIndex) -> Qt.ItemFlag:
         if index.column() == 0:
             return super().flags(index) | Qt.ItemFlag.ItemIsUserCheckable
@@ -303,7 +307,7 @@ class RehostModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.DisplayRole:
             if orientation is Qt.Orientation.Horizontal:
                 return self.column_names[section]
-            elif orientation is Qt.Orientation.Vertical:
+            else:
                 return IH(section).prio + 1
         else:
             return super().headerData(section, orientation, role)

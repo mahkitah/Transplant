@@ -42,7 +42,7 @@ class Application(QApplication):
         self.scheme_eval()
         self.styleHints().colorSchemeChanged.connect(self.scheme_eval)
 
-    def set_style(self, style):
+    def set_style(self, style: str):
         super().setStyle(style)
         self.scheme_eval()
 
@@ -96,7 +96,7 @@ class TempPopUp(QFrame):
         lay = QVBoxLayout(self)
         lay.addWidget(self.message)
 
-    def pop_up(self, message, time: int = 2000):
+    def pop_up(self, message: str, time: int = 2000):
         self.message.setText(message)
         self.show()
         self.timer.start(time)
@@ -141,7 +141,7 @@ class ColorExample(QTextBrowser):
                 f'.good {{color: {self.current_colors[3]}}}'
                 f'a {{color: {self.current_colors[4]}}}')
 
-    def update_colors(self, color: str, index):
+    def update_colors(self, color: str, index: int):
         color = ''.join(color.split())
         if color == self.current_colors[index]:
             return
@@ -186,7 +186,7 @@ class ThemeModel(QAbstractListModel):
 class HistoryBox(QComboBox):
     list_changed = pyqtSignal(list)
 
-    def set_list(self, item_list):
+    def set_list(self, item_list: list[str]):
         if item_list:
             self.clear()
             self.addItems(item_list)

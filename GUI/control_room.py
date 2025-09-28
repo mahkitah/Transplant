@@ -1,6 +1,7 @@
 import os
 import re
 import logging
+from typing import Any
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
@@ -271,7 +272,7 @@ def trpl_settings():
         'descriptions/chb_add_src_descr',
         'descriptions/te_src_descr_templ'
     )
-    settings_dict = {
+    settings_dict: dict[str, Any] = {
         'data_dir': Path(wb.fsb_data_dir.currentText()),
         'dtor_save_dir': Path(tsd) if (tsd := wb.fsb_dtor_save_dir.currentText()) else None
     }
@@ -334,7 +335,6 @@ class JobCollector:
             return
 
         self.jobs.append(job)
-        return True
 
     def add_jobs_2_joblist(self, empty_msg=None):
         if self.jobs:
@@ -585,7 +585,7 @@ def load_profile(profile_name: str):
         set_value_func(obj, new_value)
 
 
-def key_precheck(tracker: TR, key: str) -> str:
+def key_precheck(tracker: TR, key: str):
     if key != key.strip():
         return gui_text.keycheck_spaces
 
@@ -598,7 +598,7 @@ def key_precheck(tracker: TR, key: str) -> str:
         if len(key) not in (116, 118):
             return gui_text.keycheck_ops_mismatch
 
-    return ''
+    return None
 
 
 def api_key_test(tracker: TR, key: str):
