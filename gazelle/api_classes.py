@@ -187,7 +187,7 @@ class RedApi(KeyApi):
         except KeyError:
             unknown = False
 
-        torrent_id = super()._uploader(data, files)
+        group_id, torrent_id, newgroup = super()._uploader(data, files)
 
         if unknown:
             try:
@@ -195,7 +195,8 @@ class RedApi(KeyApi):
                 report.info(tp_text.upl_to_unkn)
             except (RequestFailure, requests.HTTPError) as e:
                 report.warning(f'{tp_text.edit_fail}{str(e)}')
-        return torrent_id
+
+        return group_id, torrent_id, newgroup
 
     def upl_response_handler(self, r: dict):
         return r['groupid'], r['torrentid'], r['newgroup']
