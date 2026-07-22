@@ -1,3 +1,6 @@
+2.6.3
+- New: Deal with RED image host
+- Fix: unknown torrent to RED failed
 2.6.2
 - New: You can now see which profiles are loaded
 - New: Merged uploads can be detected with certainty
