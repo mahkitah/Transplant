@@ -12,42 +12,47 @@ except ImportError:
         return (value,)
 
 
-def ra_rehost(img_link, key):
-    url = "https://thesungod.xyz/api/image/rehost_new"
-    data = {'api_key': key,
-            'link': img_link}
-    r = requests.post(url, data=data)
-    return r.json()['link']
-
-
-def ptpimg_rehost(img_input: str | requests.Response, key):
-    url = "https://ptpimg.me/"
+def ra_rehost(img_input: str | bytes, key) -> str:
     data = {'api_key': key}
-    files = {}
     if isinstance(img_input, str):
-        data['link-upload'] = img_input
+        url = "https://thesungod.xyz/api/image/rehost_new"
+        data.update(link=img_input)
+        r = requests.post(url, data=data)
+        return r.json()['link']
     else:
-        files['file-upload'] = ('bla.jpg', img_input.content, img_input.headers['content-type'])
+        url = "https://thesungod.xyz/api/image/upload"
+        files = [('image', ('blabla', img_input, 'image/bla'))]
+        r = requests.post(url, data=data, files=files)
+        return r.json()['links'].pop()
 
-    r = requests.post(url + 'upload.php', data=data, files=files)
-    rj = r.json()[0]
-    return f"{url}{rj['code']}.{rj['ext']}"
 
-
-def imgbb_rehost(img_input: str | requests.Response, key):
+def imgbb_rehost(img_input: str | bytes, key):
     url = 'https://api.imgbb.com/1/upload'
-    if isinstance(img_input, requests.Response):
-        img_input = b64encode(img_input.content)
+    if isinstance(img_input, bytes):
+        img_input = b64encode(img_input)
     data = {'key': key,
             'image': img_input}
     r = requests.post(url, data=data)
     return r.json()['data']['url']
 
 
+def pt_rehost(img_input: str | bytes, key):
+    if isinstance(img_input, str):
+        h = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+        r = requests.get(img_input, headers=h)
+        if r.status_code == 200 and r.headers['content-type'].startswith('image'):
+            img_input = r.content
+        else:
+            raise ValueError
+    url = 'https://ptscreens.com/api/1/upload'
+    r = requests.post(url, headers={'X-API-Key': key}, data={'source': b64encode(img_input)})
+    return r.json()['image']['url']
+
+
 class IH(Enum):
     Ra = member(ra_rehost)
-    PTPimg = member(ptpimg_rehost)
     ImgBB = member(imgbb_rehost)
+    PTScreens = member(pt_rehost)
 
     def __new__(cls, func):
         obj = object.__new__(cls)
@@ -77,6 +82,9 @@ class IH(Enum):
         self.key = key
         self.prio = prio
 
+    def rehost(self, img_input: str | bytes):
+        return self.func(img_input, self.key)
+
     @classmethod
     def set_attrs(cls, attr_dict: dict):
         for name, attrs in attr_dict.items():
@@ -92,5 +100,5 @@ class IH(Enum):
         return attr_dict
 
     @classmethod
-    def prioritised(cls) -> list:
+    def prioritised(cls) -> list[IH]:
         return sorted(cls, key=lambda m: m.prio)

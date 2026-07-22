@@ -78,7 +78,7 @@ keycheck_good_key = 'Hello {}, this key is valid'
 
 chb_deep_search = 'Deep search to level:'
 
-default_whitelist = "ptpimg.me, thesungod.xyz"
+default_whitelist = "thesungod.xyz"
 rehost_columns = ('Host', 'API key')
 
 l_placeholders = ("Set a custom release description.\n\n"

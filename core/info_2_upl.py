@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import re
 import logging
-from typing import Iterable
 from collections import defaultdict
 
-from core.img_rehost import IH
-from core import utils, tp_text
+from core import utils
 from gazelle.upload import UploadData
 from gazelle.tracker_data import ReleaseType
 from gazelle.torrent_info import TorrentInfo
@@ -20,15 +18,11 @@ class TorInfo2UplData:
                'rem_cat_nr', 'unknown', 'encoding', 'other_bitrate', 'vbr', 'scene', 'src_tr')
 
     def __init__(self,
-                 rehost_img: bool,
-                 whitelist: Iterable,
                  rel_descr_templ: str,
                  rel_descr_own_templ: str,
                  add_src_descr: bool,
                  src_descr_templ: str,
                  ):
-        self.rehost_img = rehost_img
-        self.whitelist = whitelist
         self.rel_descr_templ = rel_descr_templ
         self.rel_descr_own_templ = rel_descr_own_templ
         self.add_src_descr = add_src_descr
@@ -50,7 +44,7 @@ class TorInfo2UplData:
         if not dest_group:
             self.parse_artists(tor_info, u_data)
             self.tags_to_string(tor_info, u_data)
-            self.do_img(tor_info, u_data)
+            # self.do_img(tor_info, u_data)
 
         return u_data
 
@@ -106,48 +100,3 @@ class TorInfo2UplData:
             tag_string = tag_string[:tag_string.rfind(',', 0, 201)]
 
         u_data.tags = tag_string
-
-    def do_img(self, tor_info, u_data):
-        src_img_url = tor_info.img_url
-        if not self.rehost_img:
-            u_data.upl_img_url = src_img_url
-            return
-
-        report.info(tp_text.rehost)
-        proxy = tor_info.proxy_img
-        if not src_img_url and not proxy:
-            report.log(32, tp_text.no_img)
-            return
-
-        if any(w in src_img_url for w in self.whitelist):
-            u_data.upl_img_url = src_img_url
-            report.log(22, tp_text.img_white)
-            return
-
-        rehost_url = proxy or src_img_url
-        u_data.upl_img_url = self.rehost(rehost_url, proxy is not None) or src_img_url
-
-    @staticmethod
-    def rehost(src_img_url: str, is_proxy: bool) -> str | None:
-        report.log(22, tp_text.trying)
-        proxy_dl = None
-        for host in IH.prioritised():
-            if not host.enabled:
-                continue
-            report.log(22, f'{host.name}...')
-            img_input = src_img_url
-            if host is not host.Ra and is_proxy:
-                if not proxy_dl:
-                    import requests
-                    proxy_dl = requests.get(src_img_url)
-                img_input = proxy_dl
-            try:
-                rehosted_img = host.func(img_input, host.key)
-            except Exception:
-                continue
-            else:
-                report.log(22, rehosted_img)
-                return rehosted_img
-
-        report.log(32, tp_text.rehost_failed)
-        return None

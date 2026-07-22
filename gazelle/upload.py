@@ -38,7 +38,6 @@ FIELD_MAPPING = {
         'title': 'title',
         'o_year': 'year',
         'tags': 'tags',
-        'upl_img_url': 'image',
         'vanity': 'vanity_house',
         'alb_descr': 'album_desc'
     }
@@ -65,7 +64,6 @@ class UploadData:
         self.vbr: bool = False
         self.vanity: bool = False
         self.tags: str | None = None
-        self.upl_img_url: str | None = None
         self.alb_descr: str | None = None
         self.rel_descr: str | None = None
         self.request_id: int | None = None

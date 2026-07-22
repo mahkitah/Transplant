@@ -10,9 +10,10 @@ from bcoding import bencode, bdecode
 
 from gazelle import upload
 from gazelle.tracker_data import TR, Encoding, BAD_RED_ENCODINGS, ArtistType
-from gazelle.api_classes import sleeve, BaseApi, OpsApi
+from gazelle.api_classes import sleeve, BaseApi, OpsApi, RedApi
 from gazelle.torrent_info import TorrentInfo
 from core import utils, tp_text
+from core.img_rehost import IH
 from core.info_2_upl import TorInfo2UplData
 from core.lean_torrent import Torrent
 
@@ -123,13 +124,15 @@ class Transplanter:
         self.save_dtors = save_dtors
         self.del_dtors = del_dtors
         self.file_check = file_check
+        self.img_rehost = img_rehost
+        self.whitelist = whitelist
         self.post_compare = post_compare
 
         if self.deep_search:
             self.subdir_store = {}
             self.subdir_gen = subdirs_gen(self.data_dir, maxlevel=self.deep_search_level)
 
-        self.inf_2_upl = TorInfo2UplData(img_rehost, whitelist, rel_descr_templ, rel_descr_own_templ,
+        self.inf_2_upl = TorInfo2UplData(rel_descr_templ, rel_descr_own_templ,
                                          add_src_descr, src_descr_templ)
         self.job = None
         self.tor_info: TorrentInfo | None = None
@@ -166,6 +169,9 @@ class Transplanter:
 
             dest_api = self.api_map[dest_tr]
             data_dict = upl_data.upl_dict(dest_tr, self.job.dest_group)
+            image_url = self.do_img(dest_tr)
+            if image_url:
+                data_dict['image'] = image_url
 
             files_list = upl_files.files_list(dest_api.announce, dest_tr.name, u_strip=self.strip_tor)
 
@@ -414,3 +420,57 @@ class Transplanter:
             dtor['comment'] = comment
         file_path = (self.dtor_save_dir / self.tor_info.folder_name).with_suffix('.torrent')
         file_path.write_bytes(bencode(dtor))
+
+    bad_img_hosts = ('ptpimg.me', 'funkyimg.com', 'radikal.ru')
+
+    def do_img(self, dest_tr: TR) -> str | None:
+        src_img_url = self.tor_info.img_url
+        proxy = self.tor_info.proxy_img
+        red_api: RedApi = self.api_map[TR.RED]
+
+        if any(bh in src_img_url for bh in self.bad_img_hosts):
+            src_img_url = None
+
+        if not src_img_url and not proxy:
+            report.error(tp_text.no_img)
+            return None
+
+        if dest_tr is TR.RED:
+            assert proxy
+            try:
+                red_img_url = red_api.request('upload_image', url=proxy)['url']
+            except Exception:
+                return src_img_url
+            else:
+                report.info(tp_text.img_red_hosted)
+                return red_img_url
+
+        if dest_tr is TR.OPS:
+            if not self.img_rehost:
+                return src_img_url
+
+            if any(w in src_img_url for w in self.whitelist):
+                report.info(tp_text.img_white)
+                return src_img_url
+
+            red_self_hosted = 'redacted.sh' in src_img_url
+            img_input = src_img_url
+            if red_self_hosted:
+                img_input = red_api.dl_img(src_img_url)
+            report.info(tp_text.rehost)
+            for host in IH.prioritised():
+                if not host.enabled:
+                    continue
+                report.log(22, f'{host.name}...')
+                try:
+                    rehosted_img = host.rehost(img_input)
+                except Exception:
+                    continue
+                else:
+                    report.log(22, rehosted_img)
+                    return rehosted_img
+
+            report.log(32, tp_text.rehost_failed)
+            return None
+
+        return None

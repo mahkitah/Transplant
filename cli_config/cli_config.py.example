@@ -35,13 +35,13 @@ verbosity = 2
 
 # rehost non-whitelisted images
 img_rehost = False
-whitelist = ["ptpimg.me", "thesungod.xyz"]
+whitelist = ["thesungod.xyz", "i.ibb.co", "ptscreens.com"]
 image_hosts = {
     # 'name': (enabled, 'api key', priority)
     # Enabled image hosts will be tried in 'priority' order
     'Ra': (False, '123345', 1),
-    'PTPimg': (False, '12345', 2),
-    'ImgBB': (False, '12345', 3),
+    'ImgBB': (False, '12345', 2),
+    'PTScreens': (False, '12345', 3),
 }
 
 # Set a custom release description.

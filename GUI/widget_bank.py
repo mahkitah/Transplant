@@ -207,6 +207,16 @@ class WidgetBank:
                     f_list = prof.value(f'main/{fsb_key}')
                     prof.setValue(f'main/{fsb_key}', f_list[0])
 
+        if config_version < (2, 6, 3) <= tp_version:
+            w_list_str: str = self.config.value('rehost/le_whitelist')
+            if 'ptpimg' in w_list_str:
+                new_w_list = [h for h in w_list_str.split(',') if 'ptpimg' not in h]
+                self.config.setValue('rehost/le_whitelist', ','.join(new_w_list))
+            rehost_data = self.config.value('rehost/rht_rehost_table')
+            if 'PTPimg' in rehost_data:
+                del rehost_data['PTPimg']
+                self.config.setValue('rehost/rht_rehost_table', rehost_data)
+
         self.config.setValue('config_version', tp_version)
 
     def main_widgets(self):

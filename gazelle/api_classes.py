@@ -180,6 +180,7 @@ class HtmlApi(CookieApi):
 class RedApi(KeyApi):
     def __init__(self, key=None):
         super().__init__(TR.RED, key=key)
+        self._img_auth = None
 
     def _uploader(self, data: dict, files: list):
         try:
@@ -200,6 +201,24 @@ class RedApi(KeyApi):
 
     def upl_response_handler(self, r: dict):
         return r['groupid'], r['torrentid'], r['newgroup']
+
+    @property
+    def img_auth(self):
+        if not self._img_auth:
+            self.new_img_auth()
+        return self._img_auth
+
+    def new_img_auth(self):
+        self._img_auth = self.request('imgauth')
+
+    def dl_img(self, img_url: str) -> bytes | None:
+        for i in range(2):
+            r = requests.get(img_url + '?h={h}&e={e}&u={u}'.format(**self.img_auth))
+            if r.status_code == 200 and r.headers['content-type'].startswith('image'):
+                return r.content
+            elif r.status_code == 403:
+                self.new_img_auth()
+        return None
 
 
 class OpsApi(KeyApi):

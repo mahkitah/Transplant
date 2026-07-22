@@ -18,12 +18,13 @@ log_count_wrong = 'Torrent has {} logs, {} found'
 new_tor = 'Generating new torrent'
 tor_downed = '.torrent downloaded from {}'
 f_checked = 'Files checked'
-rehost = 'Img rehost:'
-no_img = 'No img in source'
-img_white = 'source img whitelisted'
-trying = 'trying'
-rehost_failed = "Failed. Using source url"
 permission_error = 'Permission error. Folder skipped: '
+# image handling
+rehost = 'Img rehost:'
+img_red_hosted = 'Image hosted on red'
+no_img = 'No (valid) img in source'
+img_white = 'source img whitelisted'
+rehost_failed = "Failed. Using source url"
 # post check
 log_score_dif = 'Log scores different: {} - {}'
 merged = 'Merged into an existing group'
