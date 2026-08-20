@@ -169,9 +169,10 @@ class Transplanter:
 
             dest_api = self.api_map[dest_tr]
             data_dict = upl_data.upl_dict(dest_tr, self.job.dest_group)
-            image_url = self.do_img(dest_tr)
-            if image_url:
-                data_dict['image'] = image_url
+            if not self.job.dest_group:
+                image_url = self.do_img(dest_tr)
+                if image_url:
+                    data_dict['image'] = image_url
 
             files_list = upl_files.files_list(dest_api.announce, dest_tr.name, u_strip=self.strip_tor)
 
