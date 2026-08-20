@@ -1,3 +1,5 @@
+2.6.4
+- Fix: Fail when source has no cover
 2.6.3
 - New: Deal with RED image host
 - Fix: unknown torrent to RED failed

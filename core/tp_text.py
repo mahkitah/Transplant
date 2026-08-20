@@ -1,4 +1,4 @@
-tp_version = (2, 6, 3)
+tp_version = (2, 6, 4)
 # progress report
 requesting = "Requesting torrent info:"
 no_music = 'Not a music torrent'
