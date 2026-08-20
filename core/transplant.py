@@ -429,7 +429,7 @@ class Transplanter:
         proxy = self.tor_info.proxy_img
         red_api: RedApi = self.api_map[TR.RED]
 
-        if any(bh in src_img_url for bh in self.bad_img_hosts):
+        if src_img_url and any(bh in src_img_url for bh in self.bad_img_hosts):
             src_img_url = None
 
         if not src_img_url and not proxy:
